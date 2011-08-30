@@ -59,13 +59,8 @@ public class RunFactory {
   private List<Run> createRuns(ProjectSpec projectSpec, Parameters params, String projectName,
       Repetitions repetitions) {
     List<Run> runs = Lists.newArrayList();
-    if (projectSpec.getScenarios() != null && projectSpec.getScenarios().size() > 0) {
-      for (Scenario scenario : projectSpec.getScenarios()) {
-        Parameters runParams = params.mergeParameters(scenario.getParameters());
-        runs.addAll(createRuns(runParams, projectName + "_" + scenario.getName(), repetitions));
-      }
-    } else {
-      runs.addAll(createRuns(params, projectName, repetitions));
+    for (Parameters repetitionParams : repetitions.getParams()) {
+      runs.addAll(createRuns(projectSpec, params.mergeParameters(repetitionParams), projectName));
     }
     return runs;
   }
@@ -74,14 +69,21 @@ public class RunFactory {
    * Create a list of runs given the provided parameters and the Repetitions object.
    * One run will be created for every repetition.
    */
-  private List<Run> createRuns(Parameters params, String runName, Repetitions repetitions) {
+  private List<Run> createRuns(ProjectSpec projectSpec, Parameters params, String projectName) {
     List<Run> runs = Lists.newArrayList();
-    for (Parameters repetitionParams : repetitions.getParams()) {
-      Run run = new Run(baseRunId++, runName, revision, commandFlags, params.mergeParameters(repetitionParams),
-          "scheduled", runset);
-      runs.add(run);
+    if (projectSpec.getScenarios() != null && projectSpec.getScenarios().size() > 0) {
+      for (Scenario scenario : projectSpec.getScenarios()) {
+        Parameters runParams = params.mergeParameters(scenario.getParameters());
+        runs.add(createRun(runParams, projectName + "_" + scenario.getName()));
+      }
+    } else {
+      runs.add(createRun(params, projectName));
     }
     return runs;
+  }
+
+  private Run createRun(Parameters runParams, String runName) {
+    return new Run(baseRunId++, runName, revision, commandFlags, runParams, "scheduled", runset);
   }
 
   private Parameters getGlobalParams() throws RdvException {
