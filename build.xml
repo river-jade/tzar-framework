@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project default="dist" basedir=".">
+    <property name="build.dir" location="build"/>
+    <property name="lib.dir" location="lib"/>
+    <property name="jar.name" value="tzar.jar"/>
+    <property name="src.dir" value="java"/>
+    <property name="tst.dir" value="javatest"/>
+    <property name="api.jar.name" value="tzar-api.jar"/>
+
+    <target name="clean" depends="clean-compile-test" unless="jar.uptodate">
+        <delete dir="${build.dir}"/>
+        <delete file="${jar.name}"/>
+    </target>
+
+    <path id="master-classpath">
+        <fileset dir="${lib.dir}">
+            <include name="*.jar"/>
+        </fileset>
+        <pathelement location="${build.dir}"/>
+    </path>
+
+    <target name="javac" depends="checkjar, clean" unless="jar.uptodate">
+        <mkdir dir="${build.dir}"/>
+        <javac srcdir="java" destdir="${build.dir}" includeantruntime="false" debug="true">
+            <classpath refid="master-classpath"/>
+        </javac>
+    </target>
+
+    <target name="javac-api" depends="checkjar, clean" unless="jar.uptodate">
+        <mkdir dir="${build.dir}"/>
+        <javac srcdir="java" destdir="${build.dir}" includeantruntime="false" debug="true"
+               includes="au/edu/rmit/tzar/api/**">
+            <classpath refid="master-classpath"/>
+        </javac>
+    </target>
+
+    <target name="dist" depends="checkjar, clean, javac" unless="jar.uptodate">
+        <!-- Add the libs -->
+        <copy todir="${build.dir}/lib">
+            <fileset dir="${lib.dir}"/>
+        </copy>
+        <copy todir="${build.dir}">
+            <fileset dir="java">
+                <include name="**.properties"/>
+            </fileset>
+        </copy>
+        <!-- Build the jar -->
+        <jar destfile="${jar.name}" basedir="${build.dir}">
+            <zipfileset src="${lib.dir}/bcprov-jdk16-146.jar">
+                <exclude name="META-INF/**"/>
+                <!-- exclude the manifest because otherwise the signatures in the jars don't match-->
+            </zipfileset>
+            <zipfileset src="${lib.dir}/guava-r09-rc3.jar"/>
+            <zipfileset src="${lib.dir}/gson-1.7.1.jar"/>
+            <zipfileset src="${lib.dir}/jcommander-1.19-SNAPSHOT.jar"/>
+            <zipfileset src="${lib.dir}/jzlib-1.0.7.jar"/>
+            <zipfileset src="${lib.dir}/postgresql-9.0-801.jdbc4.jar"/>
+            <zipfileset src="${lib.dir}/slf4j-api-1.6.1.jar"/>
+            <zipfileset src="${lib.dir}/slf4j-jdk14-1.6.1.jar"/>
+            <zipfileset src="${lib.dir}/sshj-0.3.1.jar"/>
+            <zipfileset src="${lib.dir}/svnkit.jar"/>
+            <manifest>
+                <attribute name="Main-Class" value="au.edu.rmit.tzar.commands.Main"/>
+            </manifest>
+        </jar>
+        <!-- clean up -->
+        <delete dir="${build.dir}"/>
+    </target>
+
+    <target name="dist-api" depends="clean, javac-api">
+        <!-- Build the jar -->
+        <jar destfile="${api.jar.name}" basedir="${build.dir}">
+            <zipfileset src="${lib.dir}/guava-r09-rc3.jar"/>
+            <zipfileset src="${lib.dir}/gson-1.7.1.jar"/>
+        </jar>
+        <!-- clean up -->
+        <delete dir="${build.dir}"/>
+    </target>
+
+    <target name="checkjar">
+        <uptodate property="jar.uptodate" targetfile="${jar.name}">
+            <srcfiles dir="." includes="**"/>
+        </uptodate>
+    </target>
+
+    <path id="classpath.test">
+        <pathelement location="${tst.dir}"/>
+        <path refid="master-classpath"/>
+    </path>
+
+    <target name="compile-test" depends="javac">
+        <javac srcdir="${tst.dir}">
+            <classpath refid="classpath.test"/>
+        </javac>
+    </target>
+
+    <target name="clean-compile-test">
+        <delete>
+            <fileset dir="${tst.dir}" includes="**/*.class"/>
+        </delete>
+    </target>
+
+    <target name="test" depends="compile-test">
+        <junit>
+            <classpath refid="classpath.test"/>
+            <formatter type="brief" usefile="false"/>
+            <batchtest>
+                <fileset dir="${tst.dir}" includes="**/*.class" excludes="**/Abstract*.class"/>
+            </batchtest>
+        </junit>
+    </target>
+</project>
