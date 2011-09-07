@@ -55,6 +55,8 @@ public class JsonParser {
             return builder.build();
           }
         })
+
+        .registerTypeAdapter(RepetitionGenerator.class, new RepetitionsDeserialiser())
         .create();
   }
 
@@ -119,6 +121,10 @@ public class JsonParser {
     return objectFromJson(repetitionsFile, Repetitions.class);
   }
 
+  public Repetitions repetitionsFromJson(String repetitionsJson) throws RdvException {
+    return objectFromJson(repetitionsJson, Repetitions.class);
+  }
+
   private <T> T objectFromJson(File file, Class<T> aClass) throws FileNotFoundException, RdvException {
     try {
       return gson.fromJson(new FileReader(file), aClass);
@@ -127,4 +133,32 @@ public class JsonParser {
       throw new RdvException(e);
     }
   }
+
+  private <T> T objectFromJson(String json, Class<T> aClass) throws RdvException {
+    try {
+      return gson.fromJson(json, aClass);
+    } catch (JsonParseException e) {
+      LOG.log(Level.WARNING, "Error parsing JSON string: " + json, e);
+      throw new RdvException(e);
+    }
+  }
+
+  /**
+   * Used to deserialise repetitions generator definitions from json. We need a custom deserialiser
+   * because we deserialise into a type hierarchy of different generators, as defined by the
+   * json tag: generator_type. The mapping (from json tag value to class type) is defined
+   * by RepetitionGenerator.GeneratorType.
+   */
+  private final class RepetitionsDeserialiser implements JsonDeserializer<RepetitionGenerator> {
+    @Override
+    public RepetitionGenerator deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws
+        JsonParseException {
+      JsonObject repetitionsObject = json.getAsJsonObject();
+      String generatorTypeElement = repetitionsObject.get("generator_type").getAsString();
+      Class<? extends RepetitionGenerator> generatorInstanceClass = RepetitionGenerator.TYPES.get
+          (generatorTypeElement);
+      return gson.fromJson(json, generatorInstanceClass);
+    }
+  }
+
 }

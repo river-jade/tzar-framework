@@ -59,7 +59,7 @@ public class RunFactory {
   private List<Run> createRuns(ProjectSpec projectSpec, Parameters params, String projectName,
       Repetitions repetitions) {
     List<Run> runs = Lists.newArrayList();
-    for (Parameters repetitionParams : repetitions.getParams()) {
+    for (Parameters repetitionParams : repetitions.getParamsList()) {
       runs.addAll(createRuns(projectSpec, params.mergeParameters(repetitionParams), projectName));
     }
     return runs;
@@ -113,7 +113,7 @@ public class RunFactory {
       if (repetitionsPath != null) {
         return jsonParser.repetitionsFromJson(repetitionsPath);
       } else {
-        return new Repetitions(Lists.newArrayList(Parameters.EMPTY_PARAMETERS));
+        return Repetitions.EMPTY_REPETITIONS;
       }
     } catch (FileNotFoundException e) {
       throw new RdvException(e);
