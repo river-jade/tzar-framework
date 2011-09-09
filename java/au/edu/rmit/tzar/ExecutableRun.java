@@ -121,9 +121,6 @@ public class ExecutableRun {
         throw new RdvException("Unable to delete existing output path: " + localOutputPath, e);
       }
     }
-    LOG.info("Renaming \"" + tmpOutputPath + "\" to \"" + localOutputPath + "\"");
-    if (!tmpOutputPath.renameTo(localOutputPath)) {
-      throw new RdvException("Unable to rename \"inprogress\" output directory.");
-    }
+    Utils.fileRename(tmpOutputPath, localOutputPath);
   }
 }
