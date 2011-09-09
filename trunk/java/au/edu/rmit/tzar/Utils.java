@@ -1,5 +1,6 @@
 package au.edu.rmit.tzar;
 
+import au.edu.rmit.tzar.api.RdvException;
 import com.google.common.io.Files;
 
 import java.io.*;
@@ -12,6 +13,8 @@ import java.util.logging.Logger;
  * Static utility functions.
  */
 public class Utils {
+  private static final Logger LOG = Logger.getLogger(Utils.class.getName());
+
   private Utils() { // not to be instantiated
   }
 
@@ -49,6 +52,36 @@ public class Utils {
 
   public static void copyDirectory(File source, File dest, RenamingStrategy renamer) throws IOException {
     copyDirectory(source, null, dest, renamer);
+  }
+
+  /**
+   * Wrapper for File.moveTo. Required because there are known issues with this method on
+   * Windoze systems. Windows cannot rename a file if any process has the file open for
+   * reading/writing. There is also apparently an unpredictable delay after closing a file
+   * handle in which the move operation will still fail (!!!). This method tries up to 10
+   * times to rename the directory, waiting longer each time (up to 30 seconds).
+   *
+   * @param source source to rename
+   * @param dest   new name / path
+   * @throws RdvException if the file / directory cannot be renamed.
+   */
+  public static void fileRename(File source, File dest) throws RdvException {
+    LOG.info("Renaming \"" + source + "\" to \"" + dest + "\"");
+    for (int i = 0; i < 10; i++) {
+      if (source.renameTo(dest)) {
+        return;
+      }
+      long delay = (long) Math.pow(1.4, i) * 1000;
+      LOG.warning("Renaming \"" + source + "\" to \"" + dest + "\" failed. Waiting " +
+          delay + " seconds and retrying.");
+      try {
+        Thread.sleep(delay); // exponential backoff, first wait is 1 second, last wait is 30s.
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+        throw new RdvException(e);
+      }
+    }
+    throw new RdvException("Unable to rename \"" + source + "\" to \"" + dest + "\"");
   }
 
   private static void copyDirectory(File sourceBase, File sourceRel, File destBase, RenamingStrategy renamer)
