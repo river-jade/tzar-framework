@@ -39,6 +39,7 @@ public class RunDaoTest extends TestCase {
     when(resultSet.getString("command_flags")).thenReturn(COMMAND_FLAGS);
     when(resultSet.getString("runset")).thenReturn(RUNSET);
     when(resultSet.getString("code_version")).thenReturn(CODE_VERSION);
+    when(resultSet.getString("state")).thenReturn("scheduled");
     when(mockConnection.prepareStatement(RunDao.NEXT_RUN_SQL, ResultSet.TYPE_FORWARD_ONLY,
         ResultSet.CONCUR_READ_ONLY)).thenReturn(nextRunStatement);
     when(mockConnection.prepareStatement(RunDao.INSERT_RUN_SQL, Statement.RETURN_GENERATED_KEYS)).thenReturn
