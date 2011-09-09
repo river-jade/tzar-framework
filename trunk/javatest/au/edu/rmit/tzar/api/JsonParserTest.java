@@ -33,7 +33,7 @@ public class JsonParserTest extends TestCase {
     inputFiles.put("test5", "bar");
     Map<String, String> outputFiles = Maps.newLinkedHashMap();
 
-    Parameters baseParameters = new Parameters(variables, inputFiles, outputFiles);
+    Parameters baseParameters = Parameters.createParameters(variables, inputFiles, outputFiles);
 
     ArrayList<Scenario> scenarios = Lists.newArrayList();
 
@@ -43,7 +43,7 @@ public class JsonParserTest extends TestCase {
     inputFiles.put("test4", "foo2");
     inputFiles.put("test7", "flurgle");
 
-    Parameters overrideParameters1 = new Parameters(variables, inputFiles, outputFiles);
+    Parameters overrideParameters1 = Parameters.createParameters(variables, inputFiles, outputFiles);
     Parameters overrideParameters2 = Parameters.EMPTY_PARAMETERS;
     scenarios.add(new Scenario("test scenario1", overrideParameters1));
     scenarios.add(new Scenario("test scenario2", overrideParameters2));

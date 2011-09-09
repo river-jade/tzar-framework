@@ -223,7 +223,7 @@ public class RunDao {
   // TODO(michaell): This is inefficient for cases where we're loading multiple runs,
   // as it does a db call for each run.
   // If this turns out to be a problem, it may be worth switching to an ORM such as Hibernate.
-  private Parameters loadParameters(int runId) throws SQLException {
+  private Parameters loadParameters(int runId) throws SQLException, RdvException {
     return parametersDao.loadFromDatabase(runId);
   }
 
@@ -234,7 +234,7 @@ public class RunDao {
    * @param withParameters if true, also load the parameters for the run
    * @return newly created Run
    */
-  private Run runFromResultSet(ResultSet resultSet, boolean withParameters) throws SQLException {
+  private Run runFromResultSet(ResultSet resultSet, boolean withParameters) throws SQLException, RdvException {
     int runId = resultSet.getInt("run_id");
     Parameters parameters = withParameters ? loadParameters(runId) : Parameters.EMPTY_PARAMETERS;
     Run run = new Run(runId, resultSet.getString("run_name"), resultSet.getString("code_version"),

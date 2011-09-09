@@ -54,7 +54,7 @@ public class ParametersDao {
    * @return
    * @throws SQLException
    */
-  public Parameters loadFromDatabase(int runId) throws SQLException {
+  public Parameters loadFromDatabase(int runId) throws SQLException, RdvException {
     loadParams.setInt(1, runId);
     ResultSet resultSet = loadParams.executeQuery();
     Map<String, Object> variables = Maps.newLinkedHashMap();
@@ -72,7 +72,7 @@ public class ParametersDao {
         addParam(resultSet, outputFiles, (String) param);
       }
     }
-    return new Parameters(variables, inputFiles, outputFiles);
+    return Parameters.createParameters(variables, inputFiles, outputFiles);
   }
 
   /**

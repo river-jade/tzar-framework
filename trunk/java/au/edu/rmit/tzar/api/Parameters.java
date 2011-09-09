@@ -3,6 +3,7 @@ package au.edu.rmit.tzar.api;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.google.gson.annotations.SerializedName;
 
 import java.io.File;
@@ -29,8 +30,28 @@ public class Parameters {
   @SerializedName("output_files")
   private final ImmutableMap<String, String> outputFiles;
 
-  public Parameters(Map<String, Object> variables, Map<String, String> inputFiles,
-      Map<String, String> outputFiles) {
+  /**
+   * Factory method to create a new Parameters object. Verifies that there are no duplicate keys.
+   *
+   * @param variables
+   * @param inputFiles
+   * @param outputFiles
+   * @return a new Parameters object
+   * @throws RdvException if there are duplicate keys
+   */
+  public static Parameters createParameters(Map<String, ?> variables, Map<String, String> inputFiles,
+      Map<String, String> outputFiles) throws RdvException {
+    checkForDuplicateKeys(variables, inputFiles);
+    checkForDuplicateKeys(variables, outputFiles);
+    checkForDuplicateKeys(inputFiles, outputFiles);
+    return new Parameters(variables, inputFiles, outputFiles);
+  }
+
+  /**
+   * Private constructor. Key names across the maps must be unique. Callers of this method should call validate
+   * immediately after, unless there are guaranteed to be no duplicate keys.
+   */
+  private Parameters(Map<String, ?> variables, Map<String, String> inputFiles, Map<String, String> outputFiles) {
     this.variables = ImmutableMap.copyOf(variables);
     this.inputFiles = ImmutableMap.copyOf(inputFiles);
     this.outputFiles = ImmutableMap.copyOf(outputFiles);
@@ -97,19 +118,19 @@ public class Parameters {
    * @return a new Parameters object containing a merged version of the two provided Parameters
    *         objects
    */
-  public Parameters mergeParameters(Parameters overrideParameters) {
+  public Parameters mergeParameters(Parameters overrideParameters) throws RdvException {
     Map<String, Object> variables = mergeParameters(getVariables(), overrideParameters.getVariables());
     Map<String, String> inputFiles = mergeParameters(getInputFiles(),
         overrideParameters.getInputFiles());
     Map<String, String> outputFiles = mergeParameters(getOutputFiles(),
         overrideParameters.getOutputFiles());
-    return new Parameters(variables, inputFiles, outputFiles);
+    return createParameters(variables, inputFiles, outputFiles);
   }
 
   // TODO(michaell): javadocs
   public Parameters mergeParameters(Map<String, Object> variables, Map<String, String> inputFiles,
-      Map<String, String> outputFiles) {
-    return mergeParameters(new Parameters(variables, inputFiles, outputFiles));
+      Map<String, String> outputFiles) throws RdvException {
+    return mergeParameters(createParameters(variables, inputFiles, outputFiles));
   }
 
   /**
@@ -124,8 +145,13 @@ public class Parameters {
   }
 
   /**
-   * Replaces any of the provided wildcard keys (as delimited by $$) with
+   * Replaces any of the provided wildcard keys (as delimited by $$<param name>$$) with
    * the provided values.
+   * <p/>
+   * For example, if we pass in a wildcards Map containing key:base_path, and value:
+   * "/foo", then if one of the parameter values of this object has name base_path
+   * and value, "$$path$$/somewhere", then this method will return a Parameters
+   * object containing a parameter with name: base_path, value: "/foo/somewhere".
    *
    * @param wildcards a map of wildcard names to their corresponding values
    * @return a new Parameters object with all wildcard values (in variables, inputFiles
@@ -167,6 +193,14 @@ public class Parameters {
     return map.put(key, (T) value);
   }
 
+  private static void checkForDuplicateKeys(Map<String, ?> map1, Map<String, ?> map2) throws RdvException {
+    Sets.SetView<String> intersection = Sets.intersection(map1.keySet(), map2.keySet());
+    if (!intersection.isEmpty()) {
+      throw new RdvException("Duplicate keys found. There cannot be any shared keys between variables, " +
+          "input_files and output_files. Duplicate keys are: " + intersection);
+    }
+  }
+
   private static <T> Map<String, T> mergeParameters(Map<String, T> baseParameters, Map<String, T> overrideParameters) {
     HashMap<String, T> map = Maps.newHashMap(baseParameters);
     map.putAll(overrideParameters);
@@ -203,5 +237,14 @@ public class Parameters {
     result = 31 * result + (inputFiles != null ? inputFiles.hashCode() : 0);
     result = 31 * result + (outputFiles != null ? outputFiles.hashCode() : 0);
     return result;
+  }
+
+  @Override
+  public String toString() {
+    return "Parameters{" +
+        "variables=" + variables +
+        "\ninputFiles=" + inputFiles +
+        "\noutputFiles=" + outputFiles +
+        '}';
   }
 }

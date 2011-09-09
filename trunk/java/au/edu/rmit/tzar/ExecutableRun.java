@@ -123,7 +123,7 @@ public class ExecutableRun {
     }
     LOG.info("Renaming \"" + tmpOutputPath + "\" to \"" + localOutputPath + "\"");
     if (!tmpOutputPath.renameTo(localOutputPath)) {
-      throw new RdvException("Unable to copy output files to final destination.");
+      throw new RdvException("Unable to rename \"inprogress\" output directory.");
     }
   }
 }
