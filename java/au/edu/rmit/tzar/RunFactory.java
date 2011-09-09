@@ -57,7 +57,7 @@ public class RunFactory {
    * Create a List of Runs, one for each repetition in the Repetitions object, for each scenario in the projectSpec.
    */
   private List<Run> createRuns(ProjectSpec projectSpec, Parameters params, String projectName,
-      Repetitions repetitions) {
+      Repetitions repetitions) throws RdvException {
     List<Run> runs = Lists.newArrayList();
     for (Parameters repetitionParams : repetitions.getParamsList()) {
       runs.addAll(createRuns(projectSpec, params.mergeParameters(repetitionParams), projectName));
@@ -69,7 +69,7 @@ public class RunFactory {
    * Create a list of runs given the provided parameters and the Repetitions object.
    * One run will be created for every repetition.
    */
-  private List<Run> createRuns(ProjectSpec projectSpec, Parameters params, String projectName) {
+  private List<Run> createRuns(ProjectSpec projectSpec, Parameters params, String projectName) throws RdvException {
     List<Run> runs = Lists.newArrayList();
     if (projectSpec.getScenarios() != null && projectSpec.getScenarios().size() > 0) {
       for (Scenario scenario : projectSpec.getScenarios()) {

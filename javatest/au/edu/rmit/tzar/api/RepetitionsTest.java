@@ -21,7 +21,7 @@ public class RepetitionsTest extends TestCase {
   protected void setUp() throws Exception {
     super.setUp();
     staticRepetitions = new ArrayList<Parameters>();
-    staticRepetitions.add(new Parameters(
+    staticRepetitions.add(Parameters.createParameters(
         new HashMap<String, Object>() {{
           put("x", "y");
         }},
@@ -32,7 +32,7 @@ public class RepetitionsTest extends TestCase {
           put("b", "2.txt");
         }}
     ));
-    staticRepetitions.add(new Parameters(
+    staticRepetitions.add(Parameters.createParameters(
         new HashMap<String, Object>() {{
           put("x", "z");
         }},
@@ -50,7 +50,7 @@ public class RepetitionsTest extends TestCase {
    * Tests that if there are no generated repetitions define, the parameters list is
    * just equal to the static repetitions.
    */
-  public void testStaticRepetitions() {
+  public void testStaticRepetitions() throws RdvException {
     Repetitions repetitions = new Repetitions(staticRepetitions, null);
     assertEquals(staticRepetitions, repetitions.getParamsList());
   }
@@ -58,7 +58,7 @@ public class RepetitionsTest extends TestCase {
   /**
    * Tests basic linear step generation with no static repetitions.
    */
-  public void testGeneratedRepetitions() {
+  public void testGeneratedRepetitions() throws RdvException {
     List<RepetitionGenerator<?>> generators = Lists.newArrayList();
     generators.add(new LinearStepGenerator(KEY, BigDecimal.valueOf(1.0), 10, BigDecimal.valueOf(2.0)));
     Repetitions repetitions = new Repetitions(null, generators);
