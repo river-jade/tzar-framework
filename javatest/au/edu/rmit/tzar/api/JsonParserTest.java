@@ -74,4 +74,20 @@ public class JsonParserTest extends TestCase {
     assertEquals(200, paramsList.size());
     assertEquals(set.size(), paramsList.size()); // assert that all items in the list are unique
   }
+
+  /**
+   * Tests that parsing a json string containing 2 static repetitions and no generators
+   * gives a set of parameter sets (with each set unique) of size 2.
+   *
+   * @throws RdvException
+   */
+  public void testRepetitionDeserialisationNoGenerators() throws RdvException {
+    String json = "{ repetitions : [ { variables : { A : 1 } }, { variables : " +
+        "{ A : 2 } } ] }";
+    Repetitions repetitions = jsonParser.repetitionsFromJson(json);
+    List<Parameters> paramsList = repetitions.getParamsList();
+    HashSet<Parameters> set = Sets.newHashSet(paramsList);
+    assertEquals(2, paramsList.size());
+    assertEquals(set.size(), paramsList.size()); // assert that all items in the list are unique
+  }
 }
