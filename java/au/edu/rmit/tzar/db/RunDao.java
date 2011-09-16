@@ -144,23 +144,12 @@ public class RunDao {
    * @param runset         runset to match, may be null
    * @param runIds         list of run ids to match, may be null or empty
    * @param truncateOutput if the output should be truncated
+   * @param outputType     output format
    * @throws RdvException if the runs cannot be loaded
    */
   public synchronized void printRuns(List<String> states, String hostname, String runset, List<Integer> runIds,
-      boolean truncateOutput) throws RdvException {
-    Utils.printResultSet(loadRuns(states, hostname, runset, runIds), truncateOutput);
-  }
-
-  /**
-   * Prints the run matching the provided run id and its run parameters to stdout.
-   *
-   * @param runId          the id of the run to print
-   * @param truncateOutput if the output should be truncated to fit on screen
-   * @throws RdvException if the run cannot be loaded
-   */
-  public synchronized void printRun(int runId, boolean truncateOutput) throws RdvException {
-    Utils.printResultSet(loadRuns(null, null, null, Lists.newArrayList(runId)), truncateOutput);
-    parametersDao.printParameters(runId, truncateOutput);
+      boolean truncateOutput, Utils.OutputType outputType) throws RdvException {
+    Utils.printResultSet(loadRuns(states, hostname, runset, runIds), truncateOutput, outputType);
   }
 
   public synchronized List<Run> getRuns(List<String> states, String hostname, String runset, List<Integer> runIds)

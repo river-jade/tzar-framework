@@ -26,6 +26,15 @@ public class DaoFactory {
     }
   }
 
+  public ParametersDao createParametersDao() throws RdvException {
+    try {
+      Connection connection = connectionFactory.createConnection();
+      return new ParametersDao(connection);
+    } catch (SQLException e) {
+      throw new RdvException(e);
+    }
+  }
+
   /**
    * Factory to create database connections.
    */

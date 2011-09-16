@@ -1,5 +1,6 @@
 package au.edu.rmit.tzar.db;
 
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,6 +13,7 @@ import java.util.List;
 public class TablePrinter {
   private static final int MAX_WIDTH = 25;
   private final boolean truncateOutput;
+  private final PrintStream out;
 
   /**
    * The row class represents one row of data.
@@ -41,7 +43,7 @@ public class TablePrinter {
   /**
    * Constructor - pass in columns as an array, or hard coded
    */
-  public TablePrinter(List<String> names, boolean truncateOutput) {
+  public TablePrinter(List<String> names, boolean truncateOutput, PrintStream out) {
     this.truncateOutput = truncateOutput;
     cols = new Col[names.size()];
     for (int i = 0; i < cols.length; i++) {
@@ -51,6 +53,7 @@ public class TablePrinter {
     }
 
     rows = new ArrayList<Row>();
+    this.out = out;
   }
 
   private int getMaxWidth(int length) {
@@ -78,11 +81,11 @@ public class TablePrinter {
    * Helper method to make sure column headers and
    * row information are printed the same
    */
-  private void print(String v, int w) {
-    System.out.print(" ");
-    System.out.print(v);
-    System.out.print(spaces(w - v.length()));
-    System.out.print(" |");
+  private void print(String v, int w, PrintStream out) {
+    out.print(" ");
+    out.print(v);
+    out.print(spaces(w - v.length()));
+    out.print(" |");
   }
 
   /**
@@ -91,29 +94,28 @@ public class TablePrinter {
    * methods that you have to decipher. This fulfils that requirement.
    */
   public void print() {
-
-    System.out.print("|");
+    out.print("|");
     for (Col col : cols) {
-      print(col.name, col.maxWidth);
+      print(col.name, col.maxWidth, out);
     }
-    System.out.println("");
+    out.println("");
     int numDashes = cols.length * 3 + 1;
     for (Col col : cols) numDashes += col.maxWidth;
     // TODO make columns have + instead of -
-    System.out.println(dashes(numDashes));
+    out.println(dashes(numDashes));
     for (Row row : rows) {
-      System.out.print("|");
+      out.print("|");
       int i = 0;
       for (String v : row.data) {
         int maxWidth = cols[i++].maxWidth;
         if (v.length() > maxWidth) {
           v = v.substring(0, maxWidth);
         }
-        print(v, maxWidth);
+        print(v, maxWidth, out);
       }
-      System.out.println("");
+      out.println("");
     }
-    System.out.println("");
+    out.println("");
   }
 
   // print a specific number of spaces for padding
