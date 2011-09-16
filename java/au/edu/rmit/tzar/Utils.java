@@ -68,7 +68,7 @@ public class Utils {
   public static void fileRename(File source, File dest) throws RdvException {
     LOG.info("Renaming \"" + source + "\" to \"" + dest + "\"");
     for (int i = 0; i < 10; i++) {
-      if (source.renameTo(dest)) {
+      if (source.renameTo(dest)) { // success!
         return;
       }
       long delay = (long) Math.pow(1.4, i) * 1000;
@@ -91,6 +91,10 @@ public class Utils {
       sourcePath = sourceBase;
     } else {
       sourcePath = new File(sourceBase, sourceRel.getPath());
+    }
+    if (!sourcePath.exists()) {
+      LOG.warning("Path " + sourcePath + " does not exist!");
+      return;
     }
     if (sourcePath.isDirectory()) {
       for (String child : sourcePath.list()) {
