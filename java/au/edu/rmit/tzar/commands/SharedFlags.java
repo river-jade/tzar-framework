@@ -1,6 +1,7 @@
 package au.edu.rmit.tzar.commands;
 
 import au.edu.rmit.tzar.Constants;
+import au.edu.rmit.tzar.db.Utils;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.beust.jcommander.converters.FileConverter;
@@ -28,14 +29,6 @@ class SharedFlags {
     private RunnerFlags() {
     }
 
-    @Parameter(names = "--scpoutputhost", description = "Hostname for run output data and logs.")
-    private final String scpOutputHost = null;
-
-    @Parameter(names = "--scpoutputpath", description = "Remote path for run output data and logs. This will be " +
-        "used for final location of output files if --scpoutputhost is set.",
-        converter = FileConverter.class)
-    private final File scpOutputPath = new File("tzar");
-
     @Parameter(names = "--localcodepath", description = "Path for local code repository to use " +
         "instead of SVN.", converter = FileConverter.class)
     private File localCodePath = null;
@@ -58,14 +51,6 @@ class SharedFlags {
 
     public File getLocalCodePath() {
       return localCodePath;
-    }
-
-    public String getScpOutputHost() {
-      return scpOutputHost;
-    }
-
-    public File getScpOutputPath() {
-      return scpOutputPath;
     }
 
     public String getSvnUrl() {
@@ -104,6 +89,7 @@ class SharedFlags {
     private int numRuns = 1;
 
     @Parameter(names = "--projectspec", description = "The path to the file containing the project spec. Either this " +
+        "" +
         "" +
         "or --runspec must be set.")
     private File projectSpec = null;
@@ -209,11 +195,18 @@ class SharedFlags {
     private PrintTableFlags() {
     }
 
+    @Parameter(names = "--csv", description = "Set if output should be CSV format.")
+    private boolean outputType;
+
     @Parameter(names = "--notruncate", description = "Set if output fields should be arbitrarily long.")
     private boolean noTruncateOutput = false;
 
     public boolean isTruncateOutput() {
       return !noTruncateOutput;
+    }
+
+    public Utils.OutputType getOutputType() {
+      return outputType ? Utils.OutputType.CSV : Utils.OutputType.PRETTY;
     }
   }
 }

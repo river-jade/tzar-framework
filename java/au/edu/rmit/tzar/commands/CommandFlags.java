@@ -3,6 +3,7 @@ package au.edu.rmit.tzar.commands;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import com.beust.jcommander.converters.FileConverter;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -39,8 +40,20 @@ public class CommandFlags {
     @Parameter(names = "--runset", description = "Name of runset to poll for. If omitted, will poll for any runs.")
     private String runset = null;
 
+    @Parameter(names = "--scpoutputhost", description = "Hostname for run output data and logs.")
+    private final String scpOutputHost = null;
+
+    @Parameter(names = "--scpoutputpath", description = "Remote path for run output data and logs. This will be " +
+        "used for final location of output files if --scpoutputhost is set.",
+        converter = FileConverter.class)
+    private final File scpOutputPath = new File("tzar");
+
     @Parameter(names = "--sleeptime", description = "Time to wait between database polls (millis).")
     private int sleepTimeMillis = 10000;
+
+    public int getConcurrentTaskCount() {
+      return concurrentTaskCount;
+    }
 
     public String getRunset() {
       return runset;
@@ -50,8 +63,12 @@ public class CommandFlags {
       return sleepTimeMillis;
     }
 
-    public int getConcurrentTaskCount() {
-      return concurrentTaskCount;
+    public String getScpOutputHost() {
+      return scpOutputHost;
+    }
+
+    public File getScpOutputPath() {
+      return scpOutputPath;
     }
   }
 
