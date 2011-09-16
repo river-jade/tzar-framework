@@ -190,7 +190,7 @@ public class Main {
       DaoFactory daoFactory = new DaoFactory(getDbUrl());
       return new PrintRuns(daoFactory.createRunDao(), LOAD_RUNS_FLAGS.getStates(),
           LOAD_RUNS_FLAGS.getHostName(), LOAD_RUNS_FLAGS.getRunset(), LOAD_RUNS_FLAGS.getRunIds(),
-          PRINT_TABLE_FLAGS.isTruncateOutput());
+          PRINT_TABLE_FLAGS.isTruncateOutput(), PRINT_TABLE_FLAGS.getOutputType());
     }
 
     public Command newPollAndRun() throws IOException, RdvException, ParseException {
@@ -202,15 +202,24 @@ public class Main {
       CodeRepository codeRepository = Utils.createCodeRepository(RUNNER_FLAGS.getLocalCodePath(),
           RUNNER_FLAGS.getBaseModelsPath(), RUNNER_FLAGS.getSvnUrl());
 
-      return new PollAndRun(daoFactory, POLL_AND_RUN_FLAGS.getSleepTimeMillis(), createResultsCopier(),
+      ResultsCopier resultsCopier;
+      if (POLL_AND_RUN_FLAGS.getScpOutputHost() != null) {
+        SSHClient sshClient = Utils.createSSHClient(POLL_AND_RUN_FLAGS.getScpOutputHost());
+        resultsCopier = new ScpResultsCopier(POLL_AND_RUN_FLAGS.getScpOutputHost(),
+            POLL_AND_RUN_FLAGS.getScpOutputPath(), sshClient);
+      } else {
+        resultsCopier = new FileResultsCopier(RUNNER_FLAGS.getLocalOutputPath());
+      }
+
+      return new PollAndRun(daoFactory, POLL_AND_RUN_FLAGS.getSleepTimeMillis(), resultsCopier,
           POLL_AND_RUN_FLAGS.getRunset(), POLL_AND_RUN_FLAGS.getConcurrentTaskCount(),
           RUNNER_FLAGS.getLocalOutputPath(), codeRepository, new RunnerFactory());
     }
 
     public Command newPrintRun() throws RdvException, ParseException {
       DaoFactory daoFactory = new DaoFactory(getDbUrl());
-      return new PrintRun(daoFactory.createRunDao(), PRINT_RUN_FLAGS.getRunId(),
-          PRINT_TABLE_FLAGS.isTruncateOutput());
+      return new PrintRun(daoFactory.createParametersDao(), PRINT_RUN_FLAGS.getRunId(),
+          PRINT_TABLE_FLAGS.isTruncateOutput(), PRINT_TABLE_FLAGS.getOutputType());
     }
 
     public Command newScheduleRuns() throws IOException, RdvException, ParseException {
@@ -219,15 +228,6 @@ public class Main {
           CREATE_RUNS_FLAGS.getCommandFlags(), CREATE_RUNS_FLAGS.getRunset(), CREATE_RUNS_FLAGS.getProjectSpec(),
           CREATE_RUNS_FLAGS.getRepetitionsPath(), CREATE_RUNS_FLAGS.getGlobalParamsPath(), -1);
       return new ScheduleRuns(daoFactory.createRunDao(), CREATE_RUNS_FLAGS.getNumRuns(), runFactory);
-    }
-
-    private static ResultsCopier createResultsCopier() throws IOException {
-      if (RUNNER_FLAGS.getScpOutputHost() != null) {
-        SSHClient sshClient = Utils.createSSHClient(RUNNER_FLAGS.getScpOutputHost());
-        return new ScpResultsCopier(RUNNER_FLAGS.getScpOutputHost(), RUNNER_FLAGS.getScpOutputPath(), sshClient);
-      } else {
-        return new FileResultsCopier(RUNNER_FLAGS.getLocalOutputPath());
-      }
     }
 
     private String getDbUrl() throws ParseException {
