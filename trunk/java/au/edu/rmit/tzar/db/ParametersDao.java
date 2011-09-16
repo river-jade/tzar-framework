@@ -80,12 +80,13 @@ public class ParametersDao {
    *
    * @param runId          the run whose parameters are to be printed
    * @param truncateOutput if the output fields should be truncated for formatting
+   * @param outputType     output format
    * @throws RdvException if the parameters can't be loaded
    */
-  public void printParameters(int runId, boolean truncateOutput) throws RdvException {
+  public void printParameters(int runId, boolean truncateOutput, Utils.OutputType outputType) throws RdvException {
     try {
       loadParams.setInt(1, runId);
-      Utils.printResultSet(loadParams.executeQuery(), truncateOutput);
+      Utils.printResultSet(loadParams.executeQuery(), truncateOutput, outputType);
     } catch (SQLException e) {
       throw new RdvException(e);
     }

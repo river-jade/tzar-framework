@@ -2,6 +2,7 @@ package au.edu.rmit.tzar.commands;
 
 import au.edu.rmit.tzar.api.RdvException;
 import au.edu.rmit.tzar.db.RunDao;
+import au.edu.rmit.tzar.db.Utils;
 
 import java.util.List;
 
@@ -20,20 +21,22 @@ public class PrintRuns implements Command {
   private final String runset;
   private final List<Integer> runIds;
   private final boolean truncateOutput;
+  private final Utils.OutputType outputType;
 
   public PrintRuns(RunDao runDao, List<String> states, String hostname, String runset, List<Integer> runIds,
-      boolean truncateOutput) {
+      boolean truncateOutput, Utils.OutputType outputType) {
     this.runDao = runDao;
     this.states = states;
     this.hostname = hostname;
     this.runset = runset;
     this.runIds = runIds;
     this.truncateOutput = truncateOutput;
+    this.outputType = outputType;
   }
 
   @Override
   public boolean execute() throws InterruptedException, RdvException {
-    runDao.printRuns(states, hostname, runset, runIds, truncateOutput);
+    runDao.printRuns(states, hostname, runset, runIds, truncateOutput, outputType);
     return true;
   }
 }
