@@ -7,6 +7,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.MapMaker;
+import com.google.common.io.Files;
 import net.schmizz.sshj.SSHClient;
 import net.schmizz.sshj.xfer.scp.SCPFileTransfer;
 
@@ -92,12 +93,12 @@ class AggregateResults implements Command {
         String sourceHost = run.getOutputHost();
         File runOutputPath = run.getOutputPath();
         if (hostname.equals(sourceHost)) {
+          LOG.info("Results are on localhost. Using copy to copy results.");
           au.edu.rmit.tzar.Utils.copyDirectory(runOutputPath, destPath, new RunIdRenamer(run.getRunId()));
         } else {
           LOG.info("Results are on machine: " + sourceHost + ". Using ssh to copy results.");
           SCPFileTransfer scpFileTransfer = connections.get(sourceHost).newSCPFileTransfer();
-          File tempPath = new File(destPath, "temp");
-          tempPath.mkdirs();
+          File tempPath = Files.createTempDir();
           scpFileTransfer.download(runOutputPath.getPath(), tempPath.getPath());
           au.edu.rmit.tzar.Utils.copyDirectory(new File(tempPath, runOutputPath.getName()),
               destPath, new RunIdRenamer(run.getRunId()));
