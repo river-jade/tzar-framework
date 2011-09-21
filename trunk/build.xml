@@ -69,7 +69,8 @@
 
     <target name="dist-api" depends="clean, javac-api">
         <!-- Build the jar -->
-        <jar destfile="${api.jar.name}" basedir="${build.dir}">
+        <jar destfile="${api.jar.name}" basedir="${build.dir}"
+          includes="au/edu/rmit/tzar/api/**"/>
             <zipfileset src="${lib.dir}/guava-r09-rc3.jar"/>
             <zipfileset src="${lib.dir}/gson-1.7.1.jar"/>
         </jar>
