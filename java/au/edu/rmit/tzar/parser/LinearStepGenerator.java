@@ -1,4 +1,4 @@
-package au.edu.rmit.tzar.api;
+package au.edu.rmit.tzar.parser;
 
 import com.google.gson.annotations.SerializedName;
 

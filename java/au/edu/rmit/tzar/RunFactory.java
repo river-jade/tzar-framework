@@ -1,6 +1,8 @@
 package au.edu.rmit.tzar;
 
 import au.edu.rmit.tzar.api.*;
+import au.edu.rmit.tzar.parser.JsonParser;
+import au.edu.rmit.tzar.parser.Repetitions;
 import com.google.common.collect.Lists;
 
 import java.io.File;
