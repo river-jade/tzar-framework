@@ -32,5 +32,6 @@ public abstract class RepetitionGenerator<T> {
   public static final Map<String, Class<? extends RepetitionGenerator>> TYPES =
       new HashMap<String, Class<? extends RepetitionGenerator>>() {{
         put("linear_step", LinearStepGenerator.class);
+        put("normal_distribution", NormalDistributionGenerator.class);
       }};
 }
