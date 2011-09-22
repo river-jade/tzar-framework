@@ -10,6 +10,7 @@ import com.google.common.io.Files;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.logging.FileHandler;
 import java.util.logging.Logger;
 
 /**
@@ -83,16 +84,37 @@ public class ExecutableRun {
       // TODO(michaell): Add some more wildcards here?
       Parameters parameters = run.getParameters().replaceWildcards(ImmutableMap.of("run_id",
           Integer.toString(getRunId())));
-      if (runner.runModel(model, tmpOutputPath, Integer.toString(run.getRunId()), run.getFlags(), parameters)) {
+
+      FileHandler handler = null;
+      boolean success = false;
+      try {
+        handler = setupFileLogger(tmpOutputPath);
+        success = runner.runModel(model, tmpOutputPath, Integer.toString(run.getRunId()), run.getFlags(),
+            parameters);
+      } finally {
+        if (handler != null) {
+          closeFileLogger(handler);
+        }
+      }
+      if (success) {
         renameOutputDir();
         run.setOutputPath(localOutputPath);
-        return true;
-      } else {
-        return false;
       }
+      return success;
     } catch (IOException e) {
       throw new RdvException(e);
     }
+  }
+
+  private static FileHandler setupFileLogger(File outputPath) throws IOException {
+    FileHandler handler = new FileHandler(new File(outputPath, "logging.log").getPath());
+    Logger.getLogger("").addHandler(handler);
+    return handler;
+  }
+
+  private static void closeFileLogger(FileHandler handler) throws IOException {
+    handler.close();
+    Logger.getLogger("").removeHandler(handler);
   }
 
   /**

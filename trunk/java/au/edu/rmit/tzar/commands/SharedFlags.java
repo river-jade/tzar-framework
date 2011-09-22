@@ -23,6 +23,7 @@ class SharedFlags {
   public static final LoadRunsFlags LOAD_RUNS_FLAGS = new LoadRunsFlags();
   public static final RunnerFlags RUNNER_FLAGS = new RunnerFlags();
   public static final PrintTableFlags PRINT_TABLE_FLAGS = new PrintTableFlags();
+  public static final CommonFlags COMMON_FLAGS = new CommonFlags();
 
   @Parameters(separators = "= ")
   public static class RunnerFlags {
@@ -89,6 +90,7 @@ class SharedFlags {
     private int numRuns = 1;
 
     @Parameter(names = "--projectspec", description = "The path to the file containing the project spec. Either this " +
+        "" +
         "" +
         "" +
         "or --runspec must be set.")
@@ -207,6 +209,35 @@ class SharedFlags {
 
     public Utils.OutputType getOutputType() {
       return outputType ? Utils.OutputType.CSV : Utils.OutputType.PRETTY;
+    }
+  }
+
+  public static class CommonFlags {
+    private CommonFlags() {
+    }
+
+    @Parameter(names = "--verbose", description = "Verbose logging to console.")
+    private boolean verbose = false;
+
+    @Parameter(names = "--quiet", description = "Quiet logging to console.")
+    private boolean quiet = false;
+
+    public LogLevel getLogLevel() throws Main.ParseException {
+      if (verbose && quiet) {
+        throw new Main.ParseException("Can not specify both --verbose and --quiet.");
+      } else if (verbose) {
+        return LogLevel.VERBOSE;
+      } else if (quiet) {
+        return LogLevel.QUIET;
+      } else {
+        return LogLevel.NORMAL;
+      }
+    }
+
+    public enum LogLevel {
+      QUIET,
+      NORMAL,
+      VERBOSE
     }
   }
 }
