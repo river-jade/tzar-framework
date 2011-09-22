@@ -89,7 +89,7 @@ class AggregateResults implements Command {
     List<Run> runs = runDao.getRuns(states, filterHostname, runset, runIds);
     try {
       for (Run run : runs) {
-        LOG.info("Copying results for run:" + run);
+        LOG.info("Copying results for run: " + run);
         String sourceHost = run.getOutputHost();
         File runOutputPath = run.getOutputPath();
         if (hostname.equals(sourceHost)) {
