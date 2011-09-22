@@ -13,11 +13,12 @@ import au.edu.rmit.tzar.resultscopier.ScpResultsCopier;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
 import com.google.common.collect.Maps;
+import com.google.common.collect.ObjectArrays;
 import net.schmizz.sshj.SSHClient;
 
 import java.io.IOException;
 import java.util.Map;
-import java.util.logging.LogManager;
+import java.util.logging.*;
 
 import static au.edu.rmit.tzar.commands.CommandFlags.*;
 import static au.edu.rmit.tzar.commands.SharedFlags.*;
@@ -28,16 +29,30 @@ import static au.edu.rmit.tzar.commands.SharedFlags.*;
  */
 public class Main {
   public static void main(String[] args) throws IOException, RdvException, InterruptedException {
-    if (System.getProperty("java.util.logging.config.file") == null) {
-      LogManager.getLogManager().readConfiguration(Main.class.getResourceAsStream("/logging.properties"));
-    }
     JCommander jCommander = new JCommander();
     for (Commands command : Commands.values()) {
-      jCommander.addCommand(command.name, command.flags);
+      jCommander.addCommand(command.name, ObjectArrays.concat(command.flags, SharedFlags.COMMON_FLAGS));
     }
 
     try {
       jCommander.parse(args);
+      setupLogging();
+
+      String cmdStr = jCommander.getParsedCommand();
+
+      Commands cmd = Commands.map.get(cmdStr);
+      if (cmd == null) {
+        if (cmdStr != null) {
+          System.out.println("Command: " + cmdStr + " not recognised.");
+        }
+        jCommander.usage();
+        System.exit(2);
+      } else {
+        Command command = cmd.instantiate(new CommandFactory(jCommander));
+        if (!command.execute()) {
+          System.exit(1);
+        }
+      }
     } catch (ParameterException e) {
       System.out.println(e.getMessage());
       String cmdStr = jCommander.getParsedCommand();
@@ -48,25 +63,25 @@ public class Main {
       }
       System.exit(2);
     }
+  }
 
-    String cmdStr = jCommander.getParsedCommand();
-    Commands cmd = Commands.map.get(cmdStr);
-    if (cmd == null) {
-      if (cmdStr != null) {
-        System.out.println("Command: " + cmdStr + " not recognised.");
-      }
-      jCommander.usage();
-      System.exit(2);
-    } else {
-      try {
-        Command command = cmd.instantiate(new CommandFactory(jCommander));
-        if (!command.execute()) {
-          System.exit(1);
-        }
-      } catch (ParseException e) {
-        System.out.println(e.getMessage());
-        jCommander.usage(cmdStr);
-        System.exit(2);
+  private static void setupLogging() throws IOException {
+    if (System.getProperty("java.util.logging.config.file") == null) {
+      LogManager.getLogManager().readConfiguration(Main.class.getResourceAsStream("/logging.properties"));
+    }
+    Level level = Level.INFO;
+    switch (SharedFlags.COMMON_FLAGS.getLogLevel()) {
+      case QUIET:
+        level = Level.WARNING;
+        break;
+      case VERBOSE:
+        level = Level.FINE;
+        break;
+    }
+    Handler[] handlers = Logger.getLogger("").getHandlers();
+    for (Handler handler : handlers) {
+      if (handler instanceof ConsoleHandler) {
+        handler.setLevel(level);
       }
     }
   }
@@ -240,7 +255,7 @@ public class Main {
     }
   }
 
-  private static class ParseException extends Exception {
+  static class ParseException extends ParameterException {
     public ParseException(String errorMessage) {
       super(errorMessage);
     }
