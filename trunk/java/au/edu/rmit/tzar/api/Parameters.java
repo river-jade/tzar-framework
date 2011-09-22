@@ -7,7 +7,6 @@ import com.google.common.collect.Sets;
 import com.google.gson.annotations.SerializedName;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -131,17 +130,6 @@ public class Parameters {
   public Parameters mergeParameters(Map<String, Object> variables, Map<String, String> inputFiles,
       Map<String, String> outputFiles) throws RdvException {
     return mergeParameters(createParameters(variables, inputFiles, outputFiles));
-  }
-
-  /**
-   * Writes this set of parameters out to a json file.
-   *
-   * @param file the file to write the json to
-   * @throws java.io.IOException if the file already exists or cannot be written to
-   */
-  public void toJson(File file) throws IOException {
-    JsonParser parser = new JsonParser();
-    parser.parametersToJson(this, file);
   }
 
   /**
