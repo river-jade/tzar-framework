@@ -91,8 +91,6 @@ class SharedFlags {
 
     @Parameter(names = "--projectspec", description = "The path to the file containing the project spec. Either this " +
         "" +
-        "" +
-        "" +
         "or --runspec must be set.")
     private File projectSpec = null;
 

@@ -21,10 +21,9 @@ public class RunFactory {
   private final File projectSpecPath;
   private final File repetitionsPath;
   private final File globalParamsPath;
-  private volatile int baseRunId;
 
   public RunFactory(JsonParser jsonParser, String revision, String commandFlags, String runset, File projectSpecPath,
-      File repetitionsPath, File globalParamsPath, int baseRunId) {
+      File repetitionsPath, File globalParamsPath) {
     this.jsonParser = jsonParser;
     this.revision = revision;
     this.commandFlags = commandFlags;
@@ -32,7 +31,6 @@ public class RunFactory {
     this.projectSpecPath = projectSpecPath;
     this.repetitionsPath = repetitionsPath;
     this.globalParamsPath = globalParamsPath;
-    this.baseRunId = baseRunId;
   }
 
   /**
@@ -85,7 +83,7 @@ public class RunFactory {
   }
 
   private Run createRun(Parameters runParams, String runName) {
-    return new Run(baseRunId++, runName, revision, commandFlags, runParams, "scheduled", runset);
+    return new Run(-1, runName, revision, commandFlags, runParams, "scheduled", runset);
   }
 
   private Parameters getGlobalParams() throws RdvException {

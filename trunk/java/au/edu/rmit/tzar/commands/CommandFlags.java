@@ -8,7 +8,6 @@ import com.beust.jcommander.converters.FileConverter;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 /**
  * Command name definitions for the command line parser.
@@ -75,13 +74,6 @@ public class CommandFlags {
   @Parameters(commandDescription = "Execute a set of runs locally.", separators = "= ")
   public static class ExecLocalRunsFlags {
     private ExecLocalRunsFlags() {
-    }
-
-    @Parameter(names = "--baserunid", description = "Start run_id generation from this value.")
-    private int baseRunId = new Random().nextInt(10000);
-
-    public int getBaseRunId() {
-      return baseRunId;
     }
   }
 

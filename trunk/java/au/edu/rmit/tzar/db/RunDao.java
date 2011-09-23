@@ -92,7 +92,7 @@ public class RunDao {
       File outputPath = run.getOutputPath();
       updateRun.setString(5, outputPath == null ? null : outputPath.getAbsolutePath());
       updateRun.setString(6, run.getOutputHost());
-      updateRun.setInt(7, run.getRunId());
+      updateRun.setInt(7, run.getRunId()); // this is for the where clause, we don't update this field.
       try {
         updateRun.executeUpdate();
         connection.commit();
