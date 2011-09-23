@@ -10,6 +10,7 @@ import au.edu.rmit.tzar.repository.CodeRepository;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static au.edu.rmit.tzar.commands.CommandFlags.EXEC_LOCAL_RUNS_FLAGS;
@@ -50,8 +51,16 @@ class ExecLocalRuns implements Command {
         success++;
       }
     }
-    LOG.info(String.format("Executed %d runs. %d succeeded.", runs.size(), success));
-    return success == runs.size();
+
+    int count = runs.size();
+    Level level;
+    if (count == success) {
+      level = Level.INFO;
+    } else {
+      level = Level.WARNING;
+    }
+    LOG.log(level, String.format("Executed %d runs: %d succeeded. %d failed", count, success, count - success));
+    return success == count;
 
 //    if (projectSpecPath != null) {
 //      return executeProjectSpec();

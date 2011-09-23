@@ -122,6 +122,10 @@ public class ExecutableRun {
    */
   private synchronized static int getNextRunId(File baseOutputPath) {
     int max = nextRunId;
+    if (!baseOutputPath.exists()) {
+      LOG.info("Outputdir doesn't exist. Creating it (and parents)");
+      baseOutputPath.mkdirs();
+    }
     for (File file : baseOutputPath.listFiles()) {
       String[] parts = file.getName().split("_");
       if (parts.length > 1) {
