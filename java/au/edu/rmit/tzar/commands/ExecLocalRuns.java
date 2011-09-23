@@ -6,6 +6,7 @@ import au.edu.rmit.tzar.RunnerFactory;
 import au.edu.rmit.tzar.api.RdvException;
 import au.edu.rmit.tzar.api.Run;
 import au.edu.rmit.tzar.repository.CodeRepository;
+import com.google.common.collect.Lists;
 
 import java.io.File;
 import java.io.IOException;
@@ -43,24 +44,29 @@ class ExecLocalRuns implements Command {
 
   @Override
   public boolean execute() throws InterruptedException, RdvException {
-    int success = 0;
     List<Run> runs = runFactory.createRuns(numRuns);
+    List<Integer> failedIds = Lists.newArrayList();
     for (Run run : runs) {
-      if (executeRun(ExecutableRun.createExecutableRun(run, baseOutputPath, codeRepository,
+      if (!executeRun(ExecutableRun.createExecutableRun(run, baseOutputPath, codeRepository,
           runnerFactory.loadRunner()))) {
-        success++;
+        failedIds.add(run.getRunId());
       }
     }
 
     int count = runs.size();
     Level level;
-    if (count == success) {
+    int failed = failedIds.size();
+    boolean allSuccess = failed == 0;
+    if (allSuccess) {
       level = Level.INFO;
     } else {
       level = Level.WARNING;
     }
-    LOG.log(level, String.format("Executed %d runs: %d succeeded. %d failed", count, success, count - success));
-    return success == count;
+    LOG.log(level, String.format("Executed %d runs: %d succeeded. %d failed", count, count - failed, failed));
+    if (!allSuccess) {
+      LOG.warning("Failed IDs were: " + failedIds);
+    }
+    return allSuccess;
 
 //    if (projectSpecPath != null) {
 //      return executeProjectSpec();
