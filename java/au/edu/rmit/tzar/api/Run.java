@@ -36,9 +36,9 @@ public class Run {
    * @param state      execution state of the run
    * @param runset     name of a runset for this run
    */
-  public Run(int runId, String runName, String revision, String flags, Parameters parameters, String state,
+  public Run(Integer runId, String runName, String revision, String flags, Parameters parameters, String state,
       String runset) {
-    this.runId = runId;
+    this.runId = runId == null ? -1 : runId;
     this.runName = runName;
     this.revision = revision;
     this.flags = flags;
@@ -103,6 +103,9 @@ public class Run {
     this.outputPath = outputPath;
   }
 
+  /**
+   * @return the run id, or -1 if this run does not yet have an id.
+   */
   public int getRunId() {
     return runId;
   }

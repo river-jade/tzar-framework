@@ -189,7 +189,7 @@ public class Main {
       RunFactory runFactory = new RunFactory(jsonParser, CREATE_RUNS_FLAGS.getRevision(),
           CREATE_RUNS_FLAGS.getCommandFlags(), CREATE_RUNS_FLAGS.getRunset(),
           CREATE_RUNS_FLAGS.getProjectSpec(), CREATE_RUNS_FLAGS.getRepetitionsPath(),
-          CREATE_RUNS_FLAGS.getGlobalParamsPath(), EXEC_LOCAL_RUNS_FLAGS.getBaseRunId());
+          CREATE_RUNS_FLAGS.getGlobalParamsPath());
       CodeRepository codeRepository = Utils.createCodeRepository(RUNNER_FLAGS.getLocalCodePath(),
           RUNNER_FLAGS.getBaseModelsPath(), RUNNER_FLAGS.getSvnUrl());
 
@@ -241,7 +241,7 @@ public class Main {
       DaoFactory daoFactory = new DaoFactory(getDbUrl());
       RunFactory runFactory = new RunFactory(new JsonParser(), CREATE_RUNS_FLAGS.getRevision(),
           CREATE_RUNS_FLAGS.getCommandFlags(), CREATE_RUNS_FLAGS.getRunset(), CREATE_RUNS_FLAGS.getProjectSpec(),
-          CREATE_RUNS_FLAGS.getRepetitionsPath(), CREATE_RUNS_FLAGS.getGlobalParamsPath(), -1);
+          CREATE_RUNS_FLAGS.getRepetitionsPath(), CREATE_RUNS_FLAGS.getGlobalParamsPath());
       return new ScheduleRuns(daoFactory.createRunDao(), CREATE_RUNS_FLAGS.getNumRuns(), runFactory);
     }
 

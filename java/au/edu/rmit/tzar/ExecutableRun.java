@@ -20,6 +20,10 @@ import java.util.logging.Logger;
 public class ExecutableRun {
   private static final Logger LOG = Logger.getLogger(ExecutableRun.class.getName());
 
+  private static final String INPROGRESS_SUFFIX = ".inprogress";
+
+  private static int nextRunId = 1;
+
   private final File tmpOutputPath;
   private final File localOutputPath;
   private final Run run;
@@ -37,6 +41,9 @@ public class ExecutableRun {
    */
   public static ExecutableRun createExecutableRun(Run run, File baseOutputPath, CodeRepository codeRepository,
       Runner runner) {
+    if (run.getRunId() == -1) {
+      run.setRunId(getNextRunId(baseOutputPath));
+    }
     // replace whitespace and punctuation in run name with '_' to make a valid path.
     String dirName = run.getName().replaceAll("\\W", "_") + "_" + run.getRunId();
     LOG.finer(String.format("Creating run: %s", run));
@@ -55,7 +62,7 @@ public class ExecutableRun {
     this.run = run;
     this.codeRepository = codeRepository;
     this.runner = runner;
-    tmpOutputPath = new File(outputPath + ".inprogress");
+    tmpOutputPath = new File(outputPath + INPROGRESS_SUFFIX);
     localOutputPath = outputPath;
   }
 
@@ -104,6 +111,36 @@ public class ExecutableRun {
     } catch (IOException e) {
       throw new RdvException(e);
     }
+  }
+
+  /**
+   * Calculates the next available run id from the output path. This is only used for local
+   * runs. For database runs, the id must be globally unique and is provided by the database.
+   *
+   * @param baseOutputPath the path to look in for prior runs
+   * @return an available run id (being 1 greater than the current maximum)
+   */
+  private synchronized static int getNextRunId(File baseOutputPath) {
+    int max = nextRunId;
+    for (File file : baseOutputPath.listFiles()) {
+      String[] parts = file.getName().split("_");
+      if (parts.length > 1) {
+        try {
+          String lastPart = parts[parts.length - 1];
+          if (lastPart.endsWith(INPROGRESS_SUFFIX)) {
+            lastPart = lastPart.substring(0, lastPart.length() - INPROGRESS_SUFFIX.length());
+          }
+          int id = Integer.parseInt(lastPart);
+          max = Math.max(max, id + 1);
+        } catch (NumberFormatException e) {
+          // don't need to do anything here. value was not a number, so just continue.
+        }
+      }
+    }
+
+    // we store this in a static variable to avoid the race condition where two threads get the same id.
+    nextRunId = max;
+    return nextRunId;
   }
 
   private static FileHandler setupFileLogger(File outputPath) throws IOException {
