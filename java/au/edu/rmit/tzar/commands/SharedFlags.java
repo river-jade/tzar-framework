@@ -91,6 +91,7 @@ class SharedFlags {
 
     @Parameter(names = "--projectspec", description = "The path to the file containing the project spec. Either this " +
         "" +
+        "" +
         "or --runspec must be set.")
     private File projectSpec = null;
 
@@ -214,10 +215,10 @@ class SharedFlags {
     private CommonFlags() {
     }
 
-    @Parameter(names = "--verbose", description = "Verbose logging to console.")
+    @Parameter(names = {"-v", "--verbose"}, description = "Verbose logging to console.")
     private boolean verbose = false;
 
-    @Parameter(names = "--quiet", description = "Quiet logging to console.")
+    @Parameter(names = {"-q", "--quiet"}, description = "Quiet logging to console.")
     private boolean quiet = false;
 
     public LogLevel getLogLevel() throws Main.ParseException {

@@ -6,7 +6,11 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.logging.Formatter;
+import java.util.logging.Level;
 import java.util.logging.LogRecord;
+
+import static org.fusesource.jansi.Ansi.Color;
+import static org.fusesource.jansi.Ansi.ansi;
 
 public class BriefLogFormatter extends Formatter {
 
@@ -38,7 +42,12 @@ public class BriefLogFormatter extends Formatter {
       } catch (Exception ex) {
       }
     }
-    return output.toString();
+
+    if (record.getLevel() == Level.WARNING || record.getLevel() == Level.SEVERE) {
+      return ansi().fg(Color.RED).a(output).reset().toString();
+    } else {
+      return output.toString();
+    }
   }
 
 }
