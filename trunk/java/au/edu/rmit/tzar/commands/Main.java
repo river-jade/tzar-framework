@@ -1,5 +1,6 @@
 package au.edu.rmit.tzar.commands;
 
+import au.edu.rmit.tzar.ColorConsoleHandler;
 import au.edu.rmit.tzar.Constants;
 import au.edu.rmit.tzar.RunFactory;
 import au.edu.rmit.tzar.RunnerFactory;
@@ -18,7 +19,10 @@ import net.schmizz.sshj.SSHClient;
 
 import java.io.IOException;
 import java.util.Map;
-import java.util.logging.*;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.LogManager;
+import java.util.logging.Logger;
 
 import static au.edu.rmit.tzar.commands.CommandFlags.*;
 import static au.edu.rmit.tzar.commands.SharedFlags.*;
@@ -80,7 +84,7 @@ public class Main {
     }
     Handler[] handlers = Logger.getLogger("").getHandlers();
     for (Handler handler : handlers) {
-      if (handler instanceof ConsoleHandler) {
+      if (handler instanceof ColorConsoleHandler) {
         handler.setLevel(level);
       }
     }
