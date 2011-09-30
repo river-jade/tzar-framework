@@ -209,7 +209,7 @@ class PollAndRun implements Command {
         }
       }
       if (success) {
-        resultsCopier.copyResults(run, executableRun.getLocalOutputPath());
+        resultsCopier.copyResults(run, executableRun.getOutputPath());
       }
       callback.complete();
     }

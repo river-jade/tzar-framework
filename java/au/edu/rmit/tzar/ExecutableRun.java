@@ -12,6 +12,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.logging.FileHandler;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * An executable Run. Instances of this class have all the information they need to execute
@@ -21,11 +23,11 @@ public class ExecutableRun {
   private static final Logger LOG = Logger.getLogger(ExecutableRun.class.getName());
 
   private static final String INPROGRESS_SUFFIX = ".inprogress";
+  private static final String FAILED_SUFFIX = ".failed";
 
   private static int nextRunId = 1;
 
-  private final File tmpOutputPath;
-  private final File localOutputPath;
+  private final File outputPath;
   private final Run run;
   private final CodeRepository codeRepository;
   private final Runner runner;
@@ -62,8 +64,8 @@ public class ExecutableRun {
     this.run = run;
     this.codeRepository = codeRepository;
     this.runner = runner;
-    tmpOutputPath = new File(outputPath + INPROGRESS_SUFFIX);
-    localOutputPath = outputPath;
+
+    this.outputPath = outputPath;
   }
 
   /**
@@ -75,15 +77,16 @@ public class ExecutableRun {
   public boolean execute() throws RdvException {
     // TODO(michaell): write unit tests for this method.
     File model = codeRepository.getModel(run.getRevision());
+    File inprogressOutputPath = new File(outputPath + INPROGRESS_SUFFIX);
 
     try {
-      if (tmpOutputPath.exists()) {
-        LOG.warning("Temp output path: " + tmpOutputPath + " already exists. Deleting.");
-        Files.deleteRecursively(tmpOutputPath);
+      if (inprogressOutputPath.exists()) {
+        LOG.warning("Temp output path: " + inprogressOutputPath + " already exists. Deleting.");
+        Files.deleteRecursively(inprogressOutputPath);
       }
-      LOG.fine("Creating temp dir:" + tmpOutputPath);
-      if (!tmpOutputPath.mkdirs()) {
-        throw new IOException("Couldn't create temp output dir: " + tmpOutputPath);
+      LOG.fine("Creating temp dir: " + inprogressOutputPath);
+      if (!inprogressOutputPath.mkdirs()) {
+        throw new IOException("Couldn't create temp output dir: " + inprogressOutputPath);
       }
 
       LOG.info(String.format("Running model: %s, run_id: %d, Run name: %s, Flags: %s", model, getRunId(),
@@ -95,17 +98,17 @@ public class ExecutableRun {
       FileHandler handler = null;
       boolean success = false;
       try {
-        handler = setupFileLogger(tmpOutputPath);
-        success = runner.runModel(model, tmpOutputPath, Integer.toString(run.getRunId()), run.getFlags(),
+        handler = setupFileLogger(inprogressOutputPath);
+        success = runner.runModel(model, inprogressOutputPath, Integer.toString(run.getRunId()), run.getFlags(),
             parameters);
       } finally {
         if (handler != null) {
           closeFileLogger(handler);
         }
       }
+      renameOutputDir(inprogressOutputPath, success);
       if (success) {
-        renameOutputDir();
-        run.setOutputPath(localOutputPath);
+        run.setOutputPath(outputPath);
       }
       return success;
     } catch (IOException e) {
@@ -126,19 +129,18 @@ public class ExecutableRun {
       LOG.info("Outputdir doesn't exist. Creating it (and parents)");
       baseOutputPath.mkdirs();
     }
+    Pattern pattern = Pattern.compile("(.*_)+([^\\.]*)(?:\\.failed|\\.inprogress)?");
     for (File file : baseOutputPath.listFiles()) {
-      String[] parts = file.getName().split("_");
-      if (parts.length > 1) {
+      Matcher matcher = pattern.matcher(file.getName());
+      if (matcher.matches() && matcher.groupCount() >= 2) {
         try {
-          String lastPart = parts[parts.length - 1];
-          if (lastPart.endsWith(INPROGRESS_SUFFIX)) {
-            lastPart = lastPart.substring(0, lastPart.length() - INPROGRESS_SUFFIX.length());
-          }
-          int id = Integer.parseInt(lastPart);
+          int id = Integer.parseInt(matcher.group(2));
           max = Math.max(max, id + 1);
         } catch (NumberFormatException e) {
-          // don't need to do anything here. value was not a number, so just continue.
+          LOG.fine(file + " does not match expected pattern for output directory.");
         }
+      } else {
+        LOG.fine(file + " does not match expected pattern for output directory.");
       }
     }
 
@@ -163,8 +165,8 @@ public class ExecutableRun {
    *
    * @return the file path
    */
-  public File getLocalOutputPath() {
-    return localOutputPath;
+  public File getOutputPath() {
+    return outputPath;
   }
 
   public Run getRun() {
@@ -175,15 +177,16 @@ public class ExecutableRun {
     return run.getRunId();
   }
 
-  private void renameOutputDir() throws RdvException {
-    if (localOutputPath.exists()) {
+  private void renameOutputDir(File sourcePath, boolean success) throws RdvException {
+    File destPath = success ? outputPath : new File(outputPath + FAILED_SUFFIX);
+    if (destPath.exists()) {
       try {
-        LOG.warning("Output path: " + localOutputPath + " already exists. Deleting.");
-        Files.deleteRecursively(localOutputPath);
+        LOG.warning("Path: " + destPath + " already exists. Deleting.");
+        Files.deleteRecursively(destPath);
       } catch (IOException e) {
-        throw new RdvException("Unable to delete existing output path: " + localOutputPath, e);
+        throw new RdvException("Unable to delete existing path: " + destPath, e);
       }
     }
-    Utils.fileRename(tmpOutputPath, localOutputPath);
+    Utils.fileRename(sourcePath, destPath);
   }
 }

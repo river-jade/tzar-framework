@@ -33,7 +33,7 @@ public abstract class AbstractResultsCopierTest extends TestCase {
 
     Run run = new Run(1234, "a run", "4321", "", Parameters.EMPTY_PARAMETERS, "scheduled", "");
     ExecutableRun executableRun = ExecutableRun.createExecutableRun(run, tempSourceDir, null, new NullRunner());
-    File localOutputPath = executableRun.getLocalOutputPath();
+    File localOutputPath = executableRun.getOutputPath();
     localOutputPath.mkdir();
     File sourcePath = File.createTempFile("file", null, localOutputPath);
     File sourcePath2 = File.createTempFile("file", null, localOutputPath);
