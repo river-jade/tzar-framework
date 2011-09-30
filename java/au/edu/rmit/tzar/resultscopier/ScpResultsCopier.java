@@ -38,7 +38,12 @@ public class ScpResultsCopier implements ResultsCopier {
   public void copyResults(Run run, File sourcePath) throws RdvException {
     LOG.info("Copying results from: " + sourcePath + " to " + hostname + ":" + baseDestPath);
     try {
-      scpClient.upload(sourcePath.getAbsolutePath(), baseDestPath.getPath());
+      // slight hack here because the SCPFileTransfer class upload method doesn't accept a File object for
+      // the destination path (ie only accepts a String), and if this is run on a windows machine where the
+      // separator character is '\', a single directory gets created on the destination with name a\b\c,
+      // instead of a tree a/b/c.
+      // This hack may break if the ssh server is a windows machine.
+      scpClient.upload(sourcePath.getAbsolutePath(), baseDestPath.getPath().replace(File.separatorChar, '/'));
       run.setOutputPath(baseDestPath);
       run.setOutputHost(hostname);
       LOG.info("Copied results from: " + sourcePath + " to " + hostname + ":" + baseDestPath);
