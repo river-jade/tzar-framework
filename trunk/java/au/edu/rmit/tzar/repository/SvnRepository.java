@@ -53,6 +53,17 @@ public class SvnRepository implements CodeRepository {
     DAVRepositoryFactory.setup();
   }
 
+  public static SVNRevision parseSvnRevision(String revision) throws RdvException {
+    if ("head".equalsIgnoreCase(revision)) {
+      return SVNRevision.HEAD;
+    }
+    try {
+      return SVNRevision.create(Long.parseLong(revision));
+    } catch (NumberFormatException e) {
+      throw new RdvException("Unrecognised revision: '" + revision + "'. Must be 'head' or an integer.");
+    }
+  }
+
   /**
    * Checks out from subversion repository into a local directory at the provided revision
    * number.
@@ -66,16 +77,7 @@ public class SvnRepository implements CodeRepository {
     LOG.info("Retrieving code revision: " + revision + ", to " + modelsPath);
     try {
       SVNURL url = SVNURL.parseURIEncoded(svnUrl);
-      SVNRevision svnRevision;
-      try {
-        svnRevision = SVNRevision.create(Long.parseLong(revision));
-      } catch (NumberFormatException e) {
-        if ("head".equalsIgnoreCase(revision)) {
-          svnRevision = SVNRevision.HEAD;
-        } else {
-          throw new RdvException("Unrecognised revision: '" + revision + "'. Must be 'head' or an integer.");
-        }
-      }
+      SVNRevision svnRevision = parseSvnRevision(revision);
       // we do a cleanup here because otherwise, if an update is aborted part way through (by sigkill for instance),
       // the local repository is left in a bad state, and future updates all fail.
       if (modelsPath.exists()) {

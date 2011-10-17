@@ -1,7 +1,11 @@
 package au.edu.rmit.tzar.commands;
 
 import au.edu.rmit.tzar.Constants;
+import au.edu.rmit.tzar.api.RdvException;
 import au.edu.rmit.tzar.db.Utils;
+import au.edu.rmit.tzar.repository.CodeRepository;
+import au.edu.rmit.tzar.repository.LocalFileRepository;
+import au.edu.rmit.tzar.repository.SvnRepository;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.beust.jcommander.converters.FileConverter;
@@ -42,6 +46,20 @@ class SharedFlags {
         converter = FileConverter.class)
     private File tzarBaseDirectory = new File(System.getProperty("user.home"), "tzar");
 
+    public CodeRepository createRepository() {
+      return getRepositoryType().createRepository(this);
+    }
+
+    public RepositoryType getRepositoryType() {
+      if (localCodePath == null ^ svnUrl != null) {
+        throw new ParseException("Exactly one of localcodepath or svnurl must be provided");
+      } else if (localCodePath != null) {
+        return RepositoryType.LOCAL;
+      } else { // (svnUrl != null)
+        return RepositoryType.SVN;
+      }
+    }
+
     public File getBaseModelsPath() {
       return new File(tzarBaseDirectory, "modelcode");
     }
@@ -50,12 +68,43 @@ class SharedFlags {
       return new File(tzarBaseDirectory, "outputdata");
     }
 
-    public File getLocalCodePath() {
-      return localCodePath;
-    }
+    public enum RepositoryType {
+      SVN {
+        @Override
+        public void checkRevisionNumber(String revision) {
+          if (revision == null || revision.length() == 0) {
+            throw new ParseException("Must specify a revision when using SVN repository.");
+          }
+          try {
+            // check that revision number is valid
+            SvnRepository.parseSvnRevision(revision);
+          } catch (RdvException e) {
+            throw new ParseException(e);
+          }
+        }
 
-    public String getSvnUrl() {
-      return svnUrl;
+        @Override
+        CodeRepository createRepository(RunnerFlags flags) {
+          return new SvnRepository(flags.svnUrl, flags.getBaseModelsPath());
+        }
+      },
+      LOCAL {
+        @Override
+        public CodeRepository createRepository(RunnerFlags flags) {
+          return new LocalFileRepository(flags.localCodePath);
+        }
+
+        @Override
+        public void checkRevisionNumber(String revision) {
+          if (revision != null && revision.length() != 0) {
+            throw new ParseException("--revision may only be used for svn repositories");
+          }
+        }
+      };
+
+      abstract CodeRepository createRepository(RunnerFlags flags);
+
+      public abstract void checkRevisionNumber(String revision);
     }
   }
 
@@ -91,7 +140,6 @@ class SharedFlags {
 
     @Parameter(names = "--projectspec", description = "The path to the file containing the project spec. Either this " +
         "" +
-        "" +
         "or --runspec must be set.")
     private File projectSpec = null;
 
@@ -113,7 +161,7 @@ class SharedFlags {
 
     @Parameter(names = "--revision", description = "The source control revision of the model code to schedule for " +
         "execution. Must be either an integer or 'head'. 'head' will mean that clients will always download the " +
-        "latest version of the code, NOT the version of head at the time the job is scheduled.", required = true)
+        "latest version of the code, NOT the version of head at the time the job is scheduled.")
     private String revision = null;
 
     public String getCommandFlags() {
@@ -146,6 +194,7 @@ class SharedFlags {
     }
 
     public String getRevision() {
+
       return revision;
     }
 
@@ -221,9 +270,9 @@ class SharedFlags {
     @Parameter(names = {"-q", "--quiet"}, description = "Quiet logging to console.")
     private boolean quiet = false;
 
-    public LogLevel getLogLevel() throws Main.ParseException {
+    public LogLevel getLogLevel() throws ParseException {
       if (verbose && quiet) {
-        throw new Main.ParseException("Can not specify both --verbose and --quiet.");
+        throw new ParseException("Can not specify both --verbose and --quiet.");
       } else if (verbose) {
         return LogLevel.VERBOSE;
       } else if (quiet) {
