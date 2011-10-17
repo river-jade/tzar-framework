@@ -59,12 +59,7 @@ public class Main {
       }
     } catch (ParameterException e) {
       System.out.println(e.getMessage());
-      String cmdStr = jCommander.getParsedCommand();
-      if (cmdStr != null) {
-        jCommander.usage(cmdStr);
-      } else {
-        jCommander.usage();
-      }
+      System.out.println("Try `--help' for more information.");
       System.exit(2);
     }
   }
@@ -181,22 +176,21 @@ public class Main {
     }
 
     public Command newExecLocalRuns() throws IOException, RdvException, ParseException {
-      if (CREATE_RUNS_FLAGS.getProjectSpec() == null &&
-          CREATE_RUNS_FLAGS.getRunSpec() == null) {
-        throw new ParseException("Must set either --projectspec or --runspec.");
-      }
-      if (!(RUNNER_FLAGS.getLocalCodePath() == null ^ RUNNER_FLAGS.getSvnUrl() == null)) {
-        throw new ParseException("Must set exactly one of --localcodepath or --svnurl.");
+      if (CREATE_RUNS_FLAGS.getProjectSpec() == null ^ CREATE_RUNS_FLAGS.getRunSpec() != null) {
+        throw new ParseException("Must set exactly one of --projectspec or --runspec.");
       }
 
       JsonParser jsonParser = new JsonParser();
-      RunFactory runFactory = new RunFactory(jsonParser, CREATE_RUNS_FLAGS.getRevision(),
+
+      String revision = CREATE_RUNS_FLAGS.getRevision();
+      RUNNER_FLAGS.getRepositoryType().checkRevisionNumber(revision);
+
+      RunFactory runFactory = new RunFactory(jsonParser, revision,
           CREATE_RUNS_FLAGS.getCommandFlags(), CREATE_RUNS_FLAGS.getRunset(),
           CREATE_RUNS_FLAGS.getProjectSpec(), CREATE_RUNS_FLAGS.getRepetitionsPath(),
           CREATE_RUNS_FLAGS.getGlobalParamsPath());
-      CodeRepository codeRepository = Utils.createCodeRepository(RUNNER_FLAGS.getLocalCodePath(),
-          RUNNER_FLAGS.getBaseModelsPath(), RUNNER_FLAGS.getSvnUrl());
 
+      CodeRepository codeRepository = RUNNER_FLAGS.createRepository();
       return new ExecLocalRuns(CREATE_RUNS_FLAGS.getRunSpec(), CREATE_RUNS_FLAGS.getNumRuns(),
           runFactory, RUNNER_FLAGS.getLocalOutputPath(), codeRepository, new RunnerFactory());
     }
@@ -214,12 +208,7 @@ public class Main {
 
     public Command newPollAndRun() throws IOException, RdvException, ParseException {
       DaoFactory daoFactory = new DaoFactory(getDbUrl());
-      if (RUNNER_FLAGS.getLocalCodePath() == null && RUNNER_FLAGS.getSvnUrl() == null) {
-        throw new ParseException("Must set either --localcodepath or --svnurl.");
-      }
-
-      CodeRepository codeRepository = Utils.createCodeRepository(RUNNER_FLAGS.getLocalCodePath(),
-          RUNNER_FLAGS.getBaseModelsPath(), RUNNER_FLAGS.getSvnUrl());
+      CodeRepository codeRepository = RUNNER_FLAGS.createRepository();
 
       ResultsCopier resultsCopier;
       if (POLL_AND_RUN_FLAGS.getScpOutputHost() != null) {
@@ -243,7 +232,10 @@ public class Main {
 
     public Command newScheduleRuns() throws IOException, RdvException, ParseException {
       DaoFactory daoFactory = new DaoFactory(getDbUrl());
-      RunFactory runFactory = new RunFactory(new JsonParser(), CREATE_RUNS_FLAGS.getRevision(),
+      String revision = CREATE_RUNS_FLAGS.getRevision();
+      RunnerFlags.RepositoryType.SVN.checkRevisionNumber(revision);
+
+      RunFactory runFactory = new RunFactory(new JsonParser(), revision,
           CREATE_RUNS_FLAGS.getCommandFlags(), CREATE_RUNS_FLAGS.getRunset(), CREATE_RUNS_FLAGS.getProjectSpec(),
           CREATE_RUNS_FLAGS.getRepetitionsPath(), CREATE_RUNS_FLAGS.getGlobalParamsPath());
       return new ScheduleRuns(daoFactory.createRunDao(), CREATE_RUNS_FLAGS.getNumRuns(), runFactory);
@@ -259,9 +251,4 @@ public class Main {
     }
   }
 
-  static class ParseException extends ParameterException {
-    public ParseException(String errorMessage) {
-      super(errorMessage);
-    }
-  }
 }

@@ -1,9 +1,5 @@
 package au.edu.rmit.tzar.commands;
 
-import au.edu.rmit.tzar.api.RdvException;
-import au.edu.rmit.tzar.repository.CodeRepository;
-import au.edu.rmit.tzar.repository.LocalFileRepository;
-import au.edu.rmit.tzar.repository.SvnRepository;
 import com.google.common.annotations.VisibleForTesting;
 import net.schmizz.sshj.SSHClient;
 import net.schmizz.sshj.transport.verification.OpenSSHKnownHosts;
@@ -19,19 +15,6 @@ import java.util.logging.Logger;
 @VisibleForTesting
 public class Utils {
   private static Logger LOG = Logger.getLogger(Utils.class.getName());
-
-  public static CodeRepository createCodeRepository(File localCodePath, File baseModelsPath, String svnUrl)
-      throws RdvException {
-    CodeRepository codeRepository;
-    if (localCodePath != null) {
-      codeRepository = new LocalFileRepository(localCodePath);
-    } else if (svnUrl != null) {
-      codeRepository = new SvnRepository(svnUrl, baseModelsPath);
-    } else {
-      throw new IllegalArgumentException("Either localcodepath, or svnurl must be provided");
-    }
-    return codeRepository;
-  }
 
   public static SSHClient createSSHClient(String hostname)
       throws IOException {
