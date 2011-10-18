@@ -192,7 +192,8 @@ public class Main {
 
       CodeRepository codeRepository = RUNNER_FLAGS.createRepository();
       return new ExecLocalRuns(CREATE_RUNS_FLAGS.getRunSpec(), CREATE_RUNS_FLAGS.getNumRuns(),
-          runFactory, RUNNER_FLAGS.getLocalOutputPath(), codeRepository, new RunnerFactory());
+          runFactory, RUNNER_FLAGS.getLocalOutputPath(), codeRepository,
+          new RunnerFactory(RUNNER_FLAGS.getRunnerClass()));
     }
 
     public Command newHelp() {
@@ -221,7 +222,7 @@ public class Main {
 
       return new PollAndRun(daoFactory, POLL_AND_RUN_FLAGS.getSleepTimeMillis(), resultsCopier,
           POLL_AND_RUN_FLAGS.getRunset(), POLL_AND_RUN_FLAGS.getConcurrentTaskCount(),
-          RUNNER_FLAGS.getLocalOutputPath(), codeRepository, new RunnerFactory());
+          RUNNER_FLAGS.getLocalOutputPath(), codeRepository, new RunnerFactory(RUNNER_FLAGS.getRunnerClass()));
     }
 
     public Command newPrintRun() throws RdvException, ParseException {
