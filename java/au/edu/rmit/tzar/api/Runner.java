@@ -20,5 +20,6 @@ public interface Runner {
    * @return true if the run succeeded, false otherwise
    * @throws RdvException
    */
+  // TODO(michaell): read flags from project spec
   boolean runModel(File model, File outputPath, String runId, String flags, Parameters parameters) throws RdvException;
 }
