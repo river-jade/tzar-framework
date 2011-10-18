@@ -1,9 +1,9 @@
 package au.edu.rmit.tzar.resultscopier;
 
 import au.edu.rmit.tzar.ExecutableRun;
-import au.edu.rmit.tzar.NullRunner;
 import au.edu.rmit.tzar.api.Parameters;
 import au.edu.rmit.tzar.api.Run;
+import au.edu.rmit.tzar.runners.NullRunner;
 import com.google.common.io.Files;
 import junit.framework.TestCase;
 
