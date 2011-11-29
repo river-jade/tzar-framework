@@ -23,8 +23,8 @@ public class CommandRunner implements Runner {
   private final Joiner joiner = Joiner.on(' ');
 
   @Override
-  public boolean runModel(File model, File outputPath, String runId, String flags, Parameters parameters)
-      throws RdvException {
+  public boolean runModel(File model, File outputPath, String runId, String flagsString, Parameters parameters,
+      Logger logger) throws RdvException {
     String[] command = new String[]{model.getPath() + "/run_model", "-v", "-o", outputPath.getAbsolutePath()};
     LOG.info("Executing: " + joiner.join(command));
 

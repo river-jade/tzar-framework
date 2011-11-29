@@ -1,6 +1,7 @@
 package au.edu.rmit.tzar.api;
 
 import java.io.File;
+import java.util.logging.Logger;
 
 /**
  * This is the interface which projects need to implement and deploy. The implementation class will
@@ -15,11 +16,15 @@ public interface Runner {
    * @param model      the path to the model source code or executable
    * @param outputPath local path for the model to write output data to
    * @param runId      a unique identifier for the run to execute
-   * @param flags      flags to pass to the model
+   * @param flagsString space separated flags for the runner
    * @param parameters
+   * @param logger     a java logger for the runner code to use for logging. This logger
+   * will log to a file in the output directory. By default, INFO level logs will go to
+   * console. If --verbose is set, then FINE logs will also go to console.
    * @return true if the run succeeded, false otherwise
    * @throws RdvException
    */
   // TODO(michaell): read flags from project spec
-  boolean runModel(File model, File outputPath, String runId, String flags, Parameters parameters) throws RdvException;
+  boolean runModel(File model, File outputPath, String runId, String flagsString, Parameters parameters,
+      Logger logger) throws RdvException;
 }
