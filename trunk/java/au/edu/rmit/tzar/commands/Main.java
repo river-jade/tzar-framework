@@ -33,7 +33,9 @@ import static au.edu.rmit.tzar.commands.SharedFlags.*;
  * the appropriate command object.
  */
 public class Main {
-  public static void main(String[] args) throws IOException, RdvException, InterruptedException {
+  private static Logger LOG = Logger.getLogger(Main.class.getName());
+
+  public static void main(String[] args) {
     JCommander jCommander = new JCommander();
     for (Commands command : Commands.values()) {
       jCommander.addCommand(command.name, ObjectArrays.concat(command.flags, SharedFlags.COMMON_FLAGS));
@@ -49,9 +51,7 @@ public class Main {
       new File(System.getProperty("user.home"), "tzar").mkdir();
 
       setupLogging();
-
       String cmdStr = jCommander.getParsedCommand();
-
       Commands cmd = Commands.map.get(cmdStr);
       if (cmd == null) {
         if (cmdStr != null) {
@@ -69,6 +69,9 @@ public class Main {
       System.out.println(e.getMessage());
       System.out.println("Try `--help' for more information.");
       System.exit(2);
+    } catch (Exception e) {
+      LOG.log(Level.SEVERE, "An unrecoverable error occurred.", e);
+      System.exit(3);
     }
   }
 
