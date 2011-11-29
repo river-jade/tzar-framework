@@ -17,6 +17,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.ObjectArrays;
 import net.schmizz.sshj.SSHClient;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 import java.util.logging.Handler;
@@ -40,6 +41,13 @@ public class Main {
 
     try {
       jCommander.parse(args);
+
+      // We create the default tzar base directory because the logging code expects $HOME/tzar to exist.
+      // This is to workaround the following bug:
+      // http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6244047
+      // The FileHandler in the java logging framework barfs if the specified output directory doesn't exist.
+      new File(System.getProperty("user.home"), "tzar").mkdir();
+
       setupLogging();
 
       String cmdStr = jCommander.getParsedCommand();
