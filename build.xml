@@ -18,7 +18,7 @@
         <delete dir="${build.dir}"/>
     </target>
 
-    <target name="javac" depends="checkjar, clean" unless="jar.uptodate">
+    <target name="javac" depends="checkjar, clean, init-ivy" unless="jar.uptodate">
         <ivy:cachepath pathid="tzar.classpath" conf="tzar"/>
         <mkdir dir="${build.dir}"/>
         <javac srcdir="${src.dir}" destdir="${build.dir}" includeantruntime="false" debug="true">
@@ -28,7 +28,7 @@
         </javac>
     </target>
 
-    <target name="dist-tzar" depends="checkjar, javac" unless="jar.uptodate">
+    <target name="dist-tzar" depends="checkjar, javac, init-ivy" unless="jar.uptodate">
         <!-- Copy any properties files from source tree to build dir -->
         <copy todir="${build.dir}">
             <fileset dir="${src.dir}">
@@ -61,7 +61,7 @@
     <!--******************************
        API jar compile and dist
    ****************************** -->
-    <target name="javac-api" depends="checkjar, clean" unless="jar.uptodate">
+    <target name="javac-api" depends="checkjar, clean, init-ivy" unless="jar.uptodate">
         <mkdir dir="${build.dir}"/>
         <ivy:cachepath pathid="api.classpath" conf="api"/>
         <javac srcdir="${src.dir}" destdir="${build.dir}" includeantruntime="false" debug="true"
@@ -80,13 +80,12 @@
     Test build and run
    ************************** -->
 
-    <ivy:cachepath pathid="test.classpath" conf="test"/>
-
     <target name="clean-test">
         <delete dir="${test.build.dir}"/>
     </target>
 
     <target name="javac-test" depends="javac">
+    	<ivy:cachepath pathid="test.classpath" conf="test"/>
         <mkdir dir="${test.build.dir}"/>
         <javac srcdir="${tst.dir}" destdir="${test.build.dir}">
             <classpath>
@@ -135,12 +134,15 @@
     <property name="ivy.home" value="${user.home}/.ant"/>
     <property name="ivy.jar.dir" value="${ivy.home}/lib"/>
     <property name="ivy.jar.file" value="${ivy.jar.dir}/ivy.jar"/>
+    
+    <target name="check-ivy-installed">
+        <available property="ivy.exists" file="${ivy.jar.file}"/>
+    </target>
 
-    <target name="download-ivy" unless="offline">
+    <target name="download-ivy" depends="check-ivy-installed" unless="ivy.exists">
         <mkdir dir="${ivy.jar.dir}"/>
         <!-- download Ivy from web site so that it can be used even without any special installation -->
-        <get src="http://repo2.maven.org/maven2/org/apache/ivy/ivy/${ivy.install.version}/ivy-${ivy.install.version}
-        .jar"
+        <get src="http://repo2.maven.org/maven2/org/apache/ivy/ivy/${ivy.install.version}/ivy-${ivy.install.version}.jar"
              dest="${ivy.jar.file}" usetimestamp="true"/>
     </target>
 
