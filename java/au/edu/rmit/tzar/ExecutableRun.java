@@ -21,6 +21,8 @@ import java.util.regex.Pattern;
  */
 public class ExecutableRun {
   private static final Logger LOG = Logger.getLogger(ExecutableRun.class.getName());
+  // this is the Logger that will be used by runner to write to the console and logfiles
+  private static final Logger RUNNER_LOGGER = Logger.getLogger("ModelRunnerLogger");
 
   private static final String INPROGRESS_SUFFIX = ".inprogress";
   private static final String FAILED_SUFFIX = ".failed";
@@ -98,12 +100,14 @@ public class ExecutableRun {
       FileHandler handler = null;
       boolean success = false;
       try {
-        handler = setupFileLogger(inprogressOutputPath);
+        handler = setupFileHandler(inprogressOutputPath);
+        RUNNER_LOGGER.addHandler(handler);
         success = runner.runModel(model, inprogressOutputPath, Integer.toString(run.getRunId()), run.getFlags(),
-            parameters);
+            parameters, RUNNER_LOGGER);
       } finally {
         if (handler != null) {
-          closeFileLogger(handler);
+          RUNNER_LOGGER.removeHandler(handler);
+          handler.close();
         }
       }
       renameOutputDir(inprogressOutputPath, success);
@@ -149,15 +153,10 @@ public class ExecutableRun {
     return nextRunId;
   }
 
-  private static FileHandler setupFileLogger(File outputPath) throws IOException {
+  private static FileHandler setupFileHandler(File outputPath) throws IOException {
     FileHandler handler = new FileHandler(new File(outputPath, "logging.log").getPath());
-    Logger.getLogger("").addHandler(handler);
+    handler.setFormatter(new BriefLogFormatter());
     return handler;
-  }
-
-  private static void closeFileLogger(FileHandler handler) throws IOException {
-    handler.close();
-    Logger.getLogger("").removeHandler(handler);
   }
 
   /**

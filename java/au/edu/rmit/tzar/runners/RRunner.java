@@ -21,8 +21,8 @@ public class RRunner implements Runner {
   private static Logger LOG = Logger.getLogger(RRunner.class.getName());
 
   @Override
-  public boolean runModel(File model, File outputPath, String runId, String flagsString, Parameters parameters)
-      throws RdvException {
+  public boolean runModel(File model, File outputPath, String runId, String flagsString, Parameters parameters,
+      Logger logger) throws RdvException {
     Flags flags = Flags.parseFlags(flagsString);
     Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
@@ -58,7 +58,7 @@ public class RRunner implements Runner {
       BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()));
       String line;
       while ((line = br.readLine()) != null) {
-        LOG.info(line);
+        logger.fine(line);
       }
       return process.waitFor() == 0;
     } catch (IOException e) {
