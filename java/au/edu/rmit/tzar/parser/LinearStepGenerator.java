@@ -11,11 +11,8 @@ import java.util.List;
  * and "count" elements.
  */
 public class LinearStepGenerator extends RepetitionGenerator<BigDecimal> {
-  @SerializedName("start")
   private final BigDecimal start;
-  @SerializedName("count")
   private final int count;
-  @SerializedName("step_size")
   private final BigDecimal stepSize;
 
   public LinearStepGenerator(String key, BigDecimal start, int count, BigDecimal stepSize) {

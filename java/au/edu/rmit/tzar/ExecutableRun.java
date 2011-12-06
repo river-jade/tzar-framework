@@ -86,7 +86,7 @@ public class ExecutableRun {
         LOG.warning("Temp output path: " + inprogressOutputPath + " already exists. Deleting.");
         Files.deleteRecursively(inprogressOutputPath);
       }
-      LOG.fine("Creating temp dir: " + inprogressOutputPath);
+      LOG.info("Creating temporary outputdir: " + inprogressOutputPath);
       if (!inprogressOutputPath.mkdirs()) {
         throw new IOException("Couldn't create temp output dir: " + inprogressOutputPath);
       }

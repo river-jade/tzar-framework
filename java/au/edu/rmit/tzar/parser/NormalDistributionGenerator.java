@@ -1,7 +1,5 @@
 package au.edu.rmit.tzar.parser;
 
-import com.google.gson.annotations.SerializedName;
-
 import java.math.BigDecimal;
 import java.security.SecureRandom;
 import java.util.ArrayList;
@@ -12,11 +10,8 @@ import java.util.List;
  * and standard deviation.
  */
 public class NormalDistributionGenerator extends RepetitionGenerator<BigDecimal> {
-  @SerializedName("mean")
   private final BigDecimal mean;
-  @SerializedName("count")
   private final int count;
-  @SerializedName("std_dev")
   private final BigDecimal stdDev;
 
   public NormalDistributionGenerator(String key, BigDecimal mean, int count, BigDecimal stdDev) {

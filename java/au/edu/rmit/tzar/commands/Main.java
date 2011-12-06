@@ -6,7 +6,7 @@ import au.edu.rmit.tzar.RunFactory;
 import au.edu.rmit.tzar.RunnerFactory;
 import au.edu.rmit.tzar.api.RdvException;
 import au.edu.rmit.tzar.db.DaoFactory;
-import au.edu.rmit.tzar.parser.JsonParser;
+import au.edu.rmit.tzar.parser.YamlParser;
 import au.edu.rmit.tzar.repository.CodeRepository;
 import au.edu.rmit.tzar.resultscopier.FileResultsCopier;
 import au.edu.rmit.tzar.resultscopier.ResultsCopier;
@@ -191,7 +191,7 @@ public class Main {
         throw new ParseException("Must set exactly one of --projectspec or --runspec.");
       }
 
-      JsonParser jsonParser = new JsonParser();
+      YamlParser jsonParser = new YamlParser();
 
       String revision = CREATE_RUNS_FLAGS.getRevision();
       RUNNER_FLAGS.getRepositoryType().checkRevisionNumber(revision);
@@ -247,7 +247,7 @@ public class Main {
       String revision = CREATE_RUNS_FLAGS.getRevision();
       RunnerFlags.RepositoryType.SVN.checkRevisionNumber(revision);
 
-      RunFactory runFactory = new RunFactory(new JsonParser(), revision,
+      RunFactory runFactory = new RunFactory(new YamlParser(), revision,
           CREATE_RUNS_FLAGS.getCommandFlags(), CREATE_RUNS_FLAGS.getRunset(), CREATE_RUNS_FLAGS.getProjectSpec(),
           CREATE_RUNS_FLAGS.getRepetitionsPath(), CREATE_RUNS_FLAGS.getGlobalParamsPath());
       return new ScheduleRuns(daoFactory.createRunDao(), CREATE_RUNS_FLAGS.getNumRuns(), runFactory);

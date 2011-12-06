@@ -6,7 +6,6 @@ import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.google.gson.annotations.SerializedName;
 
 import java.util.*;
 
@@ -16,18 +15,16 @@ import java.util.*;
  * object override the parameters given by the scenario, project spec or global spec.
  */
 public class Repetitions {
-  @SerializedName("repetitions")
   private final List<Parameters> staticRepetitions;
 
-  @SerializedName("generators")
   private final List<RepetitionGenerator<?>> generators;
 
   public static final Repetitions EMPTY_REPETITIONS = new Repetitions(Lists.newArrayList(Parameters.EMPTY_PARAMETERS),
       new ArrayList<RepetitionGenerator<?>>());
 
   public Repetitions(List<Parameters> staticRepetitions, List<RepetitionGenerator<?>> generators) {
-    this.staticRepetitions = staticRepetitions;
-    this.generators = generators;
+    this.staticRepetitions = staticRepetitions == null ? new ArrayList<Parameters>() : staticRepetitions;
+    this.generators = generators == null ? new ArrayList<RepetitionGenerator<?>>() : generators;
   }
 
   /**
@@ -67,11 +64,11 @@ public class Repetitions {
   }
 
   public List<RepetitionGenerator<?>> getGenerators() {
-    return generators == null ? new ArrayList<RepetitionGenerator<?>>() : generators;
+    return generators;
   }
 
   public List<Parameters> getStaticRepetitions() {
-    return staticRepetitions == null ? new ArrayList<Parameters>() : staticRepetitions;
+    return staticRepetitions;
   }
 
   /**

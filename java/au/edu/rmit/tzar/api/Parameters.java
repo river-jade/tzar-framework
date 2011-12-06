@@ -4,7 +4,6 @@ import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.google.gson.annotations.SerializedName;
 
 import java.io.File;
 import java.util.HashMap;
@@ -22,11 +21,8 @@ public class Parameters {
       ImmutableMap.<String, String>of(),
       ImmutableMap.<String, String>of());
 
-  @SerializedName("variables")
   private final ImmutableMap<String, Object> variables;
-  @SerializedName("input_files")
   private final ImmutableMap<String, String> inputFiles;
-  @SerializedName("output_files")
   private final ImmutableMap<String, String> outputFiles;
 
   /**
