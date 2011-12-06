@@ -1,7 +1,5 @@
 package au.edu.rmit.tzar.parser;
 
-import com.google.gson.annotations.SerializedName;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -11,7 +9,6 @@ import java.util.Map;
  * a provided key.
  */
 public abstract class RepetitionGenerator<T> {
-  @SerializedName("key")
   private final String key;
 
   public RepetitionGenerator(String key) {
@@ -29,9 +26,26 @@ public abstract class RepetitionGenerator<T> {
    */
   public abstract List<T> generate();
 
-  public static final Map<String, Class<? extends RepetitionGenerator>> TYPES =
-      new HashMap<String, Class<? extends RepetitionGenerator>>() {{
-        put("linear_step", LinearStepGenerator.class);
-        put("normal_distribution", NormalDistributionGenerator.class);
-      }};
+  /**
+   * Types of Generators. New implementations of this class should be added to this list so
+   * that they can be correctly deserialised.
+   */
+  public enum GeneratorType {
+    LINEAR_STEP("linear_step"),
+    NORMAL_DISTRIBUTION("normal_distribution");
+
+    public static final Map<String, GeneratorType> TYPES = new HashMap<String, GeneratorType>();
+    
+    static {
+      for (GeneratorType type : GeneratorType.values()) {
+        TYPES.put(type.name, type);
+      }
+    }
+
+    private final String name;
+
+    GeneratorType(String name) {
+      this.name = name;
+    }
+  }
 }

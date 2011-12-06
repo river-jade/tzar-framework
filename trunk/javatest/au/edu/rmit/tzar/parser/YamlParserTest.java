@@ -18,13 +18,13 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Unit tests for the JsonParser class.
+ * Unit tests for the YamlParser class.
  */
-public class JsonParserTest extends TestCase {
-  JsonParser jsonParser;
+public class YamlParserTest extends TestCase {
+  YamlParser yamlParser;
 
   protected void setUp() throws Exception {
-    jsonParser = new JsonParser();
+    yamlParser = new YamlParser();
   }
 
   public void testWriteThenReadProjectSpec() throws IOException, RdvException {
@@ -53,26 +53,41 @@ public class JsonParserTest extends TestCase {
     scenarios.add(new Scenario("test scenario2", overrideParameters2));
     ProjectSpec projectSpec = new ProjectSpec("test project", baseParameters, scenarios);
 
-    File tempFile = File.createTempFile("json_parser_test", null);
+    File tempFile = File.createTempFile("yaml_parser_test", null);
     tempFile.delete();
-    jsonParser.projectSpecToJson(projectSpec, tempFile);
-    ProjectSpec projectSpecCopy = jsonParser.projectSpecFromJson(tempFile);
+    yamlParser.projectSpecToYaml(projectSpec, tempFile);
+    ProjectSpec projectSpecCopy = yamlParser.projectSpecFromYaml(tempFile);
     assertEquals(projectSpecCopy, projectSpec);
   }
 
   /**
-   * Tests that parsing a json string containing 2 static repetitions and two generators
+   * Tests that parsing a yaml string containing 2 static repetitions and two generators
    * (each generating 10 values), gives a set of parameter sets (with each set unique) of size
    * 200 (2 * 10 * 10).
    *
-   * @throws RdvException
+   * @throws au.edu.rmit.tzar.api.RdvException
    */
   public void testRepetitionDeserialisationAndGeneration() throws RdvException {
-    String json = "{ repetitions : [ { variables : { A : 1 } }, { variables : " +
-        "{ A : 2 } } ], generators : [ { key : B, generator_type : linear_step, start : 0, step_size : 0.1, " +
-        "count : 10 }, { key : C, generator_type : linear_step, start : 1, step_size : 1, " +
-        "count : 10 } ] }";
-    Repetitions repetitions = jsonParser.repetitionsFromJson(json);
+    String yaml =
+        "repetitions : \n" +
+        "  - variables : \n" +
+        "      A : 1\n" +
+        "  - variables : \n" +
+        "      A : 2\n" +
+        "generators : \n" +
+        "  - key : B \n" +
+        "    generator_type : linear_step \n" +
+        "    start : 0 \n" +
+        "    step_size : 0.1 \n" +
+        "    count : 10\n" +
+        "  - key : C \n" +
+        "    generator_type : normal_distribution \n" +
+        "    mean : 0 \n" +
+        "    std_dev : 5 \n" +
+        "    count : 10";
+    Repetitions repetitions = yamlParser.repetitionsFromYaml(yaml);
+    assertEquals(LinearStepGenerator.class, repetitions.getGenerators().get(0).getClass());
+    assertEquals(NormalDistributionGenerator.class, repetitions.getGenerators().get(1).getClass());
     List<Parameters> paramsList = repetitions.getParamsList();
     HashSet<Parameters> set = Sets.newHashSet(paramsList);
     assertEquals(200, paramsList.size());
@@ -80,15 +95,15 @@ public class JsonParserTest extends TestCase {
   }
 
   /**
-   * Tests that parsing a json string containing 2 static repetitions and no generators
+   * Tests that parsing a yaml string containing 2 static repetitions and no generators
    * gives a set of parameter sets (with each set unique) of size 2.
    *
-   * @throws RdvException
+   * @throws au.edu.rmit.tzar.api.RdvException
    */
   public void testRepetitionDeserialisationNoGenerators() throws RdvException {
-    String json = "{ repetitions : [ { variables : { A : 1 } }, { variables : " +
+    String yaml = "{ repetitions : [ { variables : { A : 1 } }, { variables : " +
         "{ A : 2 } } ] }";
-    Repetitions repetitions = jsonParser.repetitionsFromJson(json);
+    Repetitions repetitions = yamlParser.repetitionsFromYaml(yaml);
     List<Parameters> paramsList = repetitions.getParamsList();
     HashSet<Parameters> set = Sets.newHashSet(paramsList);
     assertEquals(2, paramsList.size());

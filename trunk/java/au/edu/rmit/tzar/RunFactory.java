@@ -1,20 +1,23 @@
 package au.edu.rmit.tzar;
 
 import au.edu.rmit.tzar.api.*;
-import au.edu.rmit.tzar.parser.JsonParser;
 import au.edu.rmit.tzar.parser.Repetitions;
+import au.edu.rmit.tzar.parser.YamlParser;
 import com.google.common.collect.Lists;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.List;
+import java.util.logging.Logger;
 
 /**
  * Factory to create Run objects. Parses an (optional) global parameters file, a project spec file and an (optional)
  * repetitions file.
  */
 public class RunFactory {
-  private final JsonParser jsonParser;
+  private static Logger LOG = Logger.getLogger(RunFactory.class.getName());
+
+  private final YamlParser yamlParser;
   private final String revision;
   private final String commandFlags;
   private final String runset;
@@ -22,9 +25,9 @@ public class RunFactory {
   private final File repetitionsPath;
   private final File globalParamsPath;
 
-  public RunFactory(JsonParser jsonParser, String revision, String commandFlags, String runset, File projectSpecPath,
+  public RunFactory(YamlParser yamlParser, String revision, String commandFlags, String runset, File projectSpecPath,
       File repetitionsPath, File globalParamsPath) {
-    this.jsonParser = jsonParser;
+    this.yamlParser = yamlParser;
     this.revision = revision;
     this.commandFlags = commandFlags;
     this.runset = runset;
@@ -50,6 +53,7 @@ public class RunFactory {
     for (int i = 0; i < numRuns; ++i) {
       runs.addAll(createRuns(projectSpec, projectParams, projectName, repetitions));
     }
+    LOG.info("Created " + runs.size() + " runs.");
     return runs;
   }
 
@@ -89,7 +93,7 @@ public class RunFactory {
   private Parameters getGlobalParams() throws RdvException {
     try {
       if (globalParamsPath != null) {
-        return jsonParser.parametersFromJson(globalParamsPath);
+        return yamlParser.parametersFromYaml(globalParamsPath);
       } else {
         return Parameters.EMPTY_PARAMETERS;
       }
@@ -100,7 +104,7 @@ public class RunFactory {
 
   private ProjectSpec getProjectSpec() throws RdvException {
     try {
-      ProjectSpec projectSpec = jsonParser.projectSpecFromJson(projectSpecPath);
+      ProjectSpec projectSpec = yamlParser.projectSpecFromYaml(projectSpecPath);
       projectSpec.validate();
       return projectSpec;
     } catch (FileNotFoundException e) {
@@ -111,7 +115,7 @@ public class RunFactory {
   private Repetitions getRepetitions() throws RdvException {
     try {
       if (repetitionsPath != null) {
-        return jsonParser.repetitionsFromJson(repetitionsPath);
+        return yamlParser.repetitionsFromYaml(repetitionsPath);
       } else {
         return Repetitions.EMPTY_REPETITIONS;
       }

@@ -11,11 +11,8 @@ import java.util.List;
  * overridden by values in each scenario specification.
  */
 public class ProjectSpec {
-  @SerializedName("base_params")
   private final Parameters baseParams;
-  @SerializedName("scenarios")
   private final List<Scenario> scenarios;
-  @SerializedName("project_name")
   private final String projectName;
 
   public ProjectSpec(String projectName, Parameters baseParams, List<Scenario> scenarios) {
