@@ -3,6 +3,7 @@ package au.edu.rmit.tzar.resultscopier;
 import au.edu.rmit.tzar.api.RdvException;
 import au.edu.rmit.tzar.api.Run;
 import net.schmizz.sshj.SSHClient;
+import net.schmizz.sshj.xfer.FileSystemFile;
 import net.schmizz.sshj.xfer.scp.SCPFileTransfer;
 
 import java.io.File;
@@ -43,7 +44,7 @@ public class ScpResultsCopier implements ResultsCopier {
       // separator character is '\', a single directory gets created on the destination with name a\b\c,
       // instead of a tree a/b/c.
       // This hack may break if the ssh server is a windows machine.
-      scpClient.upload(sourcePath.getAbsolutePath(), baseDestPath.getPath().replace(File.separatorChar, '/'));
+      scpClient.upload(new FileSystemFile(sourcePath), baseDestPath.getPath().replace(File.separatorChar, '/'));
       run.setOutputPath(baseDestPath);
       run.setOutputHost(hostname);
       LOG.info("Copied results from: " + sourcePath + " to " + hostname + ":" + baseDestPath);
