@@ -90,7 +90,7 @@ public class RunDao {
       updateRun.setString(3, run.getState());
       updateRun.setString(4, run.getHostname());
       File outputPath = run.getOutputPath();
-      updateRun.setString(5, outputPath == null ? null : outputPath.getAbsolutePath());
+      updateRun.setString(5, outputPath == null ? null : outputPath.getPath());
       updateRun.setString(6, run.getOutputHost());
       updateRun.setInt(7, run.getRunId()); // this is for the where clause, we don't update this field.
       try {
