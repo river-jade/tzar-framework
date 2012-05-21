@@ -6,8 +6,11 @@ import au.edu.rmit.tzar.api.Run;
 import com.google.common.collect.Lists;
 import junit.framework.TestCase;
 import org.mockito.InOrder;
+import org.postgresql.jdbc4.Jdbc4Connection;
 
-import java.sql.*;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.List;
 
 import static org.mockito.Mockito.*;
@@ -21,14 +24,15 @@ public class RunDaoTest extends TestCase {
   private static final String RUN_NAME = "cool run";
   private static final String COMMAND_FLAGS = "-pexample";
   private static final String RUNSET = "a runset";
+  public static final int FIRST_RUN_ID = 2233;
 
-  private Connection mockConnection;
+  private Jdbc4Connection mockConnection;
   private PreparedStatement insertRun;
   private ResultSet resultSet;
   private RunDao runDao;
 
   public void setUp() throws Exception {
-    mockConnection = mock(Connection.class);
+    mockConnection = mock(Jdbc4Connection.class);
     PreparedStatement nextRunStatement = mock(PreparedStatement.class);
     insertRun = mock(PreparedStatement.class);
     resultSet = mock(ResultSet.class);
@@ -42,8 +46,7 @@ public class RunDaoTest extends TestCase {
     when(resultSet.getString("state")).thenReturn("scheduled");
     when(mockConnection.prepareStatement(RunDao.NEXT_RUN_SQL, ResultSet.TYPE_FORWARD_ONLY,
         ResultSet.CONCUR_READ_ONLY)).thenReturn(nextRunStatement);
-    when(mockConnection.prepareStatement(RunDao.INSERT_RUN_SQL, Statement.RETURN_GENERATED_KEYS)).thenReturn
-        (insertRun);
+    when(mockConnection.prepareStatement(RunDao.INSERT_RUN_SQL)).thenReturn(insertRun);
     when(nextRunStatement.executeQuery()).thenReturn(resultSet);
     when(mockParametersDao.loadFromDatabase(RUN_ID)).thenReturn(Parameters.EMPTY_PARAMETERS);
     runDao = new RunDao(mockConnection, mockParametersDao);
@@ -62,8 +65,10 @@ public class RunDaoTest extends TestCase {
 
   public void testInsertRuns() throws RdvException, SQLException {
     ResultSet generatedKeys = mock(ResultSet.class);
-    when(insertRun.getGeneratedKeys()).thenReturn(generatedKeys);
-    when(generatedKeys.getInt("run_id")).thenReturn(2233);
+
+    when(mockConnection.execSQLQuery("select nextval('runs_run_id_seq')")).thenReturn(generatedKeys);
+    when(generatedKeys.getInt(1)).thenReturn(FIRST_RUN_ID);
+
     List<Run> runs = Lists.newArrayList();
     runs.add(new Run(RUN_ID, RUN_NAME, CODE_VERSION, COMMAND_FLAGS,
         Parameters.EMPTY_PARAMETERS, "state", RUNSET));
@@ -72,16 +77,18 @@ public class RunDaoTest extends TestCase {
 
     InOrder inOrder = inOrder(insertRun, mockConnection);
     runDao.insertRuns(runs);
-    inOrder.verify(insertRun).setString(1, "scheduled");
-    inOrder.verify(insertRun).setString(2, CODE_VERSION);
-    inOrder.verify(insertRun).setString(3, RUN_NAME);
-    inOrder.verify(insertRun).setString(4, COMMAND_FLAGS);
-    inOrder.verify(insertRun).setString(5, RUNSET);
-    inOrder.verify(insertRun).setString(1, "scheduled");
-    inOrder.verify(insertRun).setString(2, CODE_VERSION + 1);
-    inOrder.verify(insertRun).setString(3, RUN_NAME + "1");
-    inOrder.verify(insertRun).setString(4, COMMAND_FLAGS);
-    inOrder.verify(insertRun).setString(5, RUNSET);
-    inOrder.verify(mockConnection).commit();
+    inOrder.verify(insertRun).setInt(1, FIRST_RUN_ID);
+    inOrder.verify(insertRun).setString(2, "scheduled");
+    inOrder.verify(insertRun).setString(3, CODE_VERSION);
+    inOrder.verify(insertRun).setString(4, RUN_NAME);
+    inOrder.verify(insertRun).setString(5, COMMAND_FLAGS);
+    inOrder.verify(insertRun).setString(6, RUNSET);
+    inOrder.verify(insertRun).setInt(1, FIRST_RUN_ID + 1);
+    inOrder.verify(insertRun).setString(2, "scheduled");
+    inOrder.verify(insertRun).setString(3, CODE_VERSION + 1);
+    inOrder.verify(insertRun).setString(4, RUN_NAME + "1");
+    inOrder.verify(insertRun).setString(5, COMMAND_FLAGS);
+    inOrder.verify(insertRun).setString(6, RUNSET);
+    inOrder.verify(mockConnection).setAutoCommit(true);
   }
 }

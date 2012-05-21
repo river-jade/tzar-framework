@@ -42,9 +42,8 @@ public class ParametersDao {
    * @throws SQLException
    */
   public void insertParams(int runId, Parameters parameters) throws SQLException {
-    insertParams(runId, parameters.getInputFiles(), "input_file");
-    insertParams(runId, parameters.getOutputFiles(), "output_file");
-    insertParams(runId, parameters.getVariables(), "variable");
+    batchInsertParams(runId, parameters);
+    executeBatchInsert();
   }
 
   /**
@@ -92,6 +91,17 @@ public class ParametersDao {
     }
   }
 
+  void batchInsertParams(int runId, Parameters parameters) throws SQLException {
+    insertParams(runId, parameters.getOutputFiles(), "output_file");
+    insertParams(runId, parameters.getInputFiles(), "input_file");
+    insertParams(runId, parameters.getVariables(), "variable");
+  }
+
+  // made visible for use by RunDao as an optimisation.
+  int[] executeBatchInsert() throws SQLException {
+    return insertParam.executeBatch();
+  }
+
   private void insertParams(int runId, Map<String, ?> inputFiles, String paramType) throws SQLException {
     for (Map.Entry<String, ?> entry : inputFiles.entrySet()) {
       insertParam.setInt(1, runId);
@@ -102,7 +112,6 @@ public class ParametersDao {
       insertParam.setString(5, DataType.getType(value).name);
       insertParam.addBatch();
     }
-    insertParam.executeBatch();
   }
 
   private static <T> void addParam(ResultSet resultSet, Map<String, T> paramMap, T param) throws SQLException {
