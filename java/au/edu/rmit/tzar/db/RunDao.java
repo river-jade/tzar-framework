@@ -5,6 +5,7 @@ import au.edu.rmit.tzar.api.RdvException;
 import au.edu.rmit.tzar.api.Run;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
+import org.postgresql.jdbc4.Jdbc4Connection;
 
 import java.io.File;
 import java.sql.*;
@@ -22,8 +23,8 @@ public class RunDao {
   private static final Logger LOG = Logger.getLogger(RunDao.class.getName());
 
   @VisibleForTesting
-  static final String INSERT_RUN_SQL = "INSERT INTO runs (state, code_version, run_name, command_flags, runset) " +
-      "VALUES (?, ?, ?, ?, ?)";
+  static final String INSERT_RUN_SQL = "INSERT INTO runs (run_id, state, code_version, run_name, command_flags, runset) " +
+      "VALUES (?, ?, ?, ?, ?, ?)";
 
   @VisibleForTesting
   static final String NEXT_RUN_SQL = "SELECT run_id, state, code_version, run_name, command_flags, runset, " +
@@ -50,7 +51,7 @@ public class RunDao {
       selectNextRun = connection.prepareStatement(NEXT_RUN_SQL, ResultSet.TYPE_FORWARD_ONLY,
           ResultSet.CONCUR_READ_ONLY);
       updateRun = connection.prepareStatement(UPDATE_RUN_SQL);
-      insertRun = connection.prepareStatement(INSERT_RUN_SQL, Statement.RETURN_GENERATED_KEYS);
+      insertRun = connection.prepareStatement(INSERT_RUN_SQL);
 
       this.connection = connection;
       this.parametersDao = parametersDao;
@@ -113,25 +114,45 @@ public class RunDao {
    * @param runs runs to insert into the db
    * @throws RdvException if an error occurs inserting the runs
    */
-  public synchronized void insertRuns(Iterable<? extends Run> runs) throws RdvException {
+  public synchronized void insertRuns(List<? extends Run> runs) throws RdvException {
+    LOG.info("Saving new runs to database.");
     try {
       connection.setAutoCommit(false);
-      for (Run run : runs) {
-        insertRun.setString(1, "scheduled");
-        insertRun.setString(2, run.getRevision());
-        insertRun.setString(3, run.getName());
-        insertRun.setString(4, run.getFlags());
-        insertRun.setString(5, run.getRunset());
-        insertRun.executeUpdate();
-        ResultSet keys = insertRun.getGeneratedKeys();
-        keys.next();
-        int runId = keys.getInt("run_id");
-        parametersDao.insertParams(runId, run.getParameters());
-        run.setRunId(runId);
+
+      if (!(connection instanceof Jdbc4Connection)) {
+        throw new RdvException("The connection is not a Postgres connection, and the insert runs code " +
+            "is optimised for Postgres.");
       }
-      connection.commit();
-      connection.setAutoCommit(true);
+      ResultSet rs = ((Jdbc4Connection) connection).execSQLQuery("select nextval('runs_run_id_seq')");
+      rs.next();
+      int nextRunId = rs.getInt(1);
+      ((Jdbc4Connection) connection).execSQLQuery("select setval('runs_run_id_seq', " + (nextRunId + runs.size()) +
+          ", false)"); // false here indicates that the next sequence number returned by 'select nextval' will be
+          // nextRunId + runs.size(), as opposed to nextRunId + runs.size() + 1
+
+      for (Run run : runs) {
+        run.setRunId(nextRunId);
+        insertRun.setInt(1, nextRunId);
+        insertRun.setString(2, "scheduled");
+        insertRun.setString(3, run.getRevision());
+        insertRun.setString(4, run.getName());
+        insertRun.setString(5, run.getFlags());
+        insertRun.setString(6, run.getRunset());
+        insertRun.addBatch();
+        parametersDao.batchInsertParams(run.getRunId(), run.getParameters());
+        nextRunId++;
+      }
+
+      insertRun.executeBatch();
+      parametersDao.executeBatchInsert();
+
+      connection.setAutoCommit(true); // this also commits the transaction
     } catch (SQLException e) {
+      try {
+        connection.rollback();
+      } catch (SQLException e1) {
+        LOG.log(Level.SEVERE, "Exception thrown whilst rolling back a transaction after failure.", e1);
+      }
       throw new RdvException(e);
     }
   }
