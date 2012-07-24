@@ -12,7 +12,9 @@ import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
 import org.yaml.snakeyaml.error.YAMLException;
 import org.yaml.snakeyaml.introspector.BeanAccess;
-import org.yaml.snakeyaml.nodes.*;
+import org.yaml.snakeyaml.nodes.Node;
+import org.yaml.snakeyaml.nodes.ScalarNode;
+import org.yaml.snakeyaml.nodes.Tag;
 
 import java.io.*;
 import java.math.BigDecimal;
@@ -40,6 +42,9 @@ public class YamlParser {
    * @throws au.edu.rmit.tzar.api.RdvException          if the file cannot be parsed
    */
   public Parameters parametersFromYaml(File file) throws FileNotFoundException, RdvException {
+    if (file == null) {
+      return Parameters.EMPTY_PARAMETERS;
+    }
     Yaml yaml = new Yaml(new ProjectSpecConstructor());
     return objectFromYaml(file, ParametersBean.class, yaml).toParameters();
   }
@@ -58,7 +63,9 @@ public class YamlParser {
    */
   public ProjectSpec projectSpecFromYaml(File file) throws FileNotFoundException, RdvException {
     Yaml yaml = new Yaml(new ProjectSpecConstructor());
-    return objectFromYaml(file, ProjectSpecBean.class, yaml).toProjectSpec();
+    ProjectSpec projectSpec = objectFromYaml(file, ProjectSpecBean.class, yaml).toProjectSpec();
+    projectSpec.validate();
+    return projectSpec;
   }
 
   /**
@@ -73,6 +80,9 @@ public class YamlParser {
   }
 
   public Repetitions repetitionsFromYaml(File repetitionsFile) throws RdvException, FileNotFoundException {
+    if (repetitionsFile == null) {
+      return Repetitions.EMPTY_REPETITIONS;
+    }
     Yaml yaml = new Yaml(new Constructor(RepetitionsBean.class));
     return objectFromYaml(repetitionsFile, RepetitionsBean.class, yaml).toRepetitions();
   }
@@ -119,6 +129,7 @@ public class YamlParser {
     }
   }
 
+  @SuppressWarnings("unchecked")
   private <T> T objectFromYaml(String yamlStr, Class<T> aClass, Yaml yaml) throws RdvException {
     yaml.setBeanAccess(BeanAccess.FIELD);
     Object obj = yaml.load(yamlStr);
