@@ -191,15 +191,16 @@ public class Main {
         throw new ParseException("Must set exactly one of --projectspec or --runspec.");
       }
 
-      YamlParser jsonParser = new YamlParser();
-
       String revision = CREATE_RUNS_FLAGS.getRevision();
       RUNNER_FLAGS.getRepositoryType().checkRevisionNumber(revision);
 
-      RunFactory runFactory = new RunFactory(jsonParser, revision,
+      YamlParser parser = new YamlParser();
+
+      RunFactory runFactory = new RunFactory(revision,
           CREATE_RUNS_FLAGS.getCommandFlags(), CREATE_RUNS_FLAGS.getRunset(),
-          CREATE_RUNS_FLAGS.getProjectSpec(), CREATE_RUNS_FLAGS.getRepetitionsPath(),
-          CREATE_RUNS_FLAGS.getGlobalParamsPath());
+          parser.projectSpecFromYaml(CREATE_RUNS_FLAGS.getProjectSpec()),
+          parser.repetitionsFromYaml(CREATE_RUNS_FLAGS.getRepetitionsPath()),
+          parser.parametersFromYaml(CREATE_RUNS_FLAGS.getGlobalParamsPath()));
 
       CodeRepository codeRepository = RUNNER_FLAGS.createRepository();
       return new ExecLocalRuns(CREATE_RUNS_FLAGS.getRunSpec(), CREATE_RUNS_FLAGS.getNumRuns(),
@@ -224,7 +225,7 @@ public class Main {
 
       ResultsCopier resultsCopier;
       if (POLL_AND_RUN_FLAGS.getScpOutputHost() != null) {
-        SSHClient sshClient = Utils.createSSHClient(POLL_AND_RUN_FLAGS.getScpOutputHost());
+        SSHClient sshClient = Utils.createSSHClient(POLL_AND_RUN_FLAGS.getScpOutputHost(), POLL_AND_RUN_FLAGS.getPemFile());
         resultsCopier = new ScpResultsCopier(POLL_AND_RUN_FLAGS.getScpOutputHost(),
             POLL_AND_RUN_FLAGS.getScpOutputPath(), sshClient);
       } else {
@@ -247,9 +248,13 @@ public class Main {
       String revision = CREATE_RUNS_FLAGS.getRevision();
       RunnerFlags.RepositoryType.SVN.checkRevisionNumber(revision);
 
-      RunFactory runFactory = new RunFactory(new YamlParser(), revision,
-          CREATE_RUNS_FLAGS.getCommandFlags(), CREATE_RUNS_FLAGS.getRunset(), CREATE_RUNS_FLAGS.getProjectSpec(),
-          CREATE_RUNS_FLAGS.getRepetitionsPath(), CREATE_RUNS_FLAGS.getGlobalParamsPath());
+      YamlParser parser = new YamlParser();
+
+      RunFactory runFactory = new RunFactory(revision,
+          CREATE_RUNS_FLAGS.getCommandFlags(), CREATE_RUNS_FLAGS.getRunset(),
+          parser.projectSpecFromYaml(CREATE_RUNS_FLAGS.getProjectSpec()),
+          parser.repetitionsFromYaml(CREATE_RUNS_FLAGS.getRepetitionsPath()),
+          parser.parametersFromYaml(CREATE_RUNS_FLAGS.getGlobalParamsPath()));
       return new ScheduleRuns(daoFactory.createRunDao(), CREATE_RUNS_FLAGS.getNumRuns(), runFactory);
     }
 
