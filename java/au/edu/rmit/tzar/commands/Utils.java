@@ -18,8 +18,16 @@ public class Utils {
 
   public static SSHClient createSSHClient(String hostname)
       throws IOException {
+    return createSSHClient(hostname, null);
+  }
+
+  public static SSHClient createSSHClient(String hostname, File pemFile)
+      throws IOException {
+    if (pemFile == null) {
+      pemFile = new File(System.getProperty("user.home"), ".ssh/id_rsa");
+    }
+
     String username = System.getProperty("user.name");
-    File pemFile = new File(System.getProperty("user.home"), ".ssh/id_rsa");
     File knownHosts = new File(System.getProperty("user.home"), ".ssh/known_hosts");
 
     SSHClient sshClient = new SSHClient();
