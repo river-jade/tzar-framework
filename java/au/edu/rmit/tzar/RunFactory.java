@@ -17,15 +17,17 @@ public class RunFactory {
   private final String revision;
   private final String commandFlags;
   private final String runset;
+  private final String clusterName;
   private final ProjectSpec projectSpec;
   private final Repetitions repetitions;
   private final Parameters globalParams;
 
-  public RunFactory(String revision, String commandFlags, String runset, ProjectSpec projectSpec,
-      Repetitions repetitions, Parameters globalParams) {
+  public RunFactory(String revision, String commandFlags, String runset, String clusterName, ProjectSpec projectSpec,
+                    Repetitions repetitions, Parameters globalParams) {
     this.revision = revision;
     this.commandFlags = commandFlags;
     this.runset = runset;
+    this.clusterName = clusterName;
     this.projectSpec= projectSpec;
     this.repetitions = repetitions;
     this.globalParams = globalParams;
@@ -74,6 +76,6 @@ public class RunFactory {
   }
 
   private Run createRun(Parameters runParams, String runName) {
-    return new Run(-1, runName, revision, commandFlags, runParams, "scheduled", runset);
+    return new Run(-1, runName, revision, commandFlags, runParams, "scheduled", runset, clusterName);
   }
 }

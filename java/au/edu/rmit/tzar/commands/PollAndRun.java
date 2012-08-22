@@ -43,12 +43,14 @@ class PollAndRun implements Command {
   private final DbUpdatingResultsCopier resultsCopier;
   private final ExecutorService executorService;
   private final Semaphore runningTasks;
+  private final String clusterName;
   private final File baseOutputPath;
   private final CodeRepository codeRepository;
   private final RunnerFactory runnerFactory;
 
   public PollAndRun(DaoFactory daoFactory, int sleepTimeMillis, ResultsCopier resultsCopier, String runset,
-      int concurrentTaskCount, File baseOutputPath, CodeRepository codeRepository, RunnerFactory runnerFactory)
+                    String clusterName, int concurrentTaskCount, File baseOutputPath, CodeRepository codeRepository,
+                    RunnerFactory runnerFactory)
       throws RdvException, IOException {
     this.baseOutputPath = baseOutputPath;
     this.codeRepository = codeRepository;
@@ -56,6 +58,7 @@ class PollAndRun implements Command {
     this.runDao = daoFactory.createRunDao();
     this.sleepTimeMillis = sleepTimeMillis;
     this.runset = runset;
+    this.clusterName = clusterName;
     this.resultsCopier = new DbUpdatingResultsCopier(resultsCopier, daoFactory.createRunDao());
     executorService = Executors.newFixedThreadPool(concurrentTaskCount);
     runningTasks = new Semaphore(concurrentTaskCount);
@@ -85,7 +88,7 @@ class PollAndRun implements Command {
         try {
           while (true) {
             runningTasks.acquire(); // this line will block if there are already max tasks running
-            run = runDao.getNextRun(runset);
+            run = runDao.getNextRun(runset, clusterName);
             if (run == null) {
               runningTasks.release();
               break;

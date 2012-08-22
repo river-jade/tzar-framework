@@ -65,7 +65,8 @@ CREATE TABLE runs (
     output_host text,
     run_start_time timestamp without time zone,
     run_end_time timestamp without time zone,
-    runset text
+    runset text,
+    cluster_name text
 );
 
 

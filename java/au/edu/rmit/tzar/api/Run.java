@@ -22,6 +22,8 @@ public class Run {
 
   private volatile String state;
   private final String runset;
+  private final String clusterName;
+
   private volatile File outputPath;
   private volatile String outputHost;
 
@@ -35,9 +37,10 @@ public class Run {
    * @param parameters parameters for the run
    * @param state      execution state of the run
    * @param runset     name of a runset for this run
+   * @param clusterName name of the cluster to run upon
    */
   public Run(Integer runId, String runName, String revision, String flags, Parameters parameters, String state,
-      String runset) {
+             String runset, String clusterName) {
     this.runId = runId == null ? -1 : runId;
     this.runName = runName;
     this.revision = revision;
@@ -45,6 +48,7 @@ public class Run {
     this.parameters = parameters;
     this.state = state;
     this.runset = runset;
+    this.clusterName = clusterName;
   }
 
   public String getHostname() {
@@ -118,6 +122,10 @@ public class Run {
     return runset;
   }
 
+  public String getClusterName() {
+    return clusterName;
+  }
+
   public String getState() {
     return state;
   }
@@ -135,6 +143,7 @@ public class Run {
         ", flags='" + flags + '\'' +
         ", state='" + state + '\'' +
         ", runset='" + runset + '\'' +
+        ", clustername='" + clusterName + '\'' +
         '}';
   }
 
@@ -155,6 +164,7 @@ public class Run {
     if (revision != null ? !revision.equals(run.revision) : run.revision != null) return false;
     if (runName != null ? !runName.equals(run.runName) : run.runName != null) return false;
     if (runset != null ? !runset.equals(run.runset) : run.runset != null) return false;
+    if (clusterName != null ? !clusterName.equals(run.clusterName) : run.clusterName != null) return false;
     if (startTime != null ? !startTime.equals(run.startTime) : run.startTime != null) return false;
     if (state != null ? !state.equals(run.state) : run.state != null) return false;
 
@@ -173,6 +183,7 @@ public class Run {
     result = 31 * result + (parameters != null ? parameters.hashCode() : 0);
     result = 31 * result + (state != null ? state.hashCode() : 0);
     result = 31 * result + (runset != null ? runset.hashCode() : 0);
+    result = 31 * result + (clusterName != null ? clusterName.hashCode() : 0);
     result = 31 * result + (outputPath != null ? outputPath.hashCode() : 0);
     result = 31 * result + (outputHost != null ? outputHost.hashCode() : 0);
     return result;

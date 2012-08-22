@@ -149,7 +149,6 @@ class SharedFlags {
     private int numRuns = 1;
 
     @Parameter(names = "--projectspec", description = "The path to the file containing the project spec. Either this " +
-        "" +
         "or --runspec must be set.")
     private File projectSpec = null;
 
@@ -168,6 +167,9 @@ class SharedFlags {
 
     @Parameter(names = "--runset", description = "Name of runset to schedule.")
     private String runset = "";
+
+    @Parameter(names = "--clustername", description = "Name of cluster to run on.")
+    private String clusterName = "";
 
     @Parameter(names = "--revision", description = "The source control revision of the model code to schedule for " +
         "execution. Must be either an integer or 'head'. 'head' will mean that clients will always download the " +
@@ -210,6 +212,10 @@ class SharedFlags {
 
     public File getRunSpec() {
       return runSpec;
+    }
+
+    public String getClusterName() {
+      return clusterName;
     }
   }
 

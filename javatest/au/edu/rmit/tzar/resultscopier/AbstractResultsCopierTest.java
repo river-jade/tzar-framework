@@ -24,7 +24,7 @@ public abstract class AbstractResultsCopierTest extends TestCase {
   public void setUp() throws Exception {
     super.setUp();
     File tempSourceDir = Files.createTempDir();
-    run = new Run(1234, "a run", "4321", "", Parameters.EMPTY_PARAMETERS, "scheduled", "");
+    run = new Run(1234, "a run", "4321", "", Parameters.EMPTY_PARAMETERS, "scheduled", "", "");
     ExecutableRun executableRun = ExecutableRun.createExecutableRun(run, tempSourceDir, null, new NullRunner());
     localOutputPath = executableRun.getOutputPath();
     localOutputPath.mkdir();

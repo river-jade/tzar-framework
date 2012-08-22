@@ -198,7 +198,7 @@ public class Main {
 
       RunFactory runFactory = new RunFactory(revision,
           CREATE_RUNS_FLAGS.getCommandFlags(), CREATE_RUNS_FLAGS.getRunset(),
-          parser.projectSpecFromYaml(CREATE_RUNS_FLAGS.getProjectSpec()),
+          CREATE_RUNS_FLAGS.getClusterName(), parser.projectSpecFromYaml(CREATE_RUNS_FLAGS.getProjectSpec()),
           parser.repetitionsFromYaml(CREATE_RUNS_FLAGS.getRepetitionsPath()),
           parser.parametersFromYaml(CREATE_RUNS_FLAGS.getGlobalParamsPath()));
 
@@ -234,8 +234,9 @@ public class Main {
       }
 
       return new PollAndRun(daoFactory, POLL_AND_RUN_FLAGS.getSleepTimeMillis(), resultsCopier,
-          POLL_AND_RUN_FLAGS.getRunset(), POLL_AND_RUN_FLAGS.getConcurrentTaskCount(),
-          RUNNER_FLAGS.getLocalOutputPath(), codeRepository, new RunnerFactory(RUNNER_FLAGS.getRunnerClass()));
+          POLL_AND_RUN_FLAGS.getRunset(), POLL_AND_RUN_FLAGS.getClusterName(),
+          POLL_AND_RUN_FLAGS.getConcurrentTaskCount(), RUNNER_FLAGS.getLocalOutputPath(), codeRepository,
+          new RunnerFactory(RUNNER_FLAGS.getRunnerClass()));
     }
 
     public Command newPrintRun() throws RdvException, ParseException {
@@ -245,6 +246,10 @@ public class Main {
     }
 
     public Command newScheduleRuns() throws IOException, RdvException, ParseException {
+      if ((CREATE_RUNS_FLAGS.getProjectSpec() == null) == (CREATE_RUNS_FLAGS.getRunSpec() == null)) {
+        throw new ParseException("Must set exactly one of --projectspec or --runspec.");
+      }
+
       DaoFactory daoFactory = new DaoFactory(getDbUrl());
       String revision = CREATE_RUNS_FLAGS.getRevision();
       RunnerFlags.RepositoryType.SVN.checkRevisionNumber(revision);
@@ -253,6 +258,7 @@ public class Main {
 
       RunFactory runFactory = new RunFactory(revision,
           CREATE_RUNS_FLAGS.getCommandFlags(), CREATE_RUNS_FLAGS.getRunset(),
+          CREATE_RUNS_FLAGS.getClusterName(),
           parser.projectSpecFromYaml(CREATE_RUNS_FLAGS.getProjectSpec()),
           parser.repetitionsFromYaml(CREATE_RUNS_FLAGS.getRepetitionsPath()),
           parser.parametersFromYaml(CREATE_RUNS_FLAGS.getGlobalParamsPath()));
