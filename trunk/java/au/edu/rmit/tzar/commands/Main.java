@@ -225,7 +225,8 @@ public class Main {
 
       ResultsCopier resultsCopier;
       if (POLL_AND_RUN_FLAGS.getScpOutputHost() != null) {
-        SSHClient sshClient = Utils.createSSHClient(POLL_AND_RUN_FLAGS.getScpOutputHost(), POLL_AND_RUN_FLAGS.getPemFile());
+        SSHClient sshClient = Utils.createSSHClient(POLL_AND_RUN_FLAGS.getScpOutputHost(),
+            POLL_AND_RUN_FLAGS.getPemFile());
         resultsCopier = new ScpResultsCopier(POLL_AND_RUN_FLAGS.getScpOutputHost(),
             POLL_AND_RUN_FLAGS.getScpOutputPath(), sshClient);
       } else {

@@ -36,6 +36,10 @@ public class CommandFlags {
         "this to above one, the Runner used must support multiple parallel instances.")
     private int concurrentTaskCount = 1;
 
+    @Parameter(names = "--pemfile", description = "Path to ssh private key for connecting to the remote output data " +
+        "server. Defaults to $HOME/.ssh/id_rsa", converter = FileConverter.class)
+    private File pemFile = null;
+
     @Parameter(names = "--runset", description = "Name of runset to poll for. If omitted, will poll for any runs.")
     private String runset = null;
 
@@ -45,7 +49,7 @@ public class CommandFlags {
     @Parameter(names = "--scpoutputpath", description = "Remote path for run output data and logs. This will be " +
         "used for final location of output files if --scpoutputhost is set.",
         converter = FileConverter.class)
-    private final File scpOutputPath = new File("tzar");
+    private final File scpOutputPath = new File("tzar/outputdata");
 
     @Parameter(names = "--sleeptime", description = "Time to wait between database polls (millis).")
     private int sleepTimeMillis = 10000;
@@ -68,6 +72,10 @@ public class CommandFlags {
 
     public File getScpOutputPath() {
       return scpOutputPath;
+    }
+
+    public File getPemFile() {
+      return pemFile;
     }
   }
 
