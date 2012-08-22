@@ -20,6 +20,7 @@ public class RunFactoryTest extends TestCase {
   private static final String REVISION = "rev1";
   private static final String COMMAND_FLAGS = "--some_flag";
   private static final String RUNSET = "a_runset";
+  private static final String CLUSTER_NAME = "a cluster";
   private ProjectSpec mockProjectSpec;
   private Repetitions mockRepetitions;
 
@@ -39,8 +40,8 @@ public class RunFactoryTest extends TestCase {
     Parameters globalParams = Parameters.createParameters(ImmutableMap.of("A", -1, "B", -1, "C", -1, "D", -1),
         ImmutableMap.<String, String>of(), ImmutableMap.<String, String>of());
 
-    RunFactory runFactory = new RunFactory(REVISION, COMMAND_FLAGS, RUNSET, mockProjectSpec, mockRepetitions,
-        globalParams);
+    RunFactory runFactory = new RunFactory(REVISION, COMMAND_FLAGS, RUNSET, CLUSTER_NAME, mockProjectSpec,
+        mockRepetitions, globalParams);
 
     when(mockProjectSpec.getBaseParams()).thenReturn(
         Parameters.createParameters(ImmutableMap.of("A", 0, "B", 0, "C", 0),

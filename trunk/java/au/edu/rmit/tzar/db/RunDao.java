@@ -23,12 +23,13 @@ public class RunDao {
   private static final Logger LOG = Logger.getLogger(RunDao.class.getName());
 
   @VisibleForTesting
-  static final String INSERT_RUN_SQL = "INSERT INTO runs (run_id, state, code_version, run_name, command_flags, runset) " +
-      "VALUES (?, ?, ?, ?, ?, ?)";
+  static final String INSERT_RUN_SQL = "INSERT INTO runs (run_id, state, code_version, run_name, command_flags, runset, " +
+      "cluster_name) VALUES (?, ?, ?, ?, ?, ?, ?)";
 
   @VisibleForTesting
   static final String NEXT_RUN_SQL = "SELECT run_id, state, code_version, run_name, command_flags, runset, " +
-      "output_path, output_host FROM runs WHERE state='scheduled' AND runset LIKE ? ORDER BY run_id ASC LIMIT 1";
+      "cluster_name, output_path, output_host FROM runs WHERE state='scheduled' AND runset LIKE ? AND " +
+      "cluster_name = ? ORDER BY run_id ASC LIMIT 1";
 
   @VisibleForTesting
   static final String UPDATE_RUN_SQL = "UPDATE runs SET run_start_time = ?, run_end_time = ?, state = ?, " +
@@ -64,13 +65,15 @@ public class RunDao {
    * Polls the database for the next scheduled run.
    *
    * @param runset runset to filter by or null to poll for any runset
+   * @param clusterName we only poll for runs scheduled for the current cluster. Not null, but may be empty.
    * @return true if a run was found and executed, false otherwise
    * @throws RdvException if something goes wrong executing the run
    */
-  public synchronized Run getNextRun(String runset) throws RdvException {
+  public synchronized Run getNextRun(String runset, String clusterName) throws RdvException {
     try {
       connection.setAutoCommit(true);
       selectNextRun.setString(1, runset == null ? "%" : runset);
+      selectNextRun.setString(2, clusterName);
       ResultSet resultSet = selectNextRun.executeQuery();
       connection.setAutoCommit(false);
 
@@ -138,6 +141,7 @@ public class RunDao {
         insertRun.setString(4, run.getName());
         insertRun.setString(5, run.getFlags());
         insertRun.setString(6, run.getRunset());
+        insertRun.setString(7, run.getClusterName());
         insertRun.addBatch();
         parametersDao.batchInsertParams(run.getRunId(), run.getParameters());
         nextRunId++;
@@ -249,7 +253,7 @@ public class RunDao {
     Parameters parameters = withParameters ? loadParameters(runId) : Parameters.EMPTY_PARAMETERS;
     Run run = new Run(runId, resultSet.getString("run_name"), resultSet.getString("code_version"),
         resultSet.getString("command_flags"), parameters, resultSet.getString("state"),
-        resultSet.getString("runset"));
+        resultSet.getString("runset"), resultSet.getString("cluster_name"));
     String outputPath = resultSet.getString("output_path");
     if (outputPath != null) {
       run.setOutputPath(new File(outputPath));

@@ -24,6 +24,7 @@ public class RunDaoTest extends TestCase {
   private static final String RUN_NAME = "cool run";
   private static final String COMMAND_FLAGS = "-pexample";
   private static final String RUNSET = "a runset";
+  private static final String CLUSTER_NAME = "a cluster";
   public static final int FIRST_RUN_ID = 2233;
 
   private Jdbc4Connection mockConnection;
@@ -42,6 +43,7 @@ public class RunDaoTest extends TestCase {
     when(resultSet.getString("run_name")).thenReturn(RUN_NAME);
     when(resultSet.getString("command_flags")).thenReturn(COMMAND_FLAGS);
     when(resultSet.getString("runset")).thenReturn(RUNSET);
+    when(resultSet.getString("cluster_name")).thenReturn(CLUSTER_NAME);
     when(resultSet.getString("code_version")).thenReturn(CODE_VERSION);
     when(resultSet.getString("state")).thenReturn("scheduled");
     when(mockConnection.prepareStatement(RunDao.NEXT_RUN_SQL, ResultSet.TYPE_FORWARD_ONLY,
@@ -55,12 +57,12 @@ public class RunDaoTest extends TestCase {
   public void testGetNextRun() throws Exception {
     when(resultSet.next()).thenReturn(true);
     assertEquals(new Run(RUN_ID, RUN_NAME, CODE_VERSION, COMMAND_FLAGS, Parameters.EMPTY_PARAMETERS,
-        "scheduled", RUNSET), runDao.getNextRun(null));
+        "scheduled", RUNSET, CLUSTER_NAME), runDao.getNextRun(null, CLUSTER_NAME));
   }
 
   public void testGetNextRunNoMatch() throws Exception {
     when(resultSet.next()).thenReturn(false);
-    assertNull(runDao.getNextRun(null));
+    assertNull(runDao.getNextRun(null, CLUSTER_NAME));
   }
 
   public void testInsertRuns() throws RdvException, SQLException {
@@ -71,9 +73,9 @@ public class RunDaoTest extends TestCase {
 
     List<Run> runs = Lists.newArrayList();
     runs.add(new Run(RUN_ID, RUN_NAME, CODE_VERSION, COMMAND_FLAGS,
-        Parameters.EMPTY_PARAMETERS, "state", RUNSET));
+        Parameters.EMPTY_PARAMETERS, "state", RUNSET, CLUSTER_NAME));
     runs.add(new Run(RUN_ID, RUN_NAME + "1", CODE_VERSION + 1, COMMAND_FLAGS,
-        Parameters.EMPTY_PARAMETERS, "state", RUNSET));
+        Parameters.EMPTY_PARAMETERS, "state", RUNSET, CLUSTER_NAME));
 
     InOrder inOrder = inOrder(insertRun, mockConnection);
     runDao.insertRuns(runs);

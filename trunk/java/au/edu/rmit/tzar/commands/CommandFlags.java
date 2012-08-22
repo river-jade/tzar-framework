@@ -54,6 +54,9 @@ public class CommandFlags {
     @Parameter(names = "--sleeptime", description = "Time to wait between database polls (millis).")
     private int sleepTimeMillis = 10000;
 
+    @Parameter(names = "--clustername", description = "Name of the cluster on which this node is running.")
+    private String clusterName = "";
+
     public int getConcurrentTaskCount() {
       return concurrentTaskCount;
     }
@@ -76,6 +79,10 @@ public class CommandFlags {
 
     public File getPemFile() {
       return pemFile;
+    }
+
+    public String getClusterName() {
+      return clusterName;
     }
   }
 
