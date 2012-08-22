@@ -4,6 +4,7 @@ import au.edu.rmit.tzar.api.Parameters;
 import au.edu.rmit.tzar.api.RdvException;
 import au.edu.rmit.tzar.api.Run;
 import au.edu.rmit.tzar.api.Runner;
+import au.edu.rmit.tzar.parser.YamlParser;
 import au.edu.rmit.tzar.repository.CodeRepository;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Files;
@@ -33,6 +34,7 @@ public class ExecutableRun {
   private final Run run;
   private final CodeRepository codeRepository;
   private final Runner runner;
+  private final YamlParser yamlParser = new YamlParser();
 
   /**
    * Factory method.
@@ -100,8 +102,10 @@ public class ExecutableRun {
       FileHandler handler = null;
       boolean success = false;
       try {
-        handler = setupFileHandler(inprogressOutputPath);
+        handler = setupLogFileHandler(inprogressOutputPath);
         RUNNER_LOGGER.addHandler(handler);
+        File parametersFile = new File(inprogressOutputPath, "parameters.yaml");
+        yamlParser.parametersToYaml(parameters, parametersFile);
         success = runner.runModel(model, inprogressOutputPath, Integer.toString(run.getRunId()), run.getFlags(),
             parameters, RUNNER_LOGGER);
       } finally {
@@ -153,7 +157,7 @@ public class ExecutableRun {
     return nextRunId;
   }
 
-  private static FileHandler setupFileHandler(File outputPath) throws IOException {
+  private static FileHandler setupLogFileHandler(File outputPath) throws IOException {
     FileHandler handler = new FileHandler(new File(outputPath, "logging.log").getPath());
     handler.setFormatter(new BriefLogFormatter());
     return handler;
