@@ -1,3 +1,5 @@
+package au.edu.rmit.tzar.runners;
+
 import au.edu.rmit.tzar.api.Parameters;
 import au.edu.rmit.tzar.api.RdvException;
 import au.edu.rmit.tzar.api.Runner;
@@ -46,7 +48,9 @@ public class JythonRunner implements Runner {
     interpreter.setOut(System.out);
     interpreter.setErr(System.err);
 
-    interpreter.execfile(getClass().getResourceAsStream("modelrunner.py"));
+    // Not sure why we need to explictly get the ClassLoader here, rather than just calling
+    // getClass().getResourceAsStream(), but for some reason, the latter fails...
+    interpreter.execfile(getClass().getClassLoader().getResourceAsStream("modelrunner.py"));
     interpreter.exec("modelrunner=ModelRunner()");
     try {
       Class runnerClass = Class.forName("au.edu.rmit.tzar.api.Runner");

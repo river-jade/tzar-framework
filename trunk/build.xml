@@ -10,9 +10,9 @@
 
     <target name="dist" depends="test, dist-tzar, dist-api"/>
 
-    <!--*****************************
+<!--*****************************
       Main code compile and dist
-   ***************************** -->
+    ***************************** -->
 
     <target name="clean" depends="clean-test" unless="jar.uptodate">
         <delete dir="${build.dir}"/>
@@ -35,6 +35,14 @@
                 <include name="**.properties"/>
             </fileset>
         </copy>
+        <!-- Add the python source -->
+        <copy todir="${build.dir}">
+            <fileset dir="python">
+                <include name="**"/>
+                <exclude name="**/*.class"/>
+            </fileset>
+        </copy>
+        <copy file="__run__.py" todir="${build.dir}"/>
         <ivy:cachefileset setid="libs.fileset" conf="tzar-dist"/>
         <!-- we create this external libs jar because we need to strip out
         the security signature on the bc-prov.jar library, otherwise when
