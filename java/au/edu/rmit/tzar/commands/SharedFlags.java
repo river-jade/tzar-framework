@@ -307,6 +307,8 @@ class SharedFlags {
 
   /**
    * Used to convert the runnerclass flag from a string to a class, by loading the correct class.
+   * If the class is not found, we attempt to prefix au.edu.rmit.tzar.runners, to allow use
+   * of unqualified class names.
    * Throws a ParseException if the class can't be loaded or is not an instance of Runner.class.
    */
   public static class ClassConverter implements IStringConverter<Class<Runner>> {
@@ -318,16 +320,21 @@ class SharedFlags {
 
     @Override
     public Class<Runner> convert(String value) {
+      Class<?> aClass;
       try {
-        Class<?> aClass = getClass().getClassLoader().loadClass(value);
-        if (!Runner.class.isAssignableFrom(aClass)) {
-          throw new ParseException("Specified class: " + value + " was not an instance of " + Runner.class);
-        }
-        return cast(aClass);
+        aClass = getClass().getClassLoader().loadClass(value);
       } catch (ClassNotFoundException e) {
-        //noinspection ThrowInsideCatchBlockWhichIgnoresCaughtException
-        throw new ParseException("Unable to load specified class: " + value + " pass to parameter: " + parameterName);
+        try {
+          aClass = getClass().getClassLoader().loadClass("au.edu.rmit.tzar.runners." + value);
+        } catch (ClassNotFoundException e1) {
+          //noinspection ThrowInsideCatchBlockWhichIgnoresCaughtException
+          throw new ParseException("Unable to load specified class: " + value + " pass to parameter: " + parameterName);
+        }
       }
+      if (!Runner.class.isAssignableFrom(aClass)) {
+        throw new ParseException("Specified class: " + value + " was not an instance of " + Runner.class);
+      }
+      return cast(aClass);
     }
 
     @SuppressWarnings("unchecked")
