@@ -8,6 +8,7 @@ import net.schmizz.sshj.xfer.scp.SCPFileTransfer;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -37,19 +38,35 @@ public class ScpResultsCopier implements ResultsCopier {
 
   @Override
   public void copyResults(Run run, File sourcePath) throws RdvException {
-    LOG.info("Copying results from: " + sourcePath + " to " + hostname + ":" + baseDestPath);
-    try {
-      // slight hack here because the SCPFileTransfer class upload method doesn't accept a File object for
-      // the destination path (ie only accepts a String), and if this is run on a windows machine where the
-      // separator character is '\', a single directory gets created on the destination with name a\b\c,
-      // instead of a tree a/b/c.
-      // This hack may break if the ssh server is a windows machine.
-      scpClient.upload(new FileSystemFile(sourcePath), baseDestPath.getPath().replace(File.separatorChar, '/'));
-      run.setOutputPath(baseDestPath);
-      run.setOutputHost(hostname);
-      LOG.info("Copied results from: " + sourcePath + " to " + hostname + ":" + baseDestPath);
-    } catch (IOException e) {
-      throw new RdvException(e);
+    // Retry copying 8 times, doubling the wait in between each attempt, up to 2 minutes wait.
+    IOException failure = null;
+    for (int i = 0; i < 8; ++i) {
+      LOG.info("Copying results from: " + sourcePath + " to " + hostname + ":" + baseDestPath);
+      try {
+        // slight hack here because the SCPFileTransfer class upload method doesn't accept a File object for
+        // the destination path (ie only accepts a String), and if this is run on a windows machine where the
+        // separator character is '\', a single directory gets created on the destination with name a\b\c,
+        // instead of a tree a/b/c.
+        // This hack may break if the ssh server is a windows machine.
+        scpClient.upload(new FileSystemFile(sourcePath), baseDestPath.getPath().replace(File.separatorChar, '/'));
+        run.setOutputPath(baseDestPath);
+        run.setOutputHost(hostname);
+        LOG.info("Copied results from: " + sourcePath + " to " + hostname + ":" + baseDestPath);
+        failure = null;
+        break;
+      } catch (IOException e) {
+        LOG.log(Level.WARNING, "IOException copying results", e);
+        failure = e;
+        try {
+          Thread.sleep(2^i * 1000);
+        } catch (InterruptedException e1) {
+          Thread.currentThread().interrupt();
+          LOG.log(Level.WARNING, "Waiting thread interrupted.", e1);
+        }
+      }
+    }
+    if (failure != null) {
+      throw new RdvException(failure);
     }
   }
 
