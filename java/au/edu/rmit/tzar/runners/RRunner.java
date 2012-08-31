@@ -3,8 +3,6 @@ package au.edu.rmit.tzar.runners;
 import au.edu.rmit.tzar.api.Parameters;
 import au.edu.rmit.tzar.api.RdvException;
 import au.edu.rmit.tzar.api.Runner;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
 import java.io.*;
 import java.util.logging.Logger;
@@ -17,55 +15,28 @@ import java.util.regex.Pattern;
  * are qualified by the input and output paths respectively), executing
  * a wrapper script written in R, which can parse the variables.json file.
  */
-public class RRunner implements Runner {
+public class RRunner  extends SystemRunner implements Runner {
   private static Logger LOG = Logger.getLogger(RRunner.class.getName());
 
   @Override
   public boolean runModel(File model, File outputPath, String runId, String flagsString, Parameters parameters,
       Logger logger) throws RdvException {
     Flags flags = Flags.parseFlags(flagsString);
-    Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
     // TODO(michaell): urgh. get rid of this hard coded hackery!!
     File projectPath = new File(model, "projects/" + flags.projectName);
-    File inputPath = new File(projectPath, "input_data");
-    File variablesFile = new File(outputPath, "variables.json");
-    try {
-      FileWriter writer = new FileWriter(variablesFile);
-      gson.toJson(parameters.getQualifiedParams(inputPath, outputPath), writer);
-      writer.close();
-    } catch (IOException e) {
-      throw new RdvException(e);
-    }
+
+    File variablesFile = writeVariablesFile(outputPath, parameters);
 
     // TODO(michaell): put this in the jar and pipe it into R?
     // a la: cat R/rrunner.R | R --vanilla --args --paramfile=/tmp/variables.json --rscript R/example.R
     // otherwise, find somewhere else for it to live...
     File rrunnerPath = new File(model, "R/rrunner.R");
 
-    try {
-      ProcessBuilder processBuilder = new ProcessBuilder(flags.rLocation.getPath(),
-          rrunnerPath.getPath(),
-          "--paramfile=" + variablesFile.getPath(),
-          "--rscript=" + new File(projectPath, flags.rScript.getPath()).getPath());
-
-      Process process = processBuilder
-          .redirectErrorStream(true)
-          .directory(model)
-          .start();
-
-      // Send stdout and stderr to the logger.
-      BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()));
-      String line;
-      while ((line = br.readLine()) != null) {
-        logger.fine(line);
-      }
-      return process.waitFor() == 0;
-    } catch (IOException e) {
-      throw new RdvException(e);
-    } catch (InterruptedException e) {
-      throw new RdvException(e);
-    }
+    return executeCommand(model, logger, flags.rLocation.getPath(),
+        rrunnerPath.getPath(),
+        "--paramfile=" + variablesFile.getPath(),
+        "--rscript=" + new File(projectPath, flags.rScript.getPath()).getPath());
   }
 
   /**

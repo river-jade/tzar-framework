@@ -35,11 +35,15 @@
                 <include name="**.properties"/>
             </fileset>
         </copy>
+        <copy todir="${build.dir}/python">
         <!-- Add the python source -->
-        <copy todir="${build.dir}">
-            <fileset dir="python">
+            <fileset dir="java/python">
                 <include name="**"/>
-                <exclude name="**/*.class"/>
+            </fileset>
+        </copy>
+        <copy todir="${build.dir}">
+            <fileset dir="java/jython">
+                <include name="**"/>
             </fileset>
         </copy>
         <copy file="__run__.py" todir="${build.dir}"/>
