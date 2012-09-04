@@ -1,5 +1,6 @@
 package au.edu.rmit.tzar.commands;
 
+import au.edu.rmit.tzar.SSHClientFactory;
 import au.edu.rmit.tzar.api.RdvException;
 import au.edu.rmit.tzar.api.Run;
 import au.edu.rmit.tzar.db.RunDao;
@@ -76,7 +77,7 @@ class AggregateResults implements Command {
       @Override
       public SSHClient apply(String sourceHost) {
         try {
-          return Utils.createSSHClient(sourceHost);
+          return new SSHClientFactory(sourceHost, null).createSSHClient();
         } catch (IOException e) {
           throw new RuntimeException(e);
         }
