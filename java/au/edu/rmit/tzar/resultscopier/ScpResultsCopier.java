@@ -51,11 +51,12 @@ public class ScpResultsCopier implements ResultsCopier {
         scpClient.upload(new FileSystemFile(sourcePath), baseDestPath.getPath().replace(File.separatorChar, '/'));
         run.setOutputPath(baseDestPath);
         run.setOutputHost(hostname);
-        LOG.info("Copied results from: " + sourcePath + " to " + hostname + ":" + baseDestPath);
+        LOG.log(Level.INFO, "Copied results for run: {0} from: {1} to {2}:{3}", new Object[]{run.getRunId(), sourcePath, hostname,
+            baseDestPath});
         failure = null;
         break;
       } catch (IOException e) {
-        LOG.log(Level.WARNING, "IOException copying results", e);
+        LOG.log(Level.WARNING, "IOException copying results for run: " + run.getRunId() + ", attempt: " + i, e);
         failure = e;
         try {
           Thread.sleep(2^i * 1000);
@@ -66,7 +67,7 @@ public class ScpResultsCopier implements ResultsCopier {
       }
     }
     if (failure != null) {
-      throw new RdvException(failure);
+      throw new RdvException("Too many failed attempts to copy results for run: " + run.getRunId(), failure);
     }
   }
 
