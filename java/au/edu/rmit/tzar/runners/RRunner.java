@@ -3,10 +3,9 @@ package au.edu.rmit.tzar.runners;
 import au.edu.rmit.tzar.api.Parameters;
 import au.edu.rmit.tzar.api.RdvException;
 import au.edu.rmit.tzar.api.Runner;
-import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 
-import java.io.*;
+import java.io.File;
 import java.util.logging.Logger;
 
 /**
@@ -21,7 +20,7 @@ public class RRunner  extends SystemRunner implements Runner {
   @Override
   public boolean runModel(File model, File outputPath, String runId, String flagsString, Parameters parameters,
       Logger logger) throws RdvException {
-    Flags flags = Flags.parseFlags(flagsString.split(" "));
+    Flags flags = parseFlags(flagsString.split(" "), new Flags());
 
     // TODO(michaell): urgh. get rid of this hard coded hackery!!
     File projectPath = new File(model, "projects/" + flags.projectName);
@@ -61,12 +60,5 @@ public class RRunner  extends SystemRunner implements Runner {
      */
     @Parameter(names = "--rscript", description = "Name of the R script to execute.", required = true)
     private File rScript;
-
-    private static Flags parseFlags(String[] flagString) throws RdvException {
-      Flags flags = new Flags();
-      JCommander jcommander = new JCommander(flags);
-      jcommander.parse(flagString);
-      return flags;
-    }
   }
 }
