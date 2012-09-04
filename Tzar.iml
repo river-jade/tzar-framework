@@ -24,7 +24,6 @@
           <root url="jar://$USER_HOME$/.ivy2/cache/com.google.code.gson/gson/jars/gson-1.7.1.jar!/" />
           <root url="jar://$USER_HOME$/.ivy2/cache/com.google.guava/guava/jars/guava-r09.jar!/" />
           <root url="jar://$USER_HOME$/.ivy2/cache/com.jcraft/jzlib/jars/jzlib-1.0.7.jar!/" />
-          <root url="jar://$USER_HOME$/.ivy2/cache/net.schmizz/sshj/bundles/sshj-0.5.0.jar!/" />
           <root url="jar://$USER_HOME$/.ivy2/cache/org.slf4j/slf4j-api/jars/slf4j-api-1.6.1.jar!/" />
           <root url="jar://$USER_HOME$/.ivy2/cache/net.sf.opencsv/opencsv/jars/opencsv-2.0.jar!/" />
           <root url="jar://$USER_HOME$/.ivy2/cache/org.fusesource.jansi/jansi/jars/jansi-1.6.jar!/" />
@@ -46,6 +45,7 @@
           <root url="jar://$USER_HOME$/.ivy2/cache/org.mockito/mockito-core/jars/mockito-core-1.9.0-rc1.jar!/" />
           <root url="jar://$USER_HOME$/.ivy2/cache/org.objenesis/objenesis/jars/objenesis-1.0.jar!/" />
           <root url="jar://$USER_HOME$/.ivy2/cache/com.beust/jcommander/jars/jcommander-1.27.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/net.schmizz/sshj/bundles/sshj-0.8.1.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES>
@@ -63,6 +63,7 @@
           <root url="jar://$USER_HOME$/.ivy2/cache/junit/junit/sources/junit-4.9-sources.jar!/" />
           <root url="jar://$USER_HOME$/.ivy2/cache/org.mockito/mockito-core/sources/mockito-core-1.9.0-rc1-sources.jar!/" />
           <root url="jar://$USER_HOME$/.ivy2/cache/com.beust/jcommander/sources/jcommander-1.27-sources.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/net.schmizz/sshj/sources/sshj-0.8.1-sources.jar!/" />
         </SOURCES>
       </library>
     </orderEntry>
