@@ -2,11 +2,14 @@ package au.edu.rmit.tzar.runners;
 
 import au.edu.rmit.tzar.api.Parameters;
 import au.edu.rmit.tzar.api.RdvException;
+import com.beust.jcommander.JCommander;
+import com.beust.jcommander.ParameterException;
 import com.google.common.base.Joiner;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import java.io.*;
+import java.util.Arrays;
 import java.util.logging.Logger;
 
 /**
@@ -50,5 +53,15 @@ public abstract class SystemRunner {
     } catch (InterruptedException e) {
       throw new RdvException(e);
     }
+  }
+
+  protected static <T> T parseFlags(String[] flagString, T flags) throws RdvException {
+    JCommander jcommander = new JCommander(flags);
+    try {
+      jcommander.parse(flagString);
+    } catch (ParameterException e) {
+      throw new RdvException("Error parsing flag string: " + Arrays.toString(flagString), e);
+    }
+    return flags;
   }
 }

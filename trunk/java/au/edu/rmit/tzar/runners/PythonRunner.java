@@ -3,7 +3,6 @@ package au.edu.rmit.tzar.runners;
 import au.edu.rmit.tzar.api.Parameters;
 import au.edu.rmit.tzar.api.RdvException;
 import au.edu.rmit.tzar.api.Runner;
-import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 
 import java.io.*;
@@ -21,7 +20,7 @@ public class PythonRunner extends SystemRunner implements Runner {
   @Override
   public boolean runModel(File model, File outputPath, String runId, String flagsString, Parameters parameters,
                           Logger logger) throws RdvException {
-    Flags flags = Flags.parseFlags(flagsString.split(" "));
+    Flags flags = parseFlags(flagsString.split(" "), new Flags());
 
     File variablesFile = writeVariablesFile(outputPath, parameters);
 
@@ -82,12 +81,5 @@ public class PythonRunner extends SystemRunner implements Runner {
      */
     @Parameter(names = "--python-location", description = "Name of the python executable. Default: python")
     private final File pythonLocation = new File("python");
-
-    private static Flags parseFlags(String[] flagString) throws RdvException {
-      Flags flags = new Flags();
-      JCommander jcommander = new JCommander(flags);
-      jcommander.parse(flagString);
-      return flags;
-    }
   }
 }
