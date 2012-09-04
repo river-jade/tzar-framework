@@ -1,9 +1,6 @@
 package au.edu.rmit.tzar.commands;
 
-import au.edu.rmit.tzar.ColorConsoleHandler;
-import au.edu.rmit.tzar.Constants;
-import au.edu.rmit.tzar.RunFactory;
-import au.edu.rmit.tzar.RunnerFactory;
+import au.edu.rmit.tzar.*;
 import au.edu.rmit.tzar.api.RdvException;
 import au.edu.rmit.tzar.db.DaoFactory;
 import au.edu.rmit.tzar.parser.YamlParser;
@@ -15,7 +12,6 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
 import com.google.common.collect.Maps;
 import com.google.common.collect.ObjectArrays;
-import net.schmizz.sshj.SSHClient;
 
 import java.io.File;
 import java.io.IOException;
@@ -225,10 +221,9 @@ public class Main {
 
       ResultsCopier resultsCopier;
       if (POLL_AND_RUN_FLAGS.getScpOutputHost() != null) {
-        SSHClient sshClient = Utils.createSSHClient(POLL_AND_RUN_FLAGS.getScpOutputHost(),
+        SSHClientFactory sshClientFactory = new SSHClientFactory(POLL_AND_RUN_FLAGS.getScpOutputHost(),
             POLL_AND_RUN_FLAGS.getPemFile());
-        resultsCopier = new ScpResultsCopier(POLL_AND_RUN_FLAGS.getScpOutputHost(),
-            POLL_AND_RUN_FLAGS.getScpOutputPath(), sshClient);
+        resultsCopier = new ScpResultsCopier(sshClientFactory, POLL_AND_RUN_FLAGS.getScpOutputPath());
       } else {
         resultsCopier = new FileResultsCopier(RUNNER_FLAGS.getLocalOutputPath());
       }

@@ -155,7 +155,7 @@ class PollAndRun implements Command {
     try {
       hostname = Utils.getHostname();
     } catch (UnknownHostException e) {
-      LOG.log(Level.WARNING, "Unable to determine hostname", e);
+      LOG.log(Level.WARNING, "Unable to determine hostname. Setting to 'UNKNOWN'");
       hostname = "UNKNOWN";
     }
     return hostname;
