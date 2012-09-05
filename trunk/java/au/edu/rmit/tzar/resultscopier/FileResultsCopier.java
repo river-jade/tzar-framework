@@ -6,7 +6,6 @@ import au.edu.rmit.tzar.api.Run;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.UnknownHostException;
 import java.util.logging.Logger;
 
 /**
@@ -49,13 +48,7 @@ public class FileResultsCopier implements ResultsCopier {
     } catch (IOException e) {
       throw new RdvException(e);
     }
-    String hostname;
-    try {
-      hostname = Utils.getHostname();
-    } catch (UnknownHostException e) {
-      hostname = "UNKNOWN";
-    }
-    run.setOutputHost(hostname);
+    run.setOutputHost(Utils.getHostname());
     run.setOutputPath(dest);
   }
 
