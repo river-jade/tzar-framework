@@ -13,7 +13,6 @@ import au.edu.rmit.tzar.resultscopier.ResultsCopier;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.UnknownHostException;
 import java.util.Date;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -139,7 +138,7 @@ class PollAndRun implements Command {
     run.setStartTime(new Date());
     run.setEndTime(null);
     run.setState("in_progress");
-    run.setHostname(getHostname());
+    run.setHostname(Utils.getHostname());
     runDao.persistRun(run);
 
     executorService.submit(new DbExecutableRun(executableRun, resultsCopier, runDao, new Callback() {
@@ -148,17 +147,6 @@ class PollAndRun implements Command {
         runningTasks.release(); // release the semaphore now that the task is done
       }
     }));
-  }
-
-  private static String getHostname() {
-    String hostname;
-    try {
-      hostname = Utils.getHostname();
-    } catch (UnknownHostException e) {
-      LOG.log(Level.WARNING, "Unable to determine hostname. Setting to 'UNKNOWN'");
-      hostname = "UNKNOWN";
-    }
-    return hostname;
   }
 
   private static interface Callback {
