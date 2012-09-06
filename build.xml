@@ -19,7 +19,7 @@
     </target>
 
     <target name="javac" depends="checkjar, clean, init-ivy" unless="jar.uptodate">
-        <ivy:cachepath pathid="tzar.classpath" conf="tzar"/>
+        <ivy:cachepath pathid="tzar.classpath" conf="tzar" log="download-only"/>
         <mkdir dir="${build.dir}"/>
         <javac srcdir="${src.dir}" destdir="${build.dir}" includeantruntime="false" debug="true">
             <classpath>
@@ -47,7 +47,7 @@
             </fileset>
         </copy>
         <copy file="__run__.py" todir="${build.dir}"/>
-        <ivy:cachefileset setid="libs.fileset" conf="tzar-dist"/>
+        <ivy:cachefileset setid="libs.fileset" conf="tzar-dist" log="download-only"/>
         <!-- we create this external libs jar because we need to strip out
         the security signature on the bc-prov.jar library, otherwise when
          we glom them all into a single jar, jar loading fails. Unfortunately, the
@@ -75,7 +75,7 @@
    ****************************** -->
     <target name="javac-api" depends="checkjar, clean, init-ivy" unless="jar.uptodate">
         <mkdir dir="${build.dir}"/>
-        <ivy:cachepath pathid="api.classpath" conf="api"/>
+        <ivy:cachepath pathid="api.classpath" conf="api" log="download-only"/>
         <javac srcdir="${src.dir}" destdir="${build.dir}" includeantruntime="false" debug="true"
                includes="au/edu/rmit/tzar/api/**">
             <classpath refid="api.classpath"/>
@@ -97,7 +97,7 @@
     </target>
 
     <target name="javac-test" depends="javac">
-    	<ivy:cachepath pathid="test.classpath" conf="test"/>
+    	<ivy:cachepath pathid="test.classpath" conf="test" log="download-only"/>
         <mkdir dir="${test.build.dir}"/>
         <javac srcdir="${tst.dir}" destdir="${test.build.dir}">
             <classpath>
@@ -108,9 +108,12 @@
     </target>
 
     <target name="test" depends="clean-test, javac-test">
-        <junit haltonerror="true" haltonfailure="false" failureproperty="tests.failed" errorproperty="tests.failed"
+        <junit haltonerror="true"
+               haltonfailure="false"
+               failureproperty="tests.failed"
+               errorproperty="tests.failed"
                fork="true"
-               printsummary="true">
+               outputtoformatters="false">
             <classpath>
                 <pathelement location="${build.dir}"/>
                 <pathelement location="${test.build.dir}"/>
