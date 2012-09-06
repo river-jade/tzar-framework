@@ -8,7 +8,7 @@
     <property name="tst.dir" value="javatest"/>
     <property name="api.jar.name" value="tzar-api.jar"/>
 
-    <target name="dist" depends="test, dist-tzar, dist-api"/>
+    <target name="dist" depends="test, dist-tzar"/>
 
 <!--*****************************
       Main code compile and dist
@@ -99,7 +99,7 @@
     <target name="javac-test" depends="javac">
     	<ivy:cachepath pathid="test.classpath" conf="test" log="download-only"/>
         <mkdir dir="${test.build.dir}"/>
-        <javac srcdir="${tst.dir}" destdir="${test.build.dir}">
+        <javac srcdir="${tst.dir}" destdir="${test.build.dir}" includeantruntime="false">
             <classpath>
                 <pathelement location="${build.dir}"/>
                 <path refid="test.classpath"/>
