@@ -58,10 +58,11 @@ class AggregateResults implements Command {
    * @param runset         name of runset to filter by, or null to not filter by runset
    * @param destPath       base path to copy aggregated results to
    * @param runDao         for accessing the database of runs
-   * @param hostname       host name of this machine (used to determing if ssh is required to copy files)
+   * @param hostname       host name of this machine (used to determine if ssh is required to copy files)
+   * @param sshUserName    user name to use to connect to the remote server, or null to use current local username
    */
   public AggregateResults(List<Integer> runIds, List<String> states, String filterHostname, String runset,
-      File destPath, RunDao runDao, String hostname) {
+      File destPath, RunDao runDao, String hostname, final String sshUserName) {
     this.runIds = runIds;
     if (states == null || states.isEmpty()) {
       this.states = Lists.newArrayList("copied");
@@ -77,7 +78,7 @@ class AggregateResults implements Command {
       @Override
       public SSHClient apply(String sourceHost) {
         try {
-          return new SSHClientFactory(sourceHost, null).createSSHClient();
+          return new SSHClientFactory(sourceHost, null, sshUserName).createSSHClient();
         } catch (IOException e) {
           throw new RuntimeException(e);
         }

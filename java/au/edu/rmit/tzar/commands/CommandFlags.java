@@ -38,7 +38,7 @@ public class CommandFlags {
 
     @Parameter(names = "--pemfile", description = "Path to ssh private key for connecting to the remote output data " +
         "server. Defaults to $HOME/.ssh/id_rsa", converter = FileConverter.class)
-    private File pemFile = null;
+    private File pemFile = new File(System.getProperty("user.home"), ".ssh/id_rsa");
 
     @Parameter(names = "--runset", description = "Name of runset to poll for. If omitted, will poll for any runs.")
     private String runset = null;
@@ -51,14 +51,26 @@ public class CommandFlags {
         converter = FileConverter.class)
     private final File scpOutputPath = new File("tzar/outputdata");
 
+    @Parameter(names = "--scpoutputuser", description = "Username for the run output ssh host. If not specified, " +
+        "uses the current user")
+    private final String scpOutputUser = System.getProperty("user.name");
+
     @Parameter(names = "--sleeptime", description = "Time to wait between database polls (millis).")
     private int sleepTimeMillis = 10000;
 
     @Parameter(names = "--clustername", description = "Name of the cluster on which this node is running.")
     private String clusterName = "";
 
+    public String getClusterName() {
+      return clusterName;
+    }
+
     public int getConcurrentTaskCount() {
       return concurrentTaskCount;
+    }
+
+    public File getPemFile() {
+      return pemFile;
     }
 
     public String getRunset() {
@@ -77,12 +89,8 @@ public class CommandFlags {
       return scpOutputPath;
     }
 
-    public File getPemFile() {
-      return pemFile;
-    }
-
-    public String getClusterName() {
-      return clusterName;
+    public String getScpOutputUser() {
+      return scpOutputUser;
     }
   }
 
@@ -139,11 +147,19 @@ public class CommandFlags {
     @Parameter(names = "--outputpath", description = "Local path to put the consolidated data.", required = true)
     private File outputPath;
 
+    @Parameter(names = "--scpusername", description = "Username for the output hosts. If not specified, " +
+        "uses the current user")
+    private final String scpUserName = System.getProperty("user.name");
+
     private AggregateResultsFlags() {
     }
 
     public File getOutputPath() {
       return outputPath;
+    }
+
+    public String getScpUserName() {
+      return scpUserName;
     }
   }
 }

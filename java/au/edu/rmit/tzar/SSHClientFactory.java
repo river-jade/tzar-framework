@@ -6,6 +6,7 @@ import net.schmizz.sshj.userauth.keyprovider.PKCS8KeyFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -16,36 +17,34 @@ public class SSHClientFactory {
 
   private final String hostname;
   private final File pemFile;
+  private final String sshUserName;
 
   /**
    * Constructor
    * @param hostname     the hostname of the destination
-   * @param pemFile      path to the file containing the key for the remote host, or null to use the default private
-   * key on this machine
+   * @param pemFile      path to the file containing the key for the remote host
+   * @param sshUserName  username to use to connect to the ssh host
    */
-  public SSHClientFactory(String hostname, File pemFile) {
+  public SSHClientFactory(String hostname, File pemFile, String sshUserName) {
     this.hostname = hostname;
-    if (pemFile == null) {
-      pemFile = new File(System.getProperty("user.home"), ".ssh/id_rsa");
-    }
+    this.sshUserName = sshUserName;
     this.pemFile = pemFile;
   }
 
   public SSHClient createSSHClient() throws IOException {
-    String username = System.getProperty("user.name");
     File knownHosts = new File(System.getProperty("user.home"), ".ssh/known_hosts");
 
     final SSHClient sshClient = new SSHClient();
     sshClient.addHostKeyVerifier(new OpenSSHKnownHosts(knownHosts));
 
-    LOG.info("Connecting to SSH host: " + this.hostname + ", with user: " + username + ", keyfile: " + pemFile +
-        " and known_hosts: " + knownHosts);
+    LOG.log(Level.INFO, "Connecting to SSH host: {0}, with user: {1}, keyfile: {2} and " +
+        "known_hosts: {3}", new Object[]{hostname, sshUserName, pemFile, knownHosts});
     sshClient.useCompression();
-    sshClient.connect(this.hostname);
+    sshClient.connect(hostname);
 
     PKCS8KeyFile keyFile = new PKCS8KeyFile();
     keyFile.init(pemFile);
-    sshClient.authPublickey(username, keyFile);
+    sshClient.authPublickey(sshUserName, keyFile);
     return sshClient;
   }
 
