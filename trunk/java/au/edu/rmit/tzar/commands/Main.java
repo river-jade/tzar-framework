@@ -179,7 +179,7 @@ public class Main {
       DaoFactory daoFactory = new DaoFactory(getDbUrl());
       return new AggregateResults(LOAD_RUNS_FLAGS.getRunIds(), LOAD_RUNS_FLAGS.getStates(),
           LOAD_RUNS_FLAGS.getHostName(), LOAD_RUNS_FLAGS.getRunset(), AGGREGATE_RESULTS_FLAGS.getOutputPath(),
-          daoFactory.createRunDao(), au.edu.rmit.tzar.Utils.getHostname());
+          daoFactory.createRunDao(), au.edu.rmit.tzar.Utils.getHostname(), AGGREGATE_RESULTS_FLAGS.getScpUserName());
     }
 
     public Command newExecLocalRuns() throws IOException, RdvException, ParseException {
@@ -222,7 +222,7 @@ public class Main {
       ResultsCopier resultsCopier;
       if (POLL_AND_RUN_FLAGS.getScpOutputHost() != null) {
         SSHClientFactory sshClientFactory = new SSHClientFactory(POLL_AND_RUN_FLAGS.getScpOutputHost(),
-            POLL_AND_RUN_FLAGS.getPemFile());
+            POLL_AND_RUN_FLAGS.getPemFile(), POLL_AND_RUN_FLAGS.getScpOutputUser());
         resultsCopier = new ScpResultsCopier(sshClientFactory, POLL_AND_RUN_FLAGS.getScpOutputPath());
       } else {
         resultsCopier = new FileResultsCopier(RUNNER_FLAGS.getLocalOutputPath());
