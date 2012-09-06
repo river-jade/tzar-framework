@@ -23,17 +23,17 @@ public class RunDao {
   private static final Logger LOG = Logger.getLogger(RunDao.class.getName());
 
   @VisibleForTesting
-  static final String INSERT_RUN_SQL = "INSERT INTO runs (run_id, state, code_version, run_name, command_flags, " +
-      "runset, cluster_name, runner_class) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+  static final String INSERT_RUN_SQL = "INSERT INTO runs (run_id, state, code_version, run_name, command_flags, runset, " +
+      "cluster_name) VALUES (?, ?, ?, ?, ?, ?, ?)";
 
   @VisibleForTesting
   static final String NEXT_RUN_SQL = "SELECT run_id, state, code_version, run_name, command_flags, runset, " +
-      "cluster_name, output_path, output_host, runner_class FROM runs WHERE state='scheduled' AND runset LIKE ? AND " +
+      "cluster_name, output_path, output_host FROM runs WHERE state='scheduled' AND runset LIKE ? AND " +
       "cluster_name = ? ORDER BY run_id ASC LIMIT 1";
 
   @VisibleForTesting
   static final String UPDATE_RUN_SQL = "UPDATE runs SET run_start_time = ?, run_end_time = ?, state = ?, " +
-      "hostname = ?, output_path = ?, output_host = ?, runner_class = ? where run_id = ?";
+      "hostname = ?, output_path = ?, output_host = ? where run_id = ?";
 
   @VisibleForTesting
   static final String SELECT_RUN_SQL = "SELECT run_id, state FROM runs WHERE run_id = ?";
@@ -96,8 +96,7 @@ public class RunDao {
       File outputPath = run.getOutputPath();
       updateRun.setString(5, outputPath == null ? null : outputPath.getPath());
       updateRun.setString(6, run.getOutputHost());
-      updateRun.setString(7, run.getRunnerClass());
-      updateRun.setInt(8, run.getRunId()); // this is for the where clause, we don't update this field.
+      updateRun.setInt(7, run.getRunId()); // this is for the where clause, we don't update this field.
       try {
         updateRun.executeUpdate();
         connection.commit();
@@ -143,7 +142,6 @@ public class RunDao {
         insertRun.setString(5, run.getFlags());
         insertRun.setString(6, run.getRunset());
         insertRun.setString(7, run.getClusterName());
-        insertRun.setString(8, run.getRunnerClass());
         insertRun.addBatch();
         parametersDao.batchInsertParams(run.getRunId(), run.getParameters());
         nextRunId++;
@@ -255,7 +253,7 @@ public class RunDao {
     Parameters parameters = withParameters ? loadParameters(runId) : Parameters.EMPTY_PARAMETERS;
     Run run = new Run(runId, resultSet.getString("run_name"), resultSet.getString("code_version"),
         resultSet.getString("command_flags"), parameters, resultSet.getString("state"),
-        resultSet.getString("runset"), resultSet.getString("cluster_name"), resultSet.getString("runner_class"));
+        resultSet.getString("runset"), resultSet.getString("cluster_name"));
     String outputPath = resultSet.getString("output_path");
     if (outputPath != null) {
       run.setOutputPath(new File(outputPath));

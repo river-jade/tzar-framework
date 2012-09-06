@@ -26,7 +26,6 @@ public class Run {
 
   private volatile File outputPath;
   private volatile String outputHost;
-  private volatile String runnerClass;
 
   /**
    * Constructor.
@@ -39,11 +38,9 @@ public class Run {
    * @param state      execution state of the run
    * @param runset     name of a runset for this run
    * @param clusterName name of the cluster to run upon
-   * @param runnerClass class to use to execute the run
    */
   public Run(Integer runId, String runName, String revision, String flags, Parameters parameters, String state,
-             String runset, String clusterName, String runnerClass) {
-    this.runnerClass = runnerClass;
+             String runset, String clusterName) {
     this.runId = runId == null ? -1 : runId;
     this.runName = runName;
     this.revision = revision;
@@ -129,10 +126,6 @@ public class Run {
     return clusterName;
   }
 
-  public String getRunnerClass() {
-    return runnerClass;
-  }
-
   public String getState() {
     return state;
   }
@@ -151,7 +144,6 @@ public class Run {
         ", state='" + state + '\'' +
         ", runset='" + runset + '\'' +
         ", clustername='" + clusterName + '\'' +
-        ", runnerclass='" + runnerClass + '\'' +
         '}';
   }
 
@@ -175,7 +167,6 @@ public class Run {
     if (clusterName != null ? !clusterName.equals(run.clusterName) : run.clusterName != null) return false;
     if (startTime != null ? !startTime.equals(run.startTime) : run.startTime != null) return false;
     if (state != null ? !state.equals(run.state) : run.state != null) return false;
-    if (runnerClass != null ? !runnerClass.equals(run.runnerClass) : run.runnerClass != null) return false;
 
     return true;
   }
@@ -195,7 +186,6 @@ public class Run {
     result = 31 * result + (clusterName != null ? clusterName.hashCode() : 0);
     result = 31 * result + (outputPath != null ? outputPath.hashCode() : 0);
     result = 31 * result + (outputHost != null ? outputHost.hashCode() : 0);
-    result = 31 * result + (runnerClass != null ? runnerClass.hashCode() : 0);
     return result;
   }
 }

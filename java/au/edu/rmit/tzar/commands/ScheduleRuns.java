@@ -5,6 +5,7 @@ import au.edu.rmit.tzar.api.RdvException;
 import au.edu.rmit.tzar.api.Run;
 import au.edu.rmit.tzar.db.RunDao;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -23,18 +24,16 @@ class ScheduleRuns implements Command {
   private final RunDao runDao;
   private final int numRuns;
   private final RunFactory runFactory;
-  private final String runnerClass;
 
-  public ScheduleRuns(RunDao runDao, int numRuns, RunFactory runFactory, String runnerClass) {
+  public ScheduleRuns(RunDao runDao, int numRuns, RunFactory runFactory) throws RdvException, IOException {
     this.runDao = runDao;
     this.numRuns = numRuns;
     this.runFactory = runFactory;
-    this.runnerClass = runnerClass;
   }
 
   @Override
   public boolean execute() throws RdvException {
-    List<Run> runs = runFactory.createRuns(numRuns, runnerClass);
+    List<Run> runs = runFactory.createRuns(numRuns);
     runDao.insertRuns(runs);
     for (Run run : runs) {
       LOG.info("Scheduled run: " + run);

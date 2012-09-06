@@ -2,10 +2,12 @@ package au.edu.rmit.tzar.commands;
 
 import au.edu.rmit.tzar.Constants;
 import au.edu.rmit.tzar.api.RdvException;
+import au.edu.rmit.tzar.api.Runner;
 import au.edu.rmit.tzar.db.Utils;
 import au.edu.rmit.tzar.repository.CodeRepository;
 import au.edu.rmit.tzar.repository.LocalFileRepository;
 import au.edu.rmit.tzar.repository.SvnRepository;
+import com.beust.jcommander.IStringConverter;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.beust.jcommander.converters.FileConverter;
@@ -38,6 +40,10 @@ class SharedFlags {
         "instead of SVN.", converter = FileConverter.class)
     private File localCodePath = null;
 
+    @Parameter(names = "--runnerclass", description = "Fully qualified classname of the runner class.",
+        converter = ClassConverter.class, required = true)
+    private Class<Runner> runnerClass;
+
     @Parameter(names = "--svnurl", description = "URL for the SVN repository.")
     private String svnUrl = null;
 
@@ -66,6 +72,10 @@ class SharedFlags {
 
     public File getLocalOutputPath() {
       return new File(tzarBaseDirectory, "outputdata");
+    }
+
+    public Class<Runner> getRunnerClass() {
+      return runnerClass;
     }
 
     public enum RepositoryType {
@@ -142,10 +152,6 @@ class SharedFlags {
         "or --runspec must be set.")
     private File projectSpec = null;
 
-    @Parameter(names = "--runnerclass", description = "Fully qualified classname of the runner class, or name of a " +
-        "class in the au.edu.rmit.tzar.runners package.", required = true)
-    private String runnerClass;
-
     @Parameter(names = "--runspec", description = "Path to the file containing a single parameter set, " +
         "ie for a single " +
         "run. Either this or projectSpec must be set.")
@@ -193,10 +199,6 @@ class SharedFlags {
 
     public File getRepetitionsPath() {
       return repetitionsPath;
-    }
-
-    public String getRunnerClass() {
-      return runnerClass;
     }
 
     public String getRunset() {
@@ -300,6 +302,44 @@ class SharedFlags {
       QUIET,
       NORMAL,
       VERBOSE
+    }
+  }
+
+  /**
+   * Used to convert the runnerclass flag from a string to a class, by loading the correct class.
+   * If the class is not found, we attempt to prefix au.edu.rmit.tzar.runners, to allow use
+   * of unqualified class names.
+   * Throws a ParseException if the class can't be loaded or is not an instance of Runner.class.
+   */
+  public static class ClassConverter implements IStringConverter<Class<Runner>> {
+    private final String parameterName;
+
+    public ClassConverter(String parameterName) {
+      this.parameterName = parameterName;
+    }
+
+    @Override
+    public Class<Runner> convert(String value) {
+      Class<?> aClass;
+      try {
+        aClass = getClass().getClassLoader().loadClass(value);
+      } catch (ClassNotFoundException e) {
+        try {
+          aClass = getClass().getClassLoader().loadClass("au.edu.rmit.tzar.runners." + value);
+        } catch (ClassNotFoundException e1) {
+          //noinspection ThrowInsideCatchBlockWhichIgnoresCaughtException
+          throw new ParseException("Unable to load specified class: " + value + " pass to parameter: " + parameterName);
+        }
+      }
+      if (!Runner.class.isAssignableFrom(aClass)) {
+        throw new ParseException("Specified class: " + value + " was not an instance of " + Runner.class);
+      }
+      return cast(aClass);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Class<Runner> cast(Class aClass) {
+      return (Class<Runner>) aClass;
     }
   }
 }

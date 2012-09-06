@@ -33,7 +33,7 @@ public class ExecutableRun {
   private final File outputPath;
   private final Run run;
   private final CodeRepository codeRepository;
-  private final RunnerFactory runnerFactory;
+  private final Runner runner;
   private final YamlParser yamlParser = new YamlParser();
 
   /**
@@ -42,18 +42,18 @@ public class ExecutableRun {
    * @param run            run to execute
    * @param baseOutputPath local path for output for this run.
    * @param codeRepository the repository from which to download the model code
-   * @param runnerFactory  factory to instantiate runner objects
+   * @param runner         the runner to use to execute this run
    * @return a newly created executable run
    */
   public static ExecutableRun createExecutableRun(Run run, File baseOutputPath, CodeRepository codeRepository,
-      RunnerFactory runnerFactory) {
+      Runner runner) {
     if (run.getRunId() == -1) {
       run.setRunId(getNextRunId(baseOutputPath));
     }
     // replace whitespace and punctuation in run name with '_' to make a valid path.
     String dirName = run.getName().replaceAll("\\W", "_") + "_" + run.getRunId();
     LOG.finer(String.format("Creating run: %s", run));
-    return new ExecutableRun(run, new File(baseOutputPath, dirName), codeRepository, runnerFactory);
+    return new ExecutableRun(run, new File(baseOutputPath, dirName), codeRepository, runner);
   }
 
   /**
@@ -62,12 +62,13 @@ public class ExecutableRun {
    * @param run            run to execute
    * @param outputPath     local path for output for this run.
    * @param codeRepository the repository from which to download the model code
-   * @param runnerFactory  factory to create runner instances
+   * @param runner         the runner to use to execute this run
    */
-  private ExecutableRun(Run run, File outputPath, CodeRepository codeRepository, RunnerFactory runnerFactory) {
+  private ExecutableRun(Run run, File outputPath, CodeRepository codeRepository, Runner runner) {
     this.run = run;
     this.codeRepository = codeRepository;
-    this.runnerFactory = runnerFactory;
+    this.runner = runner;
+
     this.outputPath = outputPath;
   }
 
@@ -78,6 +79,7 @@ public class ExecutableRun {
    * @throws RdvException if an error occurs executing the run
    */
   public boolean execute() throws RdvException {
+    // TODO(michaell): write unit tests for this method.
     File model = codeRepository.getModel(run.getRevision());
     File inprogressOutputPath = new File(outputPath + INPROGRESS_SUFFIX);
 
@@ -104,7 +106,6 @@ public class ExecutableRun {
         RUNNER_LOGGER.addHandler(handler);
         File parametersFile = new File(inprogressOutputPath, "parameters.yaml");
         yamlParser.parametersToYaml(parameters, parametersFile);
-        Runner runner = runnerFactory.getRunner(run.getRunnerClass());
         success = runner.runModel(model, inprogressOutputPath, Integer.toString(run.getRunId()), run.getFlags(),
             parameters, RUNNER_LOGGER);
       } finally {

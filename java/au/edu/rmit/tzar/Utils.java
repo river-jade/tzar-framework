@@ -4,8 +4,8 @@ import au.edu.rmit.tzar.api.RdvException;
 import com.google.common.io.Files;
 
 import java.io.*;
-import java.net.*;
-import java.util.Collections;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -18,25 +18,8 @@ public class Utils {
   private Utils() { // not to be instantiated
   }
 
-  public static String getHostname() {
-    try {
-      // This is the obvious way to retrieve the hostname. Unfortunately, if the /etc/hosts file
-      // isn't correctly populated (which is the case on the Nectar nodes we've been using, this
-      // will throw an UnknownHostException. As such we use a hacky workaround.
-      return InetAddress.getLocalHost().getHostName();
-    } catch (UnknownHostException e) {
-      try {
-        for (NetworkInterface iface : Collections.list(NetworkInterface.getNetworkInterfaces())) {
-          for (InetAddress ia : Collections.list(iface.getInetAddresses())) {
-            if (!ia.isLoopbackAddress() && (!ia.isLinkLocalAddress()) && (ia instanceof Inet4Address))
-              return ia.getHostName();
-          }
-        }
-      } catch (SocketException e1) {
-      }
-      LOG.warning("Couldn't find the hostname.");
-      return "UNKNOWN";
-    }
+  public static String getHostname() throws UnknownHostException {
+    return InetAddress.getLocalHost().getHostName();
   }
 
   /**
