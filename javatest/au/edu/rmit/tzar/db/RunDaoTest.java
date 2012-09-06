@@ -25,6 +25,8 @@ public class RunDaoTest extends TestCase {
   private static final String COMMAND_FLAGS = "-pexample";
   private static final String RUNSET = "a runset";
   private static final String CLUSTER_NAME = "a cluster";
+  private static final String RUNNER_CLASS = "AClass";
+
   public static final int FIRST_RUN_ID = 2233;
 
   private Jdbc4Connection mockConnection;
@@ -46,6 +48,7 @@ public class RunDaoTest extends TestCase {
     when(resultSet.getString("cluster_name")).thenReturn(CLUSTER_NAME);
     when(resultSet.getString("code_version")).thenReturn(CODE_VERSION);
     when(resultSet.getString("state")).thenReturn("scheduled");
+    when(resultSet.getString("runner_class")).thenReturn(RUNNER_CLASS);
     when(mockConnection.prepareStatement(RunDao.NEXT_RUN_SQL, ResultSet.TYPE_FORWARD_ONLY,
         ResultSet.CONCUR_READ_ONLY)).thenReturn(nextRunStatement);
     when(mockConnection.prepareStatement(RunDao.INSERT_RUN_SQL)).thenReturn(insertRun);
@@ -57,7 +60,7 @@ public class RunDaoTest extends TestCase {
   public void testGetNextRun() throws Exception {
     when(resultSet.next()).thenReturn(true);
     assertEquals(new Run(RUN_ID, RUN_NAME, CODE_VERSION, COMMAND_FLAGS, Parameters.EMPTY_PARAMETERS,
-        "scheduled", RUNSET, CLUSTER_NAME), runDao.getNextRun(null, CLUSTER_NAME));
+        "scheduled", RUNSET, CLUSTER_NAME, RUNNER_CLASS), runDao.getNextRun(null, CLUSTER_NAME));
   }
 
   public void testGetNextRunNoMatch() throws Exception {
@@ -73,9 +76,9 @@ public class RunDaoTest extends TestCase {
 
     List<Run> runs = Lists.newArrayList();
     runs.add(new Run(RUN_ID, RUN_NAME, CODE_VERSION, COMMAND_FLAGS,
-        Parameters.EMPTY_PARAMETERS, "state", RUNSET, CLUSTER_NAME));
+        Parameters.EMPTY_PARAMETERS, "state", RUNSET, CLUSTER_NAME, RUNNER_CLASS));
     runs.add(new Run(RUN_ID, RUN_NAME + "1", CODE_VERSION + 1, COMMAND_FLAGS,
-        Parameters.EMPTY_PARAMETERS, "state", RUNSET, CLUSTER_NAME));
+        Parameters.EMPTY_PARAMETERS, "state", RUNSET, CLUSTER_NAME, RUNNER_CLASS));
 
     InOrder inOrder = inOrder(insertRun, mockConnection);
     runDao.insertRuns(runs);
@@ -85,12 +88,16 @@ public class RunDaoTest extends TestCase {
     inOrder.verify(insertRun).setString(4, RUN_NAME);
     inOrder.verify(insertRun).setString(5, COMMAND_FLAGS);
     inOrder.verify(insertRun).setString(6, RUNSET);
+    inOrder.verify(insertRun).setString(7, CLUSTER_NAME);
+    inOrder.verify(insertRun).setString(8, RUNNER_CLASS);
     inOrder.verify(insertRun).setInt(1, FIRST_RUN_ID + 1);
     inOrder.verify(insertRun).setString(2, "scheduled");
     inOrder.verify(insertRun).setString(3, CODE_VERSION + 1);
     inOrder.verify(insertRun).setString(4, RUN_NAME + "1");
     inOrder.verify(insertRun).setString(5, COMMAND_FLAGS);
     inOrder.verify(insertRun).setString(6, RUNSET);
+    inOrder.verify(insertRun).setString(7, CLUSTER_NAME);
+    inOrder.verify(insertRun).setString(8, RUNNER_CLASS);
     inOrder.verify(mockConnection).setAutoCommit(true);
   }
 }

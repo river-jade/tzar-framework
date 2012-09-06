@@ -30,25 +30,25 @@ class ExecLocalRuns implements Command {
   private final File baseOutputPath;
   private final CodeRepository codeRepository;
   private final RunnerFactory runnerFactory;
+  private final String runnerClass;
 
-  public ExecLocalRuns(File runSpecPath, int numRuns, RunFactory runFactory, File baseOutputPath,
-      CodeRepository codeRepository, RunnerFactory runnerFactory) throws RdvException, IOException {
+  public ExecLocalRuns(int numRuns, RunFactory runFactory, File baseOutputPath,
+      CodeRepository codeRepository, RunnerFactory runnerFactory, String runnerClass)
+      throws RdvException, IOException {
     this.numRuns = numRuns;
     this.baseOutputPath = baseOutputPath;
     this.codeRepository = codeRepository;
     this.runnerFactory = runnerFactory;
-    // TODO(michaell): deal with this
-//    runSpecPath = runSpecPath;
     this.runFactory = runFactory;
+    this.runnerClass = runnerClass;
   }
 
   @Override
   public boolean execute() throws InterruptedException, RdvException {
-    List<Run> runs = runFactory.createRuns(numRuns);
+    List<Run> runs = runFactory.createRuns(numRuns, runnerClass);
     List<Integer> failedIds = Lists.newArrayList();
     for (Run run : runs) {
-      if (!executeRun(ExecutableRun.createExecutableRun(run, baseOutputPath, codeRepository,
-          runnerFactory.loadRunner()))) {
+      if (!executeRun(ExecutableRun.createExecutableRun(run, baseOutputPath, codeRepository, runnerFactory))) {
         failedIds.add(run.getRunId());
       }
     }
@@ -67,26 +67,8 @@ class ExecLocalRuns implements Command {
       LOG.warning("Failed IDs were: " + failedIds);
     }
     return allSuccess;
-
-//    if (projectSpecPath != null) {
-//      return executeProjectSpec();
-//    } else if (runSpecPath != null) {
-//      return executeRunSpec();
-//    } else {
-//      throw new IllegalStateException("Either projectSpec or runSpec must be set.");
-//    }
   }
 
-  //  private boolean executeRunSpec() throws RdvException {
-//    try {
-//      Parameters parameters = jsonParser.parametersFromJson(runSpecPath);
-//      ExecutableRun run = runFactory.createRun(baseRunId, "local run", parameters, revision, commandFlags, runset);
-//      return executeRun(run);
-//    } catch (FileNotFoundException e) {
-//      throw new RdvException(e);
-//    }
-//  }
-//
   private boolean executeRun(ExecutableRun run) throws RdvException {
     if (run.execute()) {
       LOG.info("Run " + run.getRunId() + " succeeded.");

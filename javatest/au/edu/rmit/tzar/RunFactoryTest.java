@@ -21,6 +21,8 @@ public class RunFactoryTest extends TestCase {
   private static final String COMMAND_FLAGS = "--some_flag";
   private static final String RUNSET = "a_runset";
   private static final String CLUSTER_NAME = "a cluster";
+  private static final String RUNNER_CLASS = "SomeClass";
+
   private ProjectSpec mockProjectSpec;
   private Repetitions mockRepetitions;
 
@@ -62,7 +64,7 @@ public class RunFactoryTest extends TestCase {
         ImmutableMap.<String, String>of(), ImmutableMap.<String, String>of()));
     when(mockRepetitions.getParamsList()).thenReturn(repetitionsParams);
 
-    List<Run> runs = runFactory.createRuns(2);
+    List<Run> runs = runFactory.createRuns(2, RUNNER_CLASS);
     assertEquals(8, runs.size()); // 2 scenarios, 2 repetitions,numRuns = 2 => 2*2*2 = 8 runs
 
     @SuppressWarnings("unchecked")
