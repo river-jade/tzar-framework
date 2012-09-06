@@ -133,7 +133,7 @@ class PollAndRun implements Command {
 
   private void executeRun(final Run run) throws RdvException, InterruptedException {
     ExecutableRun executableRun = ExecutableRun.createExecutableRun(run, baseOutputPath, codeRepository,
-        runnerFactory.loadRunner());
+        runnerFactory);
 
     run.setStartTime(new Date());
     run.setEndTime(null);

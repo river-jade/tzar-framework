@@ -199,9 +199,9 @@ public class Main {
           parser.parametersFromYaml(CREATE_RUNS_FLAGS.getGlobalParamsPath()));
 
       CodeRepository codeRepository = RUNNER_FLAGS.createRepository();
-      return new ExecLocalRuns(CREATE_RUNS_FLAGS.getRunSpec(), CREATE_RUNS_FLAGS.getNumRuns(),
+      return new ExecLocalRuns(CREATE_RUNS_FLAGS.getNumRuns(),
           runFactory, RUNNER_FLAGS.getLocalOutputPath(), codeRepository,
-          new RunnerFactory(RUNNER_FLAGS.getRunnerClass()));
+          new RunnerFactory(), CREATE_RUNS_FLAGS.getRunnerClass());
     }
 
     public Command newHelp() {
@@ -231,7 +231,7 @@ public class Main {
       return new PollAndRun(daoFactory, POLL_AND_RUN_FLAGS.getSleepTimeMillis(), resultsCopier,
           POLL_AND_RUN_FLAGS.getRunset(), POLL_AND_RUN_FLAGS.getClusterName(),
           POLL_AND_RUN_FLAGS.getConcurrentTaskCount(), RUNNER_FLAGS.getLocalOutputPath(), codeRepository,
-          new RunnerFactory(RUNNER_FLAGS.getRunnerClass()));
+          new RunnerFactory());
     }
 
     public Command newPrintRun() throws RdvException, ParseException {
@@ -257,7 +257,8 @@ public class Main {
           parser.projectSpecFromYaml(CREATE_RUNS_FLAGS.getProjectSpec()),
           parser.repetitionsFromYaml(CREATE_RUNS_FLAGS.getRepetitionsPath()),
           parser.parametersFromYaml(CREATE_RUNS_FLAGS.getGlobalParamsPath()));
-      return new ScheduleRuns(daoFactory.createRunDao(), CREATE_RUNS_FLAGS.getNumRuns(), runFactory);
+      return new ScheduleRuns(daoFactory.createRunDao(), CREATE_RUNS_FLAGS.getNumRuns(), runFactory,
+          CREATE_RUNS_FLAGS.getRunnerClass());
     }
 
     private String getDbUrl() throws ParseException {

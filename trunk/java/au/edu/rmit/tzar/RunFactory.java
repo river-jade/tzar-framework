@@ -35,20 +35,21 @@ public class RunFactory {
 
   /**
    * Creates a list of runs.
-   *
+ *
    * @param numRuns number of copies of each unique run to generate. The total number of runs generated will
    *                be this number multiplied by the number of scenarios, multiplied by the number of
    *                repetitions
+   * @param runnerClass Runner implementation to use to execute the runs
    * @return the list of created runs
    * @throws RdvException
    */
-  public List<Run> createRuns(int numRuns) throws RdvException {
+  public List<Run> createRuns(int numRuns, String runnerClass) throws RdvException {
     Parameters projectParams = projectSpec.getBaseParams();
     projectParams = globalParams.mergeParameters(projectParams);
     String projectName = projectSpec.getProjectName();
     List<Run> runs = Lists.newArrayList();
     for (int i = 0; i < numRuns; ++i) {
-      runs.addAll(createRuns(projectSpec, projectParams, projectName, repetitions));
+      runs.addAll(createRuns(projectSpec, projectParams, projectName, repetitions, runnerClass));
     }
     LOG.info("Created " + runs.size() + " runs.");
     return runs;
@@ -58,7 +59,7 @@ public class RunFactory {
    * Create a List of Runs, one for each repetition in the Repetitions object, for each scenario in the projectSpec.
    */
   private List<Run> createRuns(ProjectSpec projectSpec, Parameters baseParams, String projectName,
-      Repetitions repetitions) throws RdvException {
+    Repetitions repetitions, String runnerClass) throws RdvException {
     List<Run> runs = Lists.newArrayList();
 
     for (Parameters repetitionParams : repetitions.getParamsList()) {
@@ -66,16 +67,16 @@ public class RunFactory {
         for (Scenario scenario : projectSpec.getScenarios()) {
           Parameters params = baseParams.mergeParameters(scenario.getParameters());
           params = params.mergeParameters(repetitionParams);
-          runs.add(createRun(params, projectName + "_" + scenario.getName()));
+          runs.add(createRun(params, projectName + "_" + scenario.getName(), runnerClass));
         }
       } else {
-        runs.add(createRun(baseParams.mergeParameters(repetitionParams), projectName));
+        runs.add(createRun(baseParams.mergeParameters(repetitionParams), projectName, runnerClass));
       }
     }
     return runs;
   }
 
-  private Run createRun(Parameters runParams, String runName) {
-    return new Run(-1, runName, revision, commandFlags, runParams, "scheduled", runset, clusterName);
+  private Run createRun(Parameters runParams, String runName, String runnerClass) {
+    return new Run(-1, runName, revision, commandFlags, runParams, "scheduled", runset, clusterName, runnerClass);
   }
 }
