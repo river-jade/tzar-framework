@@ -66,7 +66,8 @@ CREATE TABLE runs (
     run_start_time timestamp without time zone,
     run_end_time timestamp without time zone,
     runset text,
-    cluster_name text
+    cluster_name text,
+    runner_class text
 );
 
 
