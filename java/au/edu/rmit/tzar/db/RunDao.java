@@ -5,7 +5,6 @@ import au.edu.rmit.tzar.api.RdvException;
 import au.edu.rmit.tzar.api.Run;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
-import org.postgresql.jdbc4.Jdbc4Connection;
 
 import java.io.File;
 import java.sql.*;
@@ -35,30 +34,12 @@ public class RunDao {
   static final String UPDATE_RUN_SQL = "UPDATE runs SET run_start_time = ?, run_end_time = ?, state = ?, " +
       "hostname = ?, output_path = ?, output_host = ?, runner_class = ? where run_id = ?";
 
-  @VisibleForTesting
-  static final String SELECT_RUN_SQL = "SELECT run_id, state FROM runs WHERE run_id = ?";
-
-  private final Connection connection;
-  private final PreparedStatement selectNextRun;
-  private final PreparedStatement updateRun;
-  private final PreparedStatement insertRun;
   private final ParametersDao parametersDao;
+  private final ConnectionFactory connectionFactory;
 
-  public RunDao(Connection connection, ParametersDao parametersDao) throws RdvException {
-    try {
-      connection.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
-      connection.setAutoCommit(false); // to enable transactions
-
-      selectNextRun = connection.prepareStatement(NEXT_RUN_SQL, ResultSet.TYPE_FORWARD_ONLY,
-          ResultSet.CONCUR_READ_ONLY);
-      updateRun = connection.prepareStatement(UPDATE_RUN_SQL);
-      insertRun = connection.prepareStatement(INSERT_RUN_SQL);
-
-      this.connection = connection;
+  public RunDao(ConnectionFactory connectionFactory, ParametersDao parametersDao) throws RdvException {
+      this.connectionFactory = connectionFactory;
       this.parametersDao = parametersDao;
-    } catch (SQLException e) {
-      throw new RdvException(e);
-    }
   }
 
   /**
@@ -70,25 +51,39 @@ public class RunDao {
    * @throws RdvException if something goes wrong executing the run
    */
   public synchronized Run getNextRun(String runset, String clusterName) throws RdvException {
+    Connection connection = connectionFactory.createConnection();
+    boolean exceptionOccurred = true;
     try {
       connection.setAutoCommit(true);
+      PreparedStatement selectNextRun = connection.prepareStatement(NEXT_RUN_SQL, ResultSet.TYPE_FORWARD_ONLY,
+          ResultSet.CONCUR_READ_ONLY);
       selectNextRun.setString(1, runset == null ? "%" : runset);
       selectNextRun.setString(2, clusterName);
       ResultSet resultSet = selectNextRun.executeQuery();
       connection.setAutoCommit(false);
 
+      Run run;
       if (resultSet.next()) {
-        return runFromResultSet(resultSet, true);
+        run = runFromResultSet(resultSet, true);
       } else {
-        return null;
+        run = null;
       }
+      exceptionOccurred = false;
+      return run;
     } catch (SQLException e) {
       throw new RdvException(e);
+    } finally {
+      Utils.close(connection, exceptionOccurred);
     }
   }
 
   public synchronized void persistRun(Run run) throws RdvException {
+    Connection connection = connectionFactory.createConnection();
+    boolean exceptionOccurred = true;
+
     try {
+      PreparedStatement updateRun = connection.prepareStatement(UPDATE_RUN_SQL);
+
       updateRun.setTimestamp(1, getTimestamp(run.getStartTime()), Calendar.getInstance(TimeZone.getTimeZone("UTC")));
       updateRun.setTimestamp(2, getTimestamp(run.getEndTime()), Calendar.getInstance(TimeZone.getTimeZone("UTC")));
       updateRun.setString(3, run.getState());
@@ -98,16 +93,15 @@ public class RunDao {
       updateRun.setString(6, run.getOutputHost());
       updateRun.setString(7, run.getRunnerClass());
       updateRun.setInt(8, run.getRunId()); // this is for the where clause, we don't update this field.
-      try {
-        updateRun.executeUpdate();
-        connection.commit();
-      } catch (SQLException e) {
-        LOG.log(Level.WARNING, "SQLException thrown. Rolling back transaction.", e);
-        connection.rollback();
-        throw new RdvException(e);
-      }
+      updateRun.executeUpdate();
+      connection.commit();
+      exceptionOccurred = false;
     } catch (SQLException e) {
+      LOG.log(Level.WARNING, "SQLException thrown. Rolling back transaction.", e);
+      Utils.rollback(connection);
       throw new RdvException(e);
+    } finally {
+      Utils.close(connection, exceptionOccurred);
     }
   }
 
@@ -120,19 +114,20 @@ public class RunDao {
    */
   public synchronized void insertRuns(List<? extends Run> runs) throws RdvException {
     LOG.info("Saving new runs to database.");
-    try {
-      connection.setAutoCommit(false);
+    Connection connection = connectionFactory.createConnection();
 
-      if (!(connection instanceof Jdbc4Connection)) {
-        throw new RdvException("The connection is not a Postgres connection, and the insert runs code " +
-            "is optimised for Postgres.");
-      }
-      ResultSet rs = ((Jdbc4Connection) connection).execSQLQuery("select nextval('runs_run_id_seq')");
+    boolean exceptionOccurred = true;
+    try {
+      ResultSet rs = connection.prepareStatement("select nextval('runs_run_id_seq')").executeQuery();
       rs.next();
       int nextRunId = rs.getInt(1);
-      ((Jdbc4Connection) connection).execSQLQuery("select setval('runs_run_id_seq', " + (nextRunId + runs.size()) +
-          ", false)"); // false here indicates that the next sequence number returned by 'select nextval' will be
+      connection.prepareStatement("select setval('runs_run_id_seq', " + (nextRunId + runs.size()) +
+          ", false)").execute();
+          // false here indicates that the next sequence number returned by 'select nextval' will be
           // nextRunId + runs.size(), as opposed to nextRunId + runs.size() + 1
+
+      PreparedStatement insertRun = connection.prepareStatement(INSERT_RUN_SQL);
+      PreparedStatement insertParams = connection.prepareStatement(ParametersDao.INSERT_PARAM_SQL);
 
       for (Run run : runs) {
         run.setRunId(nextRunId);
@@ -145,21 +140,20 @@ public class RunDao {
         insertRun.setString(7, run.getClusterName());
         insertRun.setString(8, run.getRunnerClass());
         insertRun.addBatch();
-        parametersDao.batchInsertParams(run.getRunId(), run.getParameters());
+        parametersDao.batchInsertParams(run.getRunId(), run.getParameters(), insertParams);
         nextRunId++;
       }
 
       insertRun.executeBatch();
-      parametersDao.executeBatchInsert();
+      insertParams.executeBatch();
 
-      connection.setAutoCommit(true); // this also commits the transaction
+      connection.commit();
+      exceptionOccurred = false;
     } catch (SQLException e) {
-      try {
-        connection.rollback();
-      } catch (SQLException e1) {
-        LOG.log(Level.SEVERE, "Exception thrown whilst rolling back a transaction after failure.", e1);
-      }
+      Utils.rollback(connection);
       throw new RdvException(e);
+    } finally {
+      Utils.close(connection, exceptionOccurred);
     }
   }
 
@@ -199,8 +193,10 @@ public class RunDao {
 
   private ResultSet loadRuns(List<String> states, String hostname, String runset, List<Integer> runIds)
       throws RdvException {
+    Connection connection = connectionFactory.createConnection();
+    boolean exceptionOccurred = true;
+
     try {
-      connection.setAutoCommit(false);
       StringBuilder sql = new StringBuilder("SELECT * FROM runs WHERE 1=1 ");
       if (states != null && !states.isEmpty()) {
         sql.append("AND state = ANY(?) ");
@@ -230,16 +226,20 @@ public class RunDao {
         statement.setArray(fieldCounter, connection.createArrayOf("int", runIds.toArray()));
       }
       statement.execute();
-      return statement.getResultSet();
+      ResultSet resultSet = statement.getResultSet();
+      exceptionOccurred = false;
+      return resultSet;
     } catch (SQLException e) {
       throw new RdvException(e);
+    } finally {
+      Utils.close(connection, exceptionOccurred);
     }
   }
 
   // TODO(michaell): This is inefficient for cases where we're loading multiple runs,
   // as it does a db call for each run.
   // If this turns out to be a problem, it may be worth switching to an ORM such as Hibernate.
-  private Parameters loadParameters(int runId) throws SQLException, RdvException {
+  private Parameters loadParameters(int runId) throws RdvException {
     return parametersDao.loadFromDatabase(runId);
   }
 
@@ -263,6 +263,4 @@ public class RunDao {
     run.setOutputHost(resultSet.getString("output_host"));
     return run;
   }
-
-
 }

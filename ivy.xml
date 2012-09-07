@@ -16,6 +16,7 @@
         <dependency org="com.google.code.gson" name="gson" rev="2.2.2" conf="tzar; api"/>
         <dependency org="com.google.guava" name="guava" rev="r09" conf="tzar; api"/>
         <dependency org="com.jcraft" name="jzlib" rev="1.1.1"/>
+        <dependency org="com.jolbox" name="bonecp" rev="0.7.1.RELEASE"/>
         <dependency org="junit" name="junit" rev="4.10" conf="test"/>
         <dependency org="net.schmizz" name="sshj" rev="0.8.1"/>
         <dependency org="net.sf.opencsv" name="opencsv" rev="2.3" conf="tzar"/>

@@ -11,12 +11,15 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Map;
+import java.util.logging.Logger;
 
 /**
  * Data access object for Parameters. Provides functionality for parameters to be loaded from
  * and persisted to the database.
  */
 public class ParametersDao {
+  private static final Logger LOG = Logger.getLogger(ParametersDao.class.getName());
+
   @VisibleForTesting
   static final String LOAD_PARAMS_SQL = "SELECT p.param_name, p.param_value, p.param_type, p.data_type " +
       "FROM runs as r INNER JOIN run_params as p ON r.run_id = p.run_id WHERE r.run_id = ?";
@@ -25,12 +28,10 @@ public class ParametersDao {
   static final String INSERT_PARAM_SQL = "INSERT INTO run_params (run_id, param_name, param_value, param_type, " +
       "data_type) VALUES (?, ?, ?, ?, ?)";
 
-  private final PreparedStatement loadParams;
-  private final PreparedStatement insertParam;
+  private final ConnectionFactory connectionFactory;
 
-  public ParametersDao(Connection conn) throws SQLException {
-    loadParams = conn.prepareStatement(LOAD_PARAMS_SQL);
-    insertParam = conn.prepareStatement(INSERT_PARAM_SQL);
+  public ParametersDao(ConnectionFactory connectionFactory) throws SQLException {
+    this.connectionFactory = connectionFactory;
   }
 
   /**
@@ -39,11 +40,17 @@ public class ParametersDao {
    *
    * @param runId
    * @param parameters
-   * @throws SQLException
+   * @throws RdvException
    */
-  public void insertParams(int runId, Parameters parameters) throws SQLException {
-    batchInsertParams(runId, parameters);
-    executeBatchInsert();
+  public void insertParams(int runId, Parameters parameters) throws RdvException {
+    Connection connection = connectionFactory.createConnection();
+    try {
+      PreparedStatement insertParam = connection.prepareStatement(INSERT_PARAM_SQL);
+      batchInsertParams(runId, parameters, insertParam);
+      insertParam.executeBatch();
+    } catch (SQLException e) {
+      throw new RdvException(e);
+    }
   }
 
   /**
@@ -53,25 +60,36 @@ public class ParametersDao {
    * @return
    * @throws SQLException
    */
-  public Parameters loadFromDatabase(int runId) throws SQLException, RdvException {
-    loadParams.setInt(1, runId);
-    ResultSet resultSet = loadParams.executeQuery();
-    Map<String, Object> variables = Maps.newLinkedHashMap();
-    Map<String, String> inputFiles = Maps.newLinkedHashMap();
-    Map<String, String> outputFiles = Maps.newLinkedHashMap();
-    while (resultSet.next()) {
-      DataType type = DataType.fromName(resultSet.getString("data_type"));
-      Object param = type.newInstance(resultSet.getString("param_value"));
-      String paramType = resultSet.getString("param_type");
-      if ("variable".equals(paramType)) {
-        addParam(resultSet, variables, param);
-      } else if ("input_file".equals(paramType)) {
-        addParam(resultSet, inputFiles, (String) param);
-      } else if ("output_file".equals(paramType)) {
-        addParam(resultSet, outputFiles, (String) param);
+  public Parameters loadFromDatabase(int runId) throws RdvException {
+    Connection connection = connectionFactory.createConnection();
+    boolean exceptionOccurred = true;
+    try {
+      PreparedStatement loadParams = connection.prepareStatement(LOAD_PARAMS_SQL);
+      loadParams.setInt(1, runId);
+      ResultSet resultSet = loadParams.executeQuery();
+      Map<String, Object> variables = Maps.newLinkedHashMap();
+      Map<String, String> inputFiles = Maps.newLinkedHashMap();
+      Map<String, String> outputFiles = Maps.newLinkedHashMap();
+      while (resultSet.next()) {
+        DataType type = DataType.fromName(resultSet.getString("data_type"));
+        Object param = type.newInstance(resultSet.getString("param_value"));
+        String paramType = resultSet.getString("param_type");
+        if ("variable".equals(paramType)) {
+          addParam(resultSet, variables, param);
+        } else if ("input_file".equals(paramType)) {
+          addParam(resultSet, inputFiles, (String) param);
+        } else if ("output_file".equals(paramType)) {
+          addParam(resultSet, outputFiles, (String) param);
+        }
       }
+      Parameters parameters = Parameters.createParameters(variables, inputFiles, outputFiles);
+      exceptionOccurred = false;
+      return parameters;
+    } catch (SQLException e) {
+      throw new RdvException(e);
+    } finally {
+      Utils.close(connection, exceptionOccurred);
     }
-    return Parameters.createParameters(variables, inputFiles, outputFiles);
   }
 
   /**
@@ -83,26 +101,29 @@ public class ParametersDao {
    * @throws RdvException if the parameters can't be loaded
    */
   public void printParameters(int runId, boolean truncateOutput, Utils.OutputType outputType) throws RdvException {
+    Connection connection = connectionFactory.createConnection();
+    boolean exceptionOccurred = true;
     try {
+      PreparedStatement loadParams = connection.prepareStatement(LOAD_PARAMS_SQL);
       loadParams.setInt(1, runId);
       Utils.printResultSet(loadParams.executeQuery(), truncateOutput, outputType);
+      exceptionOccurred = false;
     } catch (SQLException e) {
       throw new RdvException(e);
+    } finally {
+      Utils.close(connection, exceptionOccurred);
     }
   }
 
-  void batchInsertParams(int runId, Parameters parameters) throws SQLException {
-    insertParams(runId, parameters.getOutputFiles(), "output_file");
-    insertParams(runId, parameters.getInputFiles(), "input_file");
-    insertParams(runId, parameters.getVariables(), "variable");
+  void batchInsertParams(int runId, Parameters parameters, PreparedStatement insertParam)
+      throws SQLException {
+    insertParams(runId, parameters.getOutputFiles(), "output_file", insertParam);
+    insertParams(runId, parameters.getInputFiles(), "input_file", insertParam);
+    insertParams(runId, parameters.getVariables(), "variable", insertParam);
   }
 
-  // made visible for use by RunDao as an optimisation.
-  int[] executeBatchInsert() throws SQLException {
-    return insertParam.executeBatch();
-  }
-
-  private void insertParams(int runId, Map<String, ?> inputFiles, String paramType) throws SQLException {
+  private void insertParams(int runId, Map<String, ?> inputFiles, String paramType, PreparedStatement insertParam)
+      throws SQLException {
     for (Map.Entry<String, ?> entry : inputFiles.entrySet()) {
       insertParam.setInt(1, runId);
       insertParam.setString(2, entry.getKey());

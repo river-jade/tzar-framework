@@ -36,10 +36,13 @@ public class RunDaoTest extends TestCase {
 
   public void setUp() throws Exception {
     mockConnection = mock(Jdbc4Connection.class);
-    PreparedStatement nextRunStatement = mock(PreparedStatement.class);
     insertRun = mock(PreparedStatement.class);
+    PreparedStatement nextRunStatement = mock(PreparedStatement.class);
     resultSet = mock(ResultSet.class);
     ParametersDao mockParametersDao = mock(ParametersDao.class);
+
+    ConnectionFactory mockConnectionFactory = mock(ConnectionFactory.class);
+    when(mockConnectionFactory.createConnection()).thenReturn(mockConnection);
 
     when(resultSet.getInt("run_id")).thenReturn(RUN_ID);
     when(resultSet.getString("run_name")).thenReturn(RUN_NAME);
@@ -54,7 +57,7 @@ public class RunDaoTest extends TestCase {
     when(mockConnection.prepareStatement(RunDao.INSERT_RUN_SQL)).thenReturn(insertRun);
     when(nextRunStatement.executeQuery()).thenReturn(resultSet);
     when(mockParametersDao.loadFromDatabase(RUN_ID)).thenReturn(Parameters.EMPTY_PARAMETERS);
-    runDao = new RunDao(mockConnection, mockParametersDao);
+    runDao = new RunDao(mockConnectionFactory, mockParametersDao);
   }
 
   public void testGetNextRun() throws Exception {
@@ -69,17 +72,25 @@ public class RunDaoTest extends TestCase {
   }
 
   public void testInsertRuns() throws RdvException, SQLException {
-    ResultSet generatedKeys = mock(ResultSet.class);
-
-    when(mockConnection.execSQLQuery("select nextval('runs_run_id_seq')")).thenReturn(generatedKeys);
-    when(generatedKeys.getInt(1)).thenReturn(FIRST_RUN_ID);
-
     List<Run> runs = Lists.newArrayList();
     runs.add(new Run(RUN_ID, RUN_NAME, CODE_VERSION, COMMAND_FLAGS,
         Parameters.EMPTY_PARAMETERS, "state", RUNSET, CLUSTER_NAME, RUNNER_CLASS));
     runs.add(new Run(RUN_ID, RUN_NAME + "1", CODE_VERSION + 1, COMMAND_FLAGS,
         Parameters.EMPTY_PARAMETERS, "state", RUNSET, CLUSTER_NAME, RUNNER_CLASS));
 
+
+    ResultSet generatedKeys = mock(ResultSet.class);
+
+    PreparedStatement statement = mock(PreparedStatement.class);
+    when(mockConnection.prepareStatement("select nextval('runs_run_id_seq')")).thenReturn(statement);
+    when(statement.executeQuery()).thenReturn(generatedKeys);
+    when(generatedKeys.getInt(1)).thenReturn(FIRST_RUN_ID);
+
+    when(mockConnection.prepareStatement("select setval('runs_run_id_seq', " + (FIRST_RUN_ID + runs.size()) +
+        ", false)")).thenReturn(statement);
+
+    when(mockConnection.prepareStatement(ParametersDao.INSERT_PARAM_SQL)).thenReturn(statement);
+    
     InOrder inOrder = inOrder(insertRun, mockConnection);
     runDao.insertRuns(runs);
     inOrder.verify(insertRun).setInt(1, FIRST_RUN_ID);
@@ -98,6 +109,5 @@ public class RunDaoTest extends TestCase {
     inOrder.verify(insertRun).setString(6, RUNSET);
     inOrder.verify(insertRun).setString(7, CLUSTER_NAME);
     inOrder.verify(insertRun).setString(8, RUNNER_CLASS);
-    inOrder.verify(mockConnection).setAutoCommit(true);
   }
 }

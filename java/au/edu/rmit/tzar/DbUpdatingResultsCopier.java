@@ -43,16 +43,17 @@ public class DbUpdatingResultsCopier implements ResultsCopier, Runnable {
         return;
       }
 
-      LOG.fine("Marking run as 'copied'");
       Run run = runAndPath.run;
 
       if (!"completed".equals(run.getState())) {
         LOG.severe("Expected run to have status: 'completed'. Was '" + run.getState() + "'. Skipping copy for run: " +
             run);
+        continue;
       }
 
       try {
         resultsCopier.copyResults(run, runAndPath.path);
+        LOG.fine("Marking run as 'copied'");
         run.setState("copied");
         run.setOutputPath(new File(resultsCopier.getBaseDestPath(), runAndPath.path.getName()));
         try {
