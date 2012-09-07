@@ -6,15 +6,34 @@ import com.google.common.collect.Lists;
 
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Static database utility functions
  */
 public class Utils {
+  private static final Logger LOG = Logger.getLogger(Utils.class.getName());
+
+  public static void close(Connection connection, boolean exceptionOccurred) throws RdvException {
+    try {
+      connection.close();
+    } catch (SQLException e) {
+      if (exceptionOccurred) {
+        // we just log this new exception rather than rethrowing it,
+        // so that we don't lose the original one...
+        LOG.log(Level.SEVERE, "Unable to close JDBC Connection", e);
+      } else {
+        throw new RdvException("Unable to close JDBC Connection");
+      }
+    }
+  }
+
   /**
    * Prints the provided result set to stdout in tabular form.
    *
@@ -37,6 +56,15 @@ public class Utils {
       throw new RdvException(e);
     } catch (IOException e) {
       throw new RdvException(e);
+    }
+  }
+
+  public static void rollback(Connection connection) {
+    try {
+      LOG.log(Level.WARNING, "SQLException thrown. Rolling back transaction.");
+      connection.rollback();
+    } catch (SQLException e) {
+      LOG.log(Level.SEVERE, "Exception occurred rolling back transaction.", e);
     }
   }
 
