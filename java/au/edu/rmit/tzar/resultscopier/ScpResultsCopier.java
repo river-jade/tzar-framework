@@ -58,8 +58,8 @@ public class ScpResultsCopier implements ResultsCopier {
               baseDestPath.getPath().replace(File.separatorChar, '/'));
           run.setOutputPath(baseDestPath);
           run.setOutputHost(hostname);
-          LOG.log(Level.INFO, "Copied results for run: {0} from: {1} to {2}:{3}", new Object[]{run.getRunId(), sourcePath, hostname,
-              baseDestPath});
+          LOG.log(Level.INFO, "Copied results for run: {0} from: {1} to {2}:{3}",
+              new Object[]{run.getRunId(), sourcePath, hostname, baseDestPath});
           failure = null;
           thrown = false; // got through with no exception
           break;
