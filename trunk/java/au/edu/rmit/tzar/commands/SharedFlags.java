@@ -284,6 +284,9 @@ class SharedFlags {
     @Parameter(names = {"-q", "--quiet"}, description = "Quiet logging to console.")
     private boolean quiet = false;
 
+    @Parameter(names = {"--help"}, description = "Show help info.")
+    private boolean help = false;
+
     public LogLevel getLogLevel() throws ParseException {
       if (verbose && quiet) {
         throw new ParseException("Can not specify both --verbose and --quiet.");
@@ -294,6 +297,10 @@ class SharedFlags {
       } else {
         return LogLevel.NORMAL;
       }
+    }
+
+    public boolean getHelp() {
+      return help;
     }
 
     public enum LogLevel {
