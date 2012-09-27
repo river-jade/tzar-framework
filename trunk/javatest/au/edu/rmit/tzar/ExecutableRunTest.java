@@ -42,7 +42,7 @@ public class ExecutableRunTest extends TestCase {
   @Override
   public void setUp() throws Exception {
     File BASE_OUTPUT_PATH = Files.createTempDir();
-    OUTPUT_DIR = BASE_OUTPUT_PATH + "/a_run_name_" + RUN_ID;
+    OUTPUT_DIR = BASE_OUTPUT_PATH + File.separator + "a_run_name_" + RUN_ID;
 
     when(run.getRunId()).thenReturn(RUN_ID);
     when(run.getName()).thenReturn("a run name");
