@@ -11,6 +11,8 @@ import traceback
 def main(args):
     logger = Logger(logging.getLogger())
     logger.addHandler(logging.StreamHandler(sys.stdout))
+    logger.setLevel(logging.DEBUG)
+
     try:
         parser = optparse.OptionParser()
 
@@ -103,6 +105,9 @@ class Logger(object):
 
     def addHandler(self, handler):
         self.logger.addHandler(handler)
+
+    def setLevel(self, level):
+        self.logger.setLevel(level)
 
 class Parameters(object):
     def __init__(self, json):
