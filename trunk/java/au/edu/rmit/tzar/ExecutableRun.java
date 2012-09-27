@@ -23,7 +23,7 @@ import java.util.regex.Pattern;
 public class ExecutableRun {
   private static final Logger LOG = Logger.getLogger(ExecutableRun.class.getName());
   // this is the Logger that will be used by runner to write to the console and logfiles
-  private static final Logger RUNNER_LOGGER = Logger.getLogger("ModelRunnerLogger");
+  private static final Logger RUNNER_LOGGER = Logger.getLogger("au.edu.rmit.tzar.ModelRunnerLogger");
 
   private static final String INPROGRESS_SUFFIX = ".inprogress";
   private static final String FAILED_SUFFIX = ".failed";
