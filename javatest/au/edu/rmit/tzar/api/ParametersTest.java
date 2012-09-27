@@ -24,13 +24,13 @@ public class ParametersTest extends TestCase {
   }
 
   public void testGetQualifiedParams() {
-    Map<String, Object> qualifiedParams = parameters.getQualifiedParams(new File("/input"), new File("/output"));
+    Map<String, Object> qualifiedParams = parameters.getQualifiedParams(new File("input"), new File("output"));
     assertEquals(1, qualifiedParams.get("a"));
     assertEquals(2, qualifiedParams.get("b"));
-    assertEquals("/input/foo.txt", qualifiedParams.get("x"));
-    assertEquals("/input/bar.txt", qualifiedParams.get("y"));
-    assertEquals("/output/foo.gif", qualifiedParams.get("c"));
-    assertEquals("/output/bar.gif", qualifiedParams.get("d"));
+    assertEquals(new File("input", "foo.txt").getAbsolutePath(), qualifiedParams.get("x"));
+    assertEquals(new File("input", "bar.txt").getAbsolutePath(), qualifiedParams.get("y"));
+    assertEquals(new File("output", "foo.gif").getAbsolutePath(), qualifiedParams.get("c"));
+    assertEquals(new File("output", "bar.gif").getAbsolutePath(), qualifiedParams.get("d"));
   }
 
   public void testGetSize() {
