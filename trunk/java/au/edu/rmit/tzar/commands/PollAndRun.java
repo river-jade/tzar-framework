@@ -139,7 +139,11 @@ class PollAndRun implements Command {
     run.setEndTime(null);
     run.setState("in_progress");
     run.setHostname(Utils.getHostname());
-    runDao.persistRun(run);
+    if (!runDao.markRunInProgress(run)) {
+      // another node must have grabbed the job.
+      runningTasks.release();
+      return;
+    }
 
     executorService.submit(new DbExecutableRun(executableRun, resultsCopier, runDao, new Callback() {
       @Override
