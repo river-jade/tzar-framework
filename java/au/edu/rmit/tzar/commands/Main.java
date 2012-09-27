@@ -37,37 +37,46 @@ public class Main {
       jCommander.addCommand(command.name, ObjectArrays.concat(command.flags, SharedFlags.COMMON_FLAGS));
     }
 
+    jCommander.addObject(SharedFlags.COMMON_FLAGS);
     try {
       jCommander.parse(args);
-
-      // We create the default tzar base directory because the logging code expects $HOME/tzar to exist.
-      // This is to workaround the following bug:
-      // http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6244047
-      // The FileHandler in the java logging framework barfs if the specified output directory doesn't exist.
-      new File(System.getProperty("user.home"), "tzar").mkdir();
-
-      setupLogging();
-      String cmdStr = jCommander.getParsedCommand();
-      Commands cmd = Commands.map.get(cmdStr);
-      if (cmd == null) {
-        if (cmdStr != null) {
-          System.out.println("Command: " + cmdStr + " not recognised.");
-        }
-        jCommander.usage();
-        System.exit(2);
+    } catch (ParameterException e) {
+      System.out.println(e.getMessage());
+      if (SharedFlags.COMMON_FLAGS.getHelp()) {
+        String cmdStr = jCommander.getParsedCommand();
+        jCommander.usage(cmdStr);
       } else {
+        System.out.println("Try `--help' for more information.");
+      }
+      System.exit(2);
+    }
+
+    // We create the default tzar base directory because the logging code expects $HOME/tzar to exist.
+    // This is to workaround the following bug:
+    // http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6244047
+    // The FileHandler in the java logging framework barfs if the specified output directory doesn't exist.
+    new File(System.getProperty("user.home"), "tzar").mkdir();
+
+    String cmdStr = jCommander.getParsedCommand();
+
+    Commands cmd = Commands.map.get(cmdStr);
+    if (cmd == null) {
+      if (cmdStr != null) {
+        System.out.println("Command: " + cmdStr + " not recognised.");
+      }
+      jCommander.usage();
+      System.exit(2);
+    } else {
+      try {
+        setupLogging();
         Command command = cmd.instantiate(new CommandFactory(jCommander));
         if (!command.execute()) {
           System.exit(1);
         }
+      } catch (Exception e) {
+        LOG.log(Level.SEVERE, "An unrecoverable error occurred.", e);
+        System.exit(3);
       }
-    } catch (ParameterException e) {
-      System.out.println(e.getMessage());
-      System.out.println("Try `--help' for more information.");
-      System.exit(2);
-    } catch (Exception e) {
-      LOG.log(Level.SEVERE, "An unrecoverable error occurred.", e);
-      System.exit(3);
     }
   }
 
