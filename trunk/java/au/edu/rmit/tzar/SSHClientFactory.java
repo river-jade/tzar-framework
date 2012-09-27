@@ -6,6 +6,7 @@ import net.schmizz.sshj.userauth.keyprovider.PKCS8KeyFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.MessageFormat;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -37,8 +38,8 @@ public class SSHClientFactory {
     final SSHClient sshClient = new SSHClient();
     sshClient.addHostKeyVerifier(new OpenSSHKnownHosts(knownHosts));
 
-    LOG.log(Level.INFO, "Connecting to SSH host: {0}, with user: {1}, keyfile: {2} and " +
-        "known_hosts: {3}", new Object[]{hostname, sshUserName, pemFile, knownHosts});
+    LOG.log(Level.INFO, MessageFormat.format("Connecting to SSH host: {0}, with user: {1}, keyfile: {2} and " +
+        "known_hosts: {3}", new Object[]{hostname, sshUserName, pemFile, knownHosts}));
     sshClient.useCompression();
     sshClient.connect(hostname);
 
