@@ -34,6 +34,11 @@ public class RunDao {
   static final String UPDATE_RUN_SQL = "UPDATE runs SET run_start_time = ?, run_end_time = ?, state = ?, " +
       "hostname = ?, output_path = ?, output_host = ?, runner_class = ? where run_id = ?";
 
+  // select for update locks the row in question for modification, so that we can guarantee
+  // than another node does not write to the row before we do
+  @VisibleForTesting
+  static final String SELECT_RUN_SQL = "SELECT state FROM runs where run_id = ? FOR UPDATE";
+
   private final ParametersDao parametersDao;
   private final ConnectionFactory connectionFactory;
 
@@ -43,24 +48,25 @@ public class RunDao {
   }
 
   /**
-   * Polls the database for the next scheduled run.
+   * Polls the database for the next scheduled run. If a scheduled run is found, the run is marked as
+   * 'in_progress' and persisted to the database. This is done in a single transaction, to avoid two nodes
+   * from executing the same run.
    *
    * @param runset runset to filter by or null to poll for any runset
    * @param clusterName we only poll for runs scheduled for the current cluster. Not null, but may be empty.
-   * @return true if a run was found and executed, false otherwise
+   * @return true if a run was found, false otherwise
    * @throws RdvException if something goes wrong executing the run
    */
   public synchronized Run getNextRun(String runset, String clusterName) throws RdvException {
     Connection connection = connectionFactory.createConnection();
     boolean exceptionOccurred = true;
     try {
-      connection.setAutoCommit(true);
+      connection.setAutoCommit(false);
       PreparedStatement selectNextRun = connection.prepareStatement(NEXT_RUN_SQL, ResultSet.TYPE_FORWARD_ONLY,
           ResultSet.CONCUR_READ_ONLY);
       selectNextRun.setString(1, runset == null ? "%" : runset);
       selectNextRun.setString(2, clusterName);
       ResultSet resultSet = selectNextRun.executeQuery();
-      connection.setAutoCommit(false);
 
       Run run;
       if (resultSet.next()) {
@@ -77,8 +83,38 @@ public class RunDao {
     }
   }
 
+  public boolean markRunInProgress(Run run) throws RdvException {
+    Connection connection = connectionFactory.createConnection();
+    boolean exceptionOccurred = true;
+
+    try {
+      connection.setAutoCommit(false);
+      PreparedStatement selectRun = connection.prepareStatement(SELECT_RUN_SQL);
+      selectRun.setInt(1, run.getRunId());
+      ResultSet resultSet = selectRun.executeQuery();
+      if (!resultSet.next()) {
+        throw new RdvException("Expected to find record matching run_id: " + run.getRunId());
+      }
+      String status = resultSet.getString("state");
+      if (!"scheduled".equals(status)) {
+        LOG.fine("Expected run to have status 'scheduled', but status was: " + status + ". This probably indicates" +
+            " that another node has grabbed the run.");
+        return false;
+      }
+    } catch (SQLException e) {
+      throw new RdvException(e);
+    }
+
+    persistRun(run, connection);
+    return true;
+  }
+
   public synchronized void persistRun(Run run) throws RdvException {
     Connection connection = connectionFactory.createConnection();
+    persistRun(run, connection);
+  }
+
+  private void persistRun(Run run, Connection connection) throws RdvException {
     boolean exceptionOccurred = true;
 
     try {
