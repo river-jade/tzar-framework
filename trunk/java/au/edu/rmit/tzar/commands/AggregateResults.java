@@ -1,6 +1,7 @@
 package au.edu.rmit.tzar.commands;
 
 import au.edu.rmit.tzar.SSHClientFactory;
+import au.edu.rmit.tzar.Utils;
 import au.edu.rmit.tzar.api.RdvException;
 import au.edu.rmit.tzar.api.Run;
 import au.edu.rmit.tzar.db.RunDao;
@@ -48,6 +49,7 @@ class AggregateResults implements Command {
    * or having to reconnect each time.
    */
   private final Map<String, SSHClient> connections;
+  private final Utils.RegexFilter regexFilter;
 
   /**
    * Constructor.
@@ -60,9 +62,10 @@ class AggregateResults implements Command {
    * @param runDao         for accessing the database of runs
    * @param hostname       host name of this machine (used to determine if ssh is required to copy files)
    * @param sshUserName    user name to use to connect to the remote server, or null to use current local username
+   * @param filenameFilter regular expression specifying which files to copy or null to copy all files
    */
   public AggregateResults(List<Integer> runIds, List<String> states, String filterHostname, String runset,
-      File destPath, RunDao runDao, String hostname, final String sshUserName) {
+      File destPath, RunDao runDao, String hostname, final String sshUserName, String filenameFilter) {
     this.runIds = runIds;
     if (states == null || states.isEmpty()) {
       this.states = Lists.newArrayList("copied");
@@ -84,6 +87,7 @@ class AggregateResults implements Command {
         }
       }
     });
+    regexFilter = new Utils.RegexFilter(filenameFilter);
   }
 
   @Override
@@ -96,14 +100,14 @@ class AggregateResults implements Command {
         File runOutputPath = run.getOutputPath();
         if (hostname.equals(sourceHost)) {
           LOG.info("Results are on localhost. Using copy to copy results.");
-          au.edu.rmit.tzar.Utils.copyDirectory(runOutputPath, destPath, new RunIdRenamer(run.getRunId()));
+          Utils.copyDirectory(runOutputPath, destPath, new RunIdRenamer(run.getRunId()), regexFilter);
         } else {
           LOG.info("Results are on machine: " + sourceHost + ". Using ssh to copy results.");
           SCPFileTransfer scpFileTransfer = connections.get(sourceHost).newSCPFileTransfer();
           File tempPath = Files.createTempDir();
           scpFileTransfer.download(runOutputPath.getPath(), tempPath.getPath());
-          au.edu.rmit.tzar.Utils.copyDirectory(new File(tempPath, runOutputPath.getName()),
-              destPath, new RunIdRenamer(run.getRunId()));
+          Utils.copyDirectory(new File(tempPath, runOutputPath.getName()),
+              destPath, new RunIdRenamer(run.getRunId()), regexFilter);
         }
       }
     } catch (IOException e) {
@@ -120,7 +124,7 @@ class AggregateResults implements Command {
     return true;
   }
 
-  public class RunIdRenamer implements au.edu.rmit.tzar.Utils.RenamingStrategy {
+  private class RunIdRenamer implements Utils.RenamingStrategy {
     private final int runId;
 
     public RunIdRenamer(int runId) {

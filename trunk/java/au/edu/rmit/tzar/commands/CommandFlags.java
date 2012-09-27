@@ -144,6 +144,10 @@ public class CommandFlags {
    */
   @Parameters(commandDescription = "Copy the results of a set of runs to a local dir for analysis.", separators = "= ")
   public static class AggregateResultsFlags {
+    @Parameter(names = "--filenamefilter", description = "Regular expression matching name of files to include.",
+        required = false)
+    private String filenameFilter;
+
     @Parameter(names = "--outputpath", description = "Local path to put the consolidated data.", required = true)
     private File outputPath;
 
@@ -152,6 +156,10 @@ public class CommandFlags {
     private final String scpUserName = System.getProperty("user.name");
 
     private AggregateResultsFlags() {
+    }
+
+    public String getFilenameFilter() {
+      return filenameFilter;
     }
 
     public File getOutputPath() {

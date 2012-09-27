@@ -8,6 +8,8 @@ import java.net.*;
 import java.util.Collections;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Static utility functions.
@@ -64,11 +66,12 @@ public class Utils {
   }
 
   public static void copyDirectory(File source, File dest) throws IOException {
-    copyDirectory(source, null, dest, new NoopRenamer());
+    copyDirectory(source, null, dest, new NoopRenamer(), new AllFilesFilter());
   }
 
-  public static void copyDirectory(File source, File dest, RenamingStrategy renamer) throws IOException {
-    copyDirectory(source, null, dest, renamer);
+  public static void copyDirectory(File source, File dest, RenamingStrategy renamer, Filter filter)
+      throws IOException {
+    copyDirectory(source, null, dest, renamer, filter);
   }
 
   /**
@@ -101,8 +104,20 @@ public class Utils {
     throw new RdvException("Unable to rename \"" + source + "\" to \"" + dest + "\"");
   }
 
-  private static void copyDirectory(File sourceBase, File sourceRel, File destBase, RenamingStrategy renamer)
-      throws IOException {
+  /**
+   * Recursive copy of a directory with renaming and filtering.
+   *
+   * @param sourceBase base directory to copy the source files from
+   * @param sourceRel relative directory to copy the source files from. We separate the
+   * base and relative directories to allow the renaming strategy to alter (eg flatten)
+   * the directory structure.
+   * @param destBase base output path at the destination
+   * @param renamer strategy to use for renaming files
+   * @param filter filter to determine whether to include files / directories
+   * @throws IOException if the files can't be read / written
+   */
+  private static void copyDirectory(File sourceBase, File sourceRel, File destBase, RenamingStrategy renamer,
+      Filter filter) throws IOException {
     File sourcePath;
     if (sourceRel == null) {
       sourcePath = sourceBase;
@@ -115,9 +130,12 @@ public class Utils {
     }
     if (sourcePath.isDirectory()) {
       for (String child : sourcePath.list()) {
-        copyDirectory(sourceBase, new File(sourceRel, child), destBase, renamer);
+        copyDirectory(sourceBase, new File(sourceRel, child), destBase, renamer, filter);
       }
     } else {
+      if (!filter.matches(sourceRel)) {
+        return;
+      }
       File destRel = renamer.rename(sourceRel);
       File destPath = new File(destBase, destRel.getPath());
       destPath.getParentFile().mkdirs();
@@ -138,12 +156,48 @@ public class Utils {
   }
 
   /**
+   * A filter that determines whether a filename matches and should be included.
+   */
+  public interface Filter {
+    /**
+     * Returns true if the file matches and should be copied.
+     * @param file
+     * @return
+     */
+    boolean matches(File file);
+  }
+
+  /**
    * Do nothing renamer.
    */
-  private static class NoopRenamer implements RenamingStrategy {
+  public static class NoopRenamer implements RenamingStrategy {
     @Override
     public File rename(File file) {
       return file;
+    }
+  }
+
+  public static class AllFilesFilter implements Filter {
+    @Override
+    public boolean matches(File file) {
+      return true;
+    }
+  }
+
+  public static class RegexFilter implements Utils.Filter {
+    private final Pattern filenamePattern;
+
+    public RegexFilter(String filenameFilter) {
+      filenamePattern = filenameFilter == null ? null : Pattern.compile(filenameFilter);
+    }
+
+    @Override
+    public boolean matches(File file) {
+      if (filenamePattern == null) {
+        return true;
+      }
+      Matcher matcher = filenamePattern.matcher(file.toString());
+      return matcher.matches();
     }
   }
 }
