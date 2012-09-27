@@ -63,9 +63,11 @@ class AggregateResults implements Command {
    * @param hostname       host name of this machine (used to determine if ssh is required to copy files)
    * @param sshUserName    user name to use to connect to the remote server, or null to use current local username
    * @param filenameFilter regular expression specifying which files to copy or null to copy all files
+   * @param pemFile        private key file to connect to the ssh machines
    */
   public AggregateResults(List<Integer> runIds, List<String> states, String filterHostname, String runset,
-      File destPath, RunDao runDao, String hostname, final String sshUserName, String filenameFilter) {
+        File destPath, RunDao runDao, String hostname, final String sshUserName, String filenameFilter,
+        final File pemFile) {
     this.runIds = runIds;
     if (states == null || states.isEmpty()) {
       this.states = Lists.newArrayList("copied");
@@ -81,7 +83,7 @@ class AggregateResults implements Command {
       @Override
       public SSHClient apply(String sourceHost) {
         try {
-          return new SSHClientFactory(sourceHost, null, sshUserName).createSSHClient();
+          return new SSHClientFactory(sourceHost, pemFile, sshUserName).createSSHClient();
         } catch (IOException e) {
           throw new RuntimeException(e);
         }
