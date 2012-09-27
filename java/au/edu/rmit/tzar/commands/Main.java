@@ -188,7 +188,8 @@ public class Main {
       DaoFactory daoFactory = new DaoFactory(getDbUrl());
       return new AggregateResults(LOAD_RUNS_FLAGS.getRunIds(), LOAD_RUNS_FLAGS.getStates(),
           LOAD_RUNS_FLAGS.getHostName(), LOAD_RUNS_FLAGS.getRunset(), AGGREGATE_RESULTS_FLAGS.getOutputPath(),
-          daoFactory.createRunDao(), au.edu.rmit.tzar.Utils.getHostname(), AGGREGATE_RESULTS_FLAGS.getScpUserName());
+          daoFactory.createRunDao(), au.edu.rmit.tzar.Utils.getHostname(), AGGREGATE_RESULTS_FLAGS.getScpUserName(),
+          AGGREGATE_RESULTS_FLAGS.getFilenameFilter());
     }
 
     public Command newExecLocalRuns() throws IOException, RdvException, ParseException {
