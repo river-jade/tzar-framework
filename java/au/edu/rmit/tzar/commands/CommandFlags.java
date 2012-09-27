@@ -155,6 +155,10 @@ public class CommandFlags {
         "uses the current user")
     private final String scpUserName = System.getProperty("user.name");
 
+    @Parameter(names = "--pemfile", description = "Path to ssh private key for connecting to the remote output data " +
+        "server. Defaults to $HOME/.ssh/id_rsa", converter = FileConverter.class)
+    private File pemFile = new File(System.getProperty("user.home"), ".ssh/id_rsa");
+
     private AggregateResultsFlags() {
     }
 
@@ -168,6 +172,10 @@ public class CommandFlags {
 
     public String getScpUserName() {
       return scpUserName;
+    }
+
+    public File getPemFile() {
+      return pemFile;
     }
   }
 }
