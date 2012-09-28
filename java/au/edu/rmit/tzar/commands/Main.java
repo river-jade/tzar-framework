@@ -13,8 +13,10 @@ import com.beust.jcommander.ParameterException;
 import com.google.common.collect.Maps;
 import com.google.common.collect.ObjectArrays;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.Map;
 import java.util.logging.Handler;
 import java.util.logging.Level;
@@ -31,7 +33,7 @@ import static au.edu.rmit.tzar.commands.SharedFlags.*;
 public class Main {
   private static Logger LOG = Logger.getLogger(Main.class.getName());
 
-  public static void main(String[] args) {
+  public static void main(String[] args) throws IOException {
     JCommander jCommander = new JCommander();
     for (Commands command : Commands.values()) {
       jCommander.addCommand(command.name, ObjectArrays.concat(command.flags, SharedFlags.COMMON_FLAGS));
@@ -42,7 +44,7 @@ public class Main {
       jCommander.parse(args);
     } catch (ParameterException e) {
       System.out.println(e.getMessage());
-      if (SharedFlags.COMMON_FLAGS.getHelp()) {
+      if (SharedFlags.COMMON_FLAGS.isHelp()) {
         String cmdStr = jCommander.getParsedCommand();
         jCommander.usage(cmdStr);
       } else {
@@ -61,6 +63,15 @@ public class Main {
 
     Commands cmd = Commands.map.get(cmdStr);
     if (cmd == null) {
+      if (SharedFlags.COMMON_FLAGS.isVersion()) {
+        BufferedReader in = new BufferedReader(
+            new InputStreamReader(Main.class.getResourceAsStream("/version.properties")));
+        String line;
+        while((line = in.readLine()) != null)
+          System.out.println(line);
+        return;
+      }
+
       if (cmdStr != null) {
         System.out.println("Command: " + cmdStr + " not recognised.");
       }
