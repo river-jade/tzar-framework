@@ -1,18 +1,15 @@
 package au.edu.rmit.tzar.commands;
 
-import au.edu.rmit.tzar.DbUpdatingResultsCopier;
 import au.edu.rmit.tzar.ExecutableRun;
 import au.edu.rmit.tzar.RunnerFactory;
 import au.edu.rmit.tzar.Utils;
 import au.edu.rmit.tzar.api.RdvException;
 import au.edu.rmit.tzar.api.Run;
-import au.edu.rmit.tzar.db.DaoFactory;
 import au.edu.rmit.tzar.db.RunDao;
 import au.edu.rmit.tzar.repository.CodeRepository;
 import au.edu.rmit.tzar.resultscopier.ResultsCopier;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Date;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -22,6 +19,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static au.edu.rmit.tzar.commands.CommandFlags.POLL_AND_RUN_FLAGS;
 import static au.edu.rmit.tzar.commands.SharedFlags.DB_FLAGS;
 import static au.edu.rmit.tzar.commands.SharedFlags.RUNNER_FLAGS;
 
@@ -39,7 +37,7 @@ class PollAndRun implements Command {
   private final CountDownLatch finished = new CountDownLatch(1);
   private final int sleepTimeMillis;
   private final String runset;
-  private final DbUpdatingResultsCopier resultsCopier;
+  private final ResultsCopier resultsCopier;
   private final ExecutorService executorService;
   private final Semaphore runningTasks;
   private final String clusterName;
@@ -47,21 +45,57 @@ class PollAndRun implements Command {
   private final CodeRepository codeRepository;
   private final RunnerFactory runnerFactory;
 
-  public PollAndRun(DaoFactory daoFactory, int sleepTimeMillis, ResultsCopier resultsCopier, String runset,
-                    String clusterName, int concurrentTaskCount, File baseOutputPath, CodeRepository codeRepository,
-                    RunnerFactory runnerFactory)
-      throws RdvException, IOException {
+  /**
+   * Constructor.
+   * @param runDao for accessing the database
+   * @param sleepTimeMillis milliseconds to wait between polls
+   * @param resultsCopier to copy the results from this node to permanent storage
+   * @param runset name of the runset to poll
+   * @param clusterName name of the cluster which this node is running on
+   * @param concurrentTaskCount max number of runs to execute in parallel
+   * @param baseOutputPath base local path for output of the runs
+   * @param codeRepository to load the source code for the run
+   * @param runnerFactory to create runners
+   */
+  public PollAndRun(RunDao runDao, int sleepTimeMillis, ResultsCopier resultsCopier, String runset,
+      String clusterName, int concurrentTaskCount, File baseOutputPath, CodeRepository codeRepository,
+      RunnerFactory runnerFactory) {
     this.baseOutputPath = baseOutputPath;
     this.codeRepository = codeRepository;
     this.runnerFactory = runnerFactory;
-    this.runDao = daoFactory.createRunDao();
+    this.runDao = runDao;
     this.sleepTimeMillis = sleepTimeMillis;
     this.runset = runset;
     this.clusterName = clusterName;
-    this.resultsCopier = new DbUpdatingResultsCopier(resultsCopier, daoFactory.createRunDao());
+    this.resultsCopier = resultsCopier;
     executorService = Executors.newFixedThreadPool(concurrentTaskCount);
     runningTasks = new Semaphore(concurrentTaskCount);
   }
+
+  /**
+   * Constructor. Reads parameters from POLL_AND_RUN_FLAGS. This object must be initialised before
+   * calling this constructor.
+   * 
+   * @param runDao for accessing the database
+   * @param resultsCopier to copy the results from this node to permanent storage
+   * @param baseOutputPath base local path for output of the runs
+   * @param codeRepository to load the source code for the run
+   * @param runnerFactory to create runners
+   */
+  public PollAndRun(RunDao runDao, ResultsCopier resultsCopier,
+        File baseOutputPath, CodeRepository codeRepository, RunnerFactory runnerFactory) throws RdvException {
+    this.baseOutputPath = baseOutputPath;
+    this.codeRepository = codeRepository;
+    this.runnerFactory = runnerFactory;
+    this.runDao = runDao;
+    this.sleepTimeMillis = POLL_AND_RUN_FLAGS.getSleepTimeMillis();
+    this.runset = POLL_AND_RUN_FLAGS.getRunset();
+    this.clusterName = POLL_AND_RUN_FLAGS.getClusterName();
+    this.resultsCopier = resultsCopier;
+    executorService = Executors.newFixedThreadPool(POLL_AND_RUN_FLAGS.getConcurrentTaskCount());
+    runningTasks = new Semaphore(POLL_AND_RUN_FLAGS.getConcurrentTaskCount());
+  }
+
 
   /**
    * Polls the database for new runs, and loops until exitAfterCurrent run is called (and current run finishes).
@@ -71,7 +105,6 @@ class PollAndRun implements Command {
    */
   public boolean execute() throws InterruptedException {
     // start the file copier thread
-    new Thread(resultsCopier).start();
     int spinnerDelay = 1000; // rotate spinner on stdout every 1 sec.
     try {
       int spinCounter = 0;
@@ -163,12 +196,12 @@ class PollAndRun implements Command {
    */
   private static class DbExecutableRun implements Runnable {
     private final ExecutableRun executableRun;
-    private final DbUpdatingResultsCopier resultsCopier;
+    private final ResultsCopier resultsCopier;
     private final Run run;
     private final RunDao runDao;
     private final Callback callback;
 
-    public DbExecutableRun(ExecutableRun executableRun, DbUpdatingResultsCopier resultsCopier, RunDao runDao,
+    public DbExecutableRun(ExecutableRun executableRun, ResultsCopier resultsCopier, RunDao runDao,
         Callback callback) {
       this.executableRun = executableRun;
       this.resultsCopier = resultsCopier;
@@ -203,8 +236,13 @@ class PollAndRun implements Command {
           System.out.println("\n");
         }
       }
+
       if (success) {
-        resultsCopier.copyResults(run, executableRun.getOutputPath());
+        try {
+          resultsCopier.copyResults(run, executableRun.getOutputPath());
+        } catch (RdvException e) {
+          LOG.log(Level.WARNING, "Failed to copy the results for run: " + run, e);
+        }
       }
       callback.complete();
     }
