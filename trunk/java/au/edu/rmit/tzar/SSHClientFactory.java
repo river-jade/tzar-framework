@@ -1,5 +1,6 @@
 package au.edu.rmit.tzar;
 
+import au.edu.rmit.tzar.commands.CommandFlags;
 import net.schmizz.sshj.SSHClient;
 import net.schmizz.sshj.transport.verification.OpenSSHKnownHosts;
 import net.schmizz.sshj.userauth.keyprovider.PKCS8KeyFile;
@@ -30,6 +31,12 @@ public class SSHClientFactory {
     this.hostname = hostname;
     this.sshUserName = sshUserName;
     this.pemFile = pemFile;
+  }
+
+  public SSHClientFactory(CommandFlags.PollAndRunFlags flags) {
+    this.hostname = flags.getScpOutputHost();
+    this.sshUserName = flags.getScpOutputUser();
+    this.pemFile = flags.getPemFile();
   }
 
   public SSHClient createSSHClient() throws IOException {

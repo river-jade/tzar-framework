@@ -6,8 +6,10 @@ import au.edu.rmit.tzar.RunnerFactory;
 import au.edu.rmit.tzar.SSHClientFactory;
 import au.edu.rmit.tzar.api.RdvException;
 import au.edu.rmit.tzar.db.DaoFactory;
+import au.edu.rmit.tzar.db.RunDao;
 import au.edu.rmit.tzar.parser.YamlParser;
 import au.edu.rmit.tzar.repository.CodeRepository;
+import au.edu.rmit.tzar.resultscopier.CopierFactory;
 import au.edu.rmit.tzar.resultscopier.FileResultsCopier;
 import au.edu.rmit.tzar.resultscopier.ResultsCopier;
 import au.edu.rmit.tzar.resultscopier.ScpResultsCopier;
@@ -73,21 +75,21 @@ class CommandFactory {
   }
 
   public Command newPollAndRun() throws IOException, RdvException, ParseException {
-    DaoFactory daoFactory = new DaoFactory(getDbUrl());
     CodeRepository codeRepository = RUNNER_FLAGS.createRepository();
 
     ResultsCopier resultsCopier;
     if (POLL_AND_RUN_FLAGS.getScpOutputHost() != null) {
-      SSHClientFactory sshClientFactory = new SSHClientFactory(POLL_AND_RUN_FLAGS.getScpOutputHost(),
-          POLL_AND_RUN_FLAGS.getPemFile(), POLL_AND_RUN_FLAGS.getScpOutputUser());
+      SSHClientFactory sshClientFactory = new SSHClientFactory(POLL_AND_RUN_FLAGS);
       resultsCopier = new ScpResultsCopier(sshClientFactory, POLL_AND_RUN_FLAGS.getScpOutputPath());
     } else {
       resultsCopier = new FileResultsCopier(RUNNER_FLAGS.getLocalOutputPath());
     }
 
-    return new PollAndRun(daoFactory, POLL_AND_RUN_FLAGS.getSleepTimeMillis(), resultsCopier,
-        POLL_AND_RUN_FLAGS.getRunset(), POLL_AND_RUN_FLAGS.getClusterName(),
-        POLL_AND_RUN_FLAGS.getConcurrentTaskCount(), RUNNER_FLAGS.getLocalOutputPath(), codeRepository,
+    DaoFactory daoFactory = new DaoFactory(getDbUrl());
+    RunDao runDao = daoFactory.createRunDao();
+    resultsCopier = new CopierFactory().createAsyncCopier(resultsCopier, true, true, runDao);
+
+    return new PollAndRun(runDao, resultsCopier, RUNNER_FLAGS.getLocalOutputPath(), codeRepository,
         new RunnerFactory());
   }
 
