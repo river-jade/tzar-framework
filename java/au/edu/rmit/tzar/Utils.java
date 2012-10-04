@@ -200,5 +200,22 @@ public class Utils {
       return matcher.matches();
     }
   }
+
+  public static class Path {
+    /**
+     * Combine a list of String paths in a platform independent way.
+     * @param paths
+     * @return
+     */
+    public static String combine(String... paths) {
+        File file = new File(paths[0]);
+
+        for (int i = 1; i < paths.length ; i++) {
+            file = new File(file, paths[i]);
+        }
+
+        return file.getPath();
+    }
+  }
 }
 
