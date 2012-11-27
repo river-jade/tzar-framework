@@ -67,7 +67,8 @@ CREATE TABLE runs (
     run_end_time timestamp without time zone,
     runset text,
     cluster_name text,
-    runner_class text
+    runner_class text,
+    run_submission_time timestamp without time zone
 );
 
 
@@ -130,6 +131,9 @@ ALTER TABLE runs ALTER COLUMN run_id SET DEFAULT nextval('runs_run_id_seq'::regc
 --
 
 ALTER TABLE runs ALTER COLUMN seed SET DEFAULT currval('runs_run_id_seq'::regclass);
+
+
+ALTER TABLE runs ALTER COLUMN run_submission_time SET DEFAULT timezone('utc'::text, now());
 
 
 --
