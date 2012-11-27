@@ -41,6 +41,12 @@ public class Main {
       System.exit(2);
     }
 
+    if (SharedFlags.COMMON_FLAGS.isHelp()) {
+      String cmdStr = jCommander.getParsedCommand();
+      jCommander.usage(cmdStr);
+      System.exit(0);
+    }
+
     // We create the default tzar base directory because the logging code expects $HOME/tzar to exist.
     // This is to workaround the following bug:
     // http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6244047
