@@ -1,6 +1,5 @@
 package au.edu.rmit.tzar.resultscopier;
 
-import au.edu.rmit.tzar.SSHClientFactory;
 import au.edu.rmit.tzar.api.RdvException;
 import au.edu.rmit.tzar.api.Run;
 import com.google.common.io.Closeables;
@@ -20,7 +19,7 @@ public class ScpResultsCopier implements ResultsCopier {
   private static Logger LOG = Logger.getLogger(ScpResultsCopier.class.getName());
 
   private final File baseDestPath;
-  private final SSHClientFactory sshClientFactory;
+  private final SshClientFactory sshClientFactory;
 
   /**
    * Constructor.
@@ -28,7 +27,7 @@ public class ScpResultsCopier implements ResultsCopier {
    * @param baseDestPath the base destination path on the remote host
    * @throws IOException if the files cannot be copied
    */
-  public ScpResultsCopier(SSHClientFactory sshClientFactory, File baseDestPath) throws IOException {
+  public ScpResultsCopier(SshClientFactory sshClientFactory, File baseDestPath) throws IOException {
     this.sshClientFactory = sshClientFactory;
     this.baseDestPath = baseDestPath;
   }

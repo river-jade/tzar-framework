@@ -1,10 +1,11 @@
 package au.edu.rmit.tzar.commands;
 
-import au.edu.rmit.tzar.SSHClientFactory;
 import au.edu.rmit.tzar.Utils;
 import au.edu.rmit.tzar.api.RdvException;
 import au.edu.rmit.tzar.api.Run;
 import au.edu.rmit.tzar.db.RunDao;
+import au.edu.rmit.tzar.resultscopier.SshClientFactoryKeyAuth;
+import au.edu.rmit.tzar.resultscopier.SshClientFactoryPasswordAuth;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
@@ -58,17 +59,14 @@ class AggregateResults implements Command {
    * @param states         list of states of runs to query. Empty or null to default to 'copied'.
    * @param filterHostname host name (of machine on which run was executed) to filter results by
    * @param runset         name of runset to filter by, or null to not filter by runset
-   * @param destPath       base path to copy aggregated results to
    * @param runDao         for accessing the database of runs
    * @param hostname       host name of this machine (used to determine if ssh is required to copy files)
-   * @param sshUserName    user name to use to connect to the remote server, or null to use current local username
-   * @param filenameFilter regular expression specifying which files to copy or null to copy all files
-   * @param pemFile        private key file to connect to the ssh machines
+   * @param flags          command line parameters for this command
    */
   public AggregateResults(List<Integer> runIds, List<String> states, String filterHostname, String runset,
-        File destPath, RunDao runDao, String hostname, final String sshUserName, String filenameFilter,
-        final File pemFile) {
+      RunDao runDao, String hostname, final CommandFlags.AggregateResultsFlags flags) {
     this.runIds = runIds;
+
     if (states == null || states.isEmpty()) {
       this.states = Lists.newArrayList("copied");
     } else {
@@ -76,20 +74,27 @@ class AggregateResults implements Command {
     }
     this.filterHostname = filterHostname;
     this.runset = runset;
-    this.destPath = destPath;
+    this.destPath = flags.getOutputPath();
     this.runDao = runDao;
     this.hostname = hostname;
     connections = new MapMaker().makeComputingMap(new Function<String, SSHClient>() {
       @Override
       public SSHClient apply(String sourceHost) {
         try {
-          return new SSHClientFactory(sourceHost, pemFile, sshUserName).createSSHClient();
+          if (flags.isPasswordPrompt()) {
+            String password = new String(System.console().readPassword("Enter the ssh password for the machine %s: ",
+                sourceHost));
+            return new SshClientFactoryPasswordAuth(sourceHost, flags.getScpUserName(), password).createSSHClient();
+          } else {
+            return new SshClientFactoryKeyAuth(sourceHost, flags.getScpUserName(),
+                flags.getPemFile()).createSSHClient();
+          }
         } catch (IOException e) {
           throw new RuntimeException(e);
         }
       }
     });
-    regexFilter = new Utils.RegexFilter(filenameFilter);
+    regexFilter = new Utils.RegexFilter(flags.getFilenameFilter());
   }
 
   @Override

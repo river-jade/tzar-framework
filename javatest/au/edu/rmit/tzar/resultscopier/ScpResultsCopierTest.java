@@ -1,6 +1,5 @@
 package au.edu.rmit.tzar.resultscopier;
 
-import au.edu.rmit.tzar.SSHClientFactory;
 import net.schmizz.sshj.SSHClient;
 import net.schmizz.sshj.xfer.FileSystemFile;
 import net.schmizz.sshj.xfer.scp.SCPFileTransfer;
@@ -15,11 +14,11 @@ public class ScpResultsCopierTest extends AbstractResultsCopierTest {
 
   private SSHClient mockClient;
   private SCPFileTransfer mockFileTransfer;
-  private SSHClientFactory mockSSHClientFactory;
+  private SshClientFactory mockSSHClientFactory;
 
   public void setUp() throws Exception {
     super.setUp();
-    mockSSHClientFactory = Mockito.mock(SSHClientFactory.class);
+    mockSSHClientFactory = Mockito.mock(SshClientFactory.class);
     mockClient = Mockito.mock(SSHClient.class);
     mockFileTransfer = Mockito.mock(SCPFileTransfer.class);
   }
