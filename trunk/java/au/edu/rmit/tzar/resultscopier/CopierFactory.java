@@ -1,6 +1,5 @@
 package au.edu.rmit.tzar.resultscopier;
 
-import au.edu.rmit.tzar.DbUpdatingResultsCopier;
 import au.edu.rmit.tzar.db.RunDao;
 
 /**
