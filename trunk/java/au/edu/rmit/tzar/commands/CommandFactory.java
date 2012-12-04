@@ -3,16 +3,12 @@ package au.edu.rmit.tzar.commands;
 import au.edu.rmit.tzar.Constants;
 import au.edu.rmit.tzar.RunFactory;
 import au.edu.rmit.tzar.RunnerFactory;
-import au.edu.rmit.tzar.SSHClientFactory;
 import au.edu.rmit.tzar.api.RdvException;
 import au.edu.rmit.tzar.db.DaoFactory;
 import au.edu.rmit.tzar.db.RunDao;
 import au.edu.rmit.tzar.parser.YamlParser;
 import au.edu.rmit.tzar.repository.CodeRepository;
-import au.edu.rmit.tzar.resultscopier.CopierFactory;
-import au.edu.rmit.tzar.resultscopier.FileResultsCopier;
-import au.edu.rmit.tzar.resultscopier.ResultsCopier;
-import au.edu.rmit.tzar.resultscopier.ScpResultsCopier;
+import au.edu.rmit.tzar.resultscopier.*;
 import com.beust.jcommander.JCommander;
 import com.google.common.collect.Maps;
 
@@ -36,9 +32,8 @@ class CommandFactory {
   public Command newAggregateResults() throws ParseException, RdvException, IOException {
     DaoFactory daoFactory = new DaoFactory(getDbUrl());
     return new AggregateResults(LOAD_RUNS_FLAGS.getRunIds(), LOAD_RUNS_FLAGS.getStates(),
-        LOAD_RUNS_FLAGS.getHostName(), LOAD_RUNS_FLAGS.getRunset(), AGGREGATE_RESULTS_FLAGS.getOutputPath(),
-        daoFactory.createRunDao(), au.edu.rmit.tzar.Utils.getHostname(), AGGREGATE_RESULTS_FLAGS.getScpUserName(),
-        AGGREGATE_RESULTS_FLAGS.getFilenameFilter(), AGGREGATE_RESULTS_FLAGS.getPemFile());
+        LOAD_RUNS_FLAGS.getHostName(), LOAD_RUNS_FLAGS.getRunset(),
+        daoFactory.createRunDao(), au.edu.rmit.tzar.Utils.getHostname(), AGGREGATE_RESULTS_FLAGS);
   }
 
   public Command newExecLocalRuns() throws IOException, RdvException, ParseException {
@@ -79,7 +74,7 @@ class CommandFactory {
 
     ResultsCopier resultsCopier;
     if (POLL_AND_RUN_FLAGS.getScpOutputHost() != null) {
-      SSHClientFactory sshClientFactory = new SSHClientFactory(POLL_AND_RUN_FLAGS);
+      SshClientFactory sshClientFactory = new SshClientFactoryKeyAuth(POLL_AND_RUN_FLAGS);
       resultsCopier = new ScpResultsCopier(sshClientFactory, POLL_AND_RUN_FLAGS.getScpOutputPath());
     } else {
       resultsCopier = new FileResultsCopier(RUNNER_FLAGS.getLocalOutputPath());
