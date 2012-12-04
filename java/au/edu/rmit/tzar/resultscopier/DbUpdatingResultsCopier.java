@@ -1,9 +1,8 @@
-package au.edu.rmit.tzar;
+package au.edu.rmit.tzar.resultscopier;
 
 import au.edu.rmit.tzar.api.RdvException;
 import au.edu.rmit.tzar.api.Run;
 import au.edu.rmit.tzar.db.RunDao;
-import au.edu.rmit.tzar.resultscopier.ResultsCopier;
 
 import java.io.File;
 import java.util.logging.Level;
