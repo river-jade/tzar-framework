@@ -22,13 +22,13 @@ public class RunDao {
   private static final Logger LOG = Logger.getLogger(RunDao.class.getName());
 
   @VisibleForTesting
-  static final String INSERT_RUN_SQL = "INSERT INTO runs (run_id, state, code_version, run_name, command_flags, " +
-      "runset, cluster_name, runner_class) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+  static final String INSERT_RUN_SQL = "INSERT INTO runs (run_id, state, code_version, project_name, scenario_name, " +
+      "command_flags, runset, cluster_name, runner_class) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
   @VisibleForTesting
-  static final String NEXT_RUN_SQL = "SELECT run_id, state, code_version, run_name, command_flags, runset, " +
-      "cluster_name, output_path, output_host, runner_class FROM runs WHERE state='scheduled' AND runset LIKE ? AND " +
-      "cluster_name = ? ORDER BY run_id ASC LIMIT 1";
+  static final String NEXT_RUN_SQL = "SELECT run_id, state, code_version, project_name, scenario_name, command_flags, " +
+      "runset, cluster_name, output_path, output_host, runner_class FROM runs WHERE state='scheduled' AND " +
+      "runset LIKE ? AND cluster_name = ? ORDER BY run_id ASC LIMIT 1";
 
   @VisibleForTesting
   static final String UPDATE_RUN_SQL = "UPDATE runs SET run_start_time = ?, run_end_time = ?, state = ?, " +
@@ -77,6 +77,7 @@ public class RunDao {
       exceptionOccurred = false;
       return run;
     } catch (SQLException e) {
+      LOG.log(Level.WARNING, "SQLException caused by:", e.getNextException());
       throw new RdvException(e);
     } finally {
       Utils.close(connection, exceptionOccurred);
@@ -102,6 +103,7 @@ public class RunDao {
         return false;
       }
     } catch (SQLException e) {
+      LOG.log(Level.WARNING, "SQLException caused by:", e.getNextException());
       throw new RdvException(e);
     }
 
@@ -134,6 +136,7 @@ public class RunDao {
       exceptionOccurred = false;
     } catch (SQLException e) {
       LOG.log(Level.WARNING, "SQLException thrown. Rolling back transaction.", e);
+      LOG.log(Level.WARNING, "SQLException caused by:", e.getNextException());
       Utils.rollback(connection);
       throw new RdvException(e);
     } finally {
@@ -170,11 +173,12 @@ public class RunDao {
         insertRun.setInt(1, nextRunId);
         insertRun.setString(2, "scheduled");
         insertRun.setString(3, run.getRevision());
-        insertRun.setString(4, run.getName());
-        insertRun.setString(5, run.getFlags());
-        insertRun.setString(6, run.getRunset());
-        insertRun.setString(7, run.getClusterName());
-        insertRun.setString(8, run.getRunnerClass());
+        insertRun.setString(4, run.getProjectName());
+        insertRun.setString(5, run.getScenarioName());
+        insertRun.setString(6, run.getFlags());
+        insertRun.setString(7, run.getRunset());
+        insertRun.setString(8, run.getClusterName());
+        insertRun.setString(9, run.getRunnerClass());
         insertRun.addBatch();
         parametersDao.batchInsertParams(run.getRunId(), run.getParameters(), insertParams);
         nextRunId++;
@@ -186,6 +190,8 @@ public class RunDao {
       connection.commit();
       exceptionOccurred = false;
     } catch (SQLException e) {
+      LOG.log(Level.WARNING, "SQLException thrown. Rolling back transaction.", e);
+      LOG.log(Level.WARNING, "SQLException caused by:", e.getNextException());
       Utils.rollback(connection);
       throw new RdvException(e);
     } finally {
@@ -219,6 +225,7 @@ public class RunDao {
       }
       return runs;
     } catch (SQLException e) {
+      LOG.log(Level.WARNING, "SQLException caused by:", e.getNextException());
       throw new RdvException(e);
     }
   }
@@ -266,6 +273,7 @@ public class RunDao {
       exceptionOccurred = false;
       return resultSet;
     } catch (SQLException e) {
+      LOG.log(Level.WARNING, "SQLException caused by:", e.getNextException());
       throw new RdvException(e);
     } finally {
       Utils.close(connection, exceptionOccurred);
@@ -289,9 +297,10 @@ public class RunDao {
   private Run runFromResultSet(ResultSet resultSet, boolean withParameters) throws SQLException, RdvException {
     int runId = resultSet.getInt("run_id");
     Parameters parameters = withParameters ? loadParameters(runId) : Parameters.EMPTY_PARAMETERS;
-    Run run = new Run(runId, resultSet.getString("run_name"), resultSet.getString("code_version"),
-        resultSet.getString("command_flags"), parameters, resultSet.getString("state"),
-        resultSet.getString("runset"), resultSet.getString("cluster_name"), resultSet.getString("runner_class"));
+    Run run = new Run(runId, resultSet.getString("project_name"), resultSet.getString("scenario_name"),
+        resultSet.getString("code_version"), resultSet.getString("command_flags"), parameters,
+        resultSet.getString("state"), resultSet.getString("runset"), resultSet.getString("cluster_name"),
+        resultSet.getString("runner_class"));
     String outputPath = resultSet.getString("output_path");
     if (outputPath != null) {
       run.setOutputPath(new File(outputPath));

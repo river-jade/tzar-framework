@@ -47,11 +47,16 @@ public class ExecutableRun {
    */
   public static ExecutableRun createExecutableRun(Run run, File baseOutputPath, CodeRepository codeRepository,
       RunnerFactory runnerFactory) {
+    String runset = run.getRunset();
+    runset = (runset == null || runset.equals("")) ? "default_runset" : run.getRunset();
+    baseOutputPath = new File(baseOutputPath,
+        Utils.Path.combineAndReplaceWhitespace("_", run.getProjectName(), runset));
+
     if (run.getRunId() == -1) {
       run.setRunId(getNextRunId(baseOutputPath));
     }
     // replace whitespace and punctuation in run name with '_' to make a valid path.
-    String dirName = run.getName().replaceAll("\\W", "_") + "_" + run.getRunId();
+    String dirName = Utils.Path.combineAndReplaceWhitespace("_", run.getRunId() + "_" + run.getScenarioName());
     LOG.finer(String.format("Creating run: %s", run));
     return new ExecutableRun(run, new File(baseOutputPath, dirName), codeRepository, runnerFactory);
   }
@@ -91,8 +96,8 @@ public class ExecutableRun {
         throw new IOException("Couldn't create temp output dir: " + inprogressOutputPath);
       }
 
-      LOG.info(String.format("Running model: %s, run_id: %d, Run name: %s, Flags: %s", model, getRunId(),
-          run.getName(), run.getFlags()));
+      LOG.info(String.format("Running model: %s, run_id: %d, Project name: %s, Scenario name: %s, " +
+          "Flags: %s", model, getRunId(), run.getProjectName(), run.getScenarioName(), run.getFlags()));
       // TODO(michaell): Add some more wildcards here?
       Parameters parameters = run.getParameters().replaceWildcards(ImmutableMap.of("run_id",
           Integer.toString(getRunId())));
@@ -136,12 +141,12 @@ public class ExecutableRun {
       LOG.info("Outputdir doesn't exist. Creating it (and parents)");
       baseOutputPath.mkdirs();
     }
-    Pattern pattern = Pattern.compile("(.*_)+([^\\.]*)(?:\\.failed|\\.inprogress)?");
+    Pattern pattern = Pattern.compile("(\\d+)(_.*)+(?:\\.failed|\\.inprogress)?");
     for (File file : baseOutputPath.listFiles()) {
       Matcher matcher = pattern.matcher(file.getName());
       if (matcher.matches() && matcher.groupCount() >= 2) {
         try {
-          int id = Integer.parseInt(matcher.group(2));
+          int id = Integer.parseInt(matcher.group(1));
           max = Math.max(max, id + 1);
         } catch (NumberFormatException e) {
           LOG.fine(file + " does not match expected pattern for output directory.");

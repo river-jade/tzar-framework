@@ -55,7 +55,8 @@ ALTER SEQUENCE run_params_run_param_id_seq OWNED BY run_params.run_param_id;
 
 CREATE TABLE runs (
     run_id integer NOT NULL,
-    run_name text NOT NULL,
+    project_name text NOT NULL,
+    scenario_name text NOT NULL,
     state text NOT NULL,
     seed integer,
     code_version text NOT NULL,
