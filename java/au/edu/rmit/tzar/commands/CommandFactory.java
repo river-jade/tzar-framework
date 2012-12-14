@@ -8,8 +8,10 @@ import au.edu.rmit.tzar.db.DaoFactory;
 import au.edu.rmit.tzar.db.RunDao;
 import au.edu.rmit.tzar.parser.YamlParser;
 import au.edu.rmit.tzar.repository.CodeRepository;
+import au.edu.rmit.tzar.repository.SvnRepository;
 import au.edu.rmit.tzar.resultscopier.*;
 import com.beust.jcommander.JCommander;
+import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 
 import java.io.IOException;
@@ -101,6 +103,18 @@ class CommandFactory {
 
     DaoFactory daoFactory = new DaoFactory(getDbUrl());
     String revision = CREATE_RUNS_FLAGS.getRevision();
+
+    if (SpecialRevisionNumber.CURRENT_HEAD.toString().equalsIgnoreCase(revision)) {
+      String svnUrl = SCHEDULE_RUNS_FLAGS.getSvnUrl();
+      if (Strings.isNullOrEmpty(svnUrl)) {
+        throw new ParseException("--svnurl must not be empty if --revision=current_head");
+      }
+      SvnRepository repository = new SvnRepository(svnUrl, null);
+      revision = Long.toString(repository.getHeadRevision());
+    } else if (SpecialRevisionNumber.RUNTIME_HEAD.toString().equalsIgnoreCase(revision)) {
+      revision = "head";
+    }
+
     RunnerFlags.RepositoryType.SVN.checkRevisionNumber(revision);
 
     YamlParser parser = new YamlParser();

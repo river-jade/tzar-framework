@@ -108,6 +108,11 @@ class SharedFlags {
     }
   }
 
+  public enum SpecialRevisionNumber {
+    CURRENT_HEAD,
+    RUNTIME_HEAD;
+  }
+
   @Parameters(separators = "= ")
   public static class DbFlags {
     private DbFlags() {
@@ -166,8 +171,9 @@ class SharedFlags {
     private String clusterName = "";
 
     @Parameter(names = "--revision", description = "The source control revision of the model code to schedule for " +
-        "execution. Must be either an integer or 'head'. 'head' will mean that clients will always download the " +
-        "latest version of the code, NOT the version of head at the time the job is scheduled.")
+        "execution. Must be either an integer, 'runtime_head', or 'current_head'. 'runtime_head' will mean that " +
+        "clients will always download the latest version of the code, 'current_head' will set the revision to be " +
+        "the head revision at the time the job is scheduled.")
     private String revision = null;
 
     public String getCommandFlags() {
