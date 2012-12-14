@@ -46,7 +46,6 @@ public class RunFactory {
   public List<Run> createRuns(int numRuns, String runnerClass) throws RdvException {
     Parameters projectParams = projectSpec.getBaseParams();
     projectParams = globalParams.mergeParameters(projectParams);
-    String projectName = projectSpec.getProjectName();
     List<Run> runs = Lists.newArrayList();
     for (int i = 0; i < numRuns; ++i) {
       runs.addAll(createRuns(projectSpec, projectParams, repetitions, runnerClass));
