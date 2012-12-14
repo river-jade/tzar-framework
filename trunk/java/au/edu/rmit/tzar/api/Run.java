@@ -9,7 +9,8 @@ import java.util.Date;
 public class Run {
   private volatile int runId;
 
-  private final String runName;
+  private final String projectName;
+  private final String scenarioName;
 
   private final String revision;
   private final String flags;
@@ -31,21 +32,23 @@ public class Run {
   /**
    * Constructor.
    *
-   * @param runId      the unique id for this run or null if the id is not yet known
-   * @param runName    the name of this run (not necessarily unique)
-   * @param revision   the revision number of the model code to download and execute
-   * @param flags      the flags to pass to the command to be executed
-   * @param parameters parameters for the run
-   * @param state      execution state of the run
-   * @param runset     name of a runset for this run
-   * @param clusterName name of the cluster to run upon
-   * @param runnerClass class to use to execute the run
+   * @param runId        the unique id for this run or null if the id is not yet known
+   * @param projectName  the name of the project which defines this run
+   * @param scenarioName the name of the scenario which defines this run or null if this run is without scenario
+   * @param revision     the revision number of the model code to download and execute
+   * @param flags        the flags to pass to the command to be executed
+   * @param parameters   parameters for the run
+   * @param state        execution state of the run
+   * @param runset       name of a runset for this run
+   * @param clusterName  name of the cluster to run upon
+   * @param runnerClass  class to use to execute the run
    */
-  public Run(Integer runId, String runName, String revision, String flags, Parameters parameters, String state,
-             String runset, String clusterName, String runnerClass) {
+  public Run(Integer runId, String projectName, String scenarioName, String revision, String flags,
+             Parameters parameters, String state, String runset, String clusterName, String runnerClass) {
     this.runnerClass = runnerClass;
     this.runId = runId == null ? -1 : runId;
-    this.runName = runName;
+    this.projectName = projectName;
+    this.scenarioName = scenarioName;
     this.revision = revision;
     this.flags = flags;
     this.parameters = parameters;
@@ -63,7 +66,7 @@ public class Run {
   }
 
   public String getName() {
-    return runName;
+    return projectName + (scenarioName == null ? "" : "_" + scenarioName);
   }
 
   public Date getStartTime() {
@@ -121,6 +124,14 @@ public class Run {
     this.runId = runId;
   }
 
+  public String getProjectName() {
+    return projectName;
+  }
+
+  public String getScenarioName() {
+    return scenarioName;
+  }
+
   public String getRunset() {
     return runset;
   }
@@ -145,7 +156,8 @@ public class Run {
   public String toString() {
     return "Run{" +
         "runId=" + runId +
-        ", runName='" + runName + '\'' +
+        ", projectName='" + projectName + '\'' +
+        ", scenarioName='" + scenarioName + '\'' +
         ", revision='" + revision + '\'' +
         ", flags='" + flags + '\'' +
         ", state='" + state + '\'' +
@@ -170,7 +182,8 @@ public class Run {
     if (outputPath != null ? !outputPath.equals(run.outputPath) : run.outputPath != null) return false;
     if (parameters != null ? !parameters.equals(run.parameters) : run.parameters != null) return false;
     if (revision != null ? !revision.equals(run.revision) : run.revision != null) return false;
-    if (runName != null ? !runName.equals(run.runName) : run.runName != null) return false;
+    if (projectName != null ? !projectName.equals(run.projectName) : run.projectName != null) return false;
+    if (scenarioName != null ? !scenarioName.equals(run.scenarioName) : run.scenarioName != null) return false;
     if (runset != null ? !runset.equals(run.runset) : run.runset != null) return false;
     if (clusterName != null ? !clusterName.equals(run.clusterName) : run.clusterName != null) return false;
     if (startTime != null ? !startTime.equals(run.startTime) : run.startTime != null) return false;
@@ -183,7 +196,8 @@ public class Run {
   @Override
   public int hashCode() {
     int result = runId;
-    result = 31 * result + (runName != null ? runName.hashCode() : 0);
+    result = 31 * result + (projectName != null ? projectName.hashCode() : 0);
+    result = 31 * result + (scenarioName != null ? scenarioName.hashCode() : 0);
     result = 31 * result + (revision != null ? revision.hashCode() : 0);
     result = 31 * result + (flags != null ? flags.hashCode() : 0);
     result = 31 * result + (hostname != null ? hostname.hashCode() : 0);

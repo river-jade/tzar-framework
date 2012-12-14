@@ -24,6 +24,7 @@ public class ExecutableRunTest extends TestCase {
   public static final int RUN_ID = 1234;
   private static final String REVISION = "12334a";
   private static final File MODEL = new File("/path/to/model");
+  private static final String PROJECT_NAME = "project name";
   private static final Map<String, String> VARIABLES = new HashMap<String, String>();
   { VARIABLES.put("aaa", "123");
     VARIABLES.put("aab", "124");
@@ -32,6 +33,8 @@ public class ExecutableRunTest extends TestCase {
   private static final Map<String, String> INPUT_FILES = new HashMap<String, String>();
   private static final Map<String, String> OUTPUT_FILES = new HashMap<String, String>();
   private static final String RUNNER_CLASS = "MockRunner";
+  private static final String SCENARIO_NAME = "a scenario";
+  private static final String RUNSET = "runset_1";
 
   private Run run = mock(Run.class);
   private CodeRepository codeRepository = mock(CodeRepository.class);
@@ -42,10 +45,13 @@ public class ExecutableRunTest extends TestCase {
   @Override
   public void setUp() throws Exception {
     File BASE_OUTPUT_PATH = Files.createTempDir();
-    OUTPUT_DIR = BASE_OUTPUT_PATH + File.separator + "a_run_name_" + RUN_ID;
+    OUTPUT_DIR = new File(BASE_OUTPUT_PATH, Utils.Path.combineAndReplaceWhitespace("_", PROJECT_NAME, RUNSET,
+        RUN_ID + "_" + SCENARIO_NAME)).toString();
 
     when(run.getRunId()).thenReturn(RUN_ID);
-    when(run.getName()).thenReturn("a run name");
+    when(run.getProjectName()).thenReturn(PROJECT_NAME);
+    when(run.getScenarioName()).thenReturn(SCENARIO_NAME);
+    when(run.getRunset()).thenReturn(RUNSET);
     when(run.getRunnerClass()).thenReturn(RUNNER_CLASS);
     executableRun = ExecutableRun.createExecutableRun(run, BASE_OUTPUT_PATH, codeRepository,
         runnerFactory);

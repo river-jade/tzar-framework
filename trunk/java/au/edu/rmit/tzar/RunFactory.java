@@ -49,7 +49,7 @@ public class RunFactory {
     String projectName = projectSpec.getProjectName();
     List<Run> runs = Lists.newArrayList();
     for (int i = 0; i < numRuns; ++i) {
-      runs.addAll(createRuns(projectSpec, projectParams, projectName, repetitions, runnerClass));
+      runs.addAll(createRuns(projectSpec, projectParams, repetitions, runnerClass));
     }
     LOG.info("Created " + runs.size() + " runs.");
     return runs;
@@ -58,8 +58,8 @@ public class RunFactory {
   /**
    * Create a List of Runs, one for each repetition in the Repetitions object, for each scenario in the projectSpec.
    */
-  private List<Run> createRuns(ProjectSpec projectSpec, Parameters baseParams, String projectName,
-    Repetitions repetitions, String runnerClass) throws RdvException {
+  private List<Run> createRuns(ProjectSpec projectSpec, Parameters baseParams, Repetitions repetitions,
+      String runnerClass) throws RdvException {
     List<Run> runs = Lists.newArrayList();
 
     for (Parameters repetitionParams : repetitions.getParamsList()) {
@@ -67,16 +67,18 @@ public class RunFactory {
         for (Scenario scenario : projectSpec.getScenarios()) {
           Parameters params = baseParams.mergeParameters(scenario.getParameters());
           params = params.mergeParameters(repetitionParams);
-          runs.add(createRun(params, projectName + "_" + scenario.getName(), runnerClass));
+          runs.add(createRun(params, runnerClass, projectSpec.getProjectName(), scenario.getName()));
         }
       } else {
-        runs.add(createRun(baseParams.mergeParameters(repetitionParams), projectName, runnerClass));
+        runs.add(createRun(baseParams.mergeParameters(repetitionParams), runnerClass, projectSpec.getProjectName(),
+            null));
       }
     }
     return runs;
   }
 
-  private Run createRun(Parameters runParams, String runName, String runnerClass) {
-    return new Run(-1, runName, revision, commandFlags, runParams, "scheduled", runset, clusterName, runnerClass);
+  private Run createRun(Parameters runParams, String runnerClass, String projectName, String scenarioName) {
+    return new Run(-1, projectName, scenarioName, revision, commandFlags, runParams, "scheduled", runset, clusterName,
+        runnerClass);
   }
 }

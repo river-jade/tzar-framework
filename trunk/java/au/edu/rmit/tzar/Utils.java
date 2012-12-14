@@ -208,13 +208,34 @@ public class Utils {
      * @return
      */
     public static String combine(String... paths) {
-        File file = new File(paths[0]);
+      if (paths.length == 0) {
+        return "";
+      }
 
-        for (int i = 1; i < paths.length ; i++) {
-            file = new File(file, paths[i]);
-        }
+      File file = null;
+      for (String path : paths) {
+        file = new File(file, path);
+      }
+      return file.getPath();
+    }
 
-        return file.getPath();
+    /**
+     * Combine a list of String paths in a platform independent way, also replacing any whitespace
+     * in the provided paths with the provided replacement character.
+     * @param paths the paths to join
+     * @param replacementChar the character to use to replace any whitespace characters
+     * @return
+     */
+    public static String combineAndReplaceWhitespace(String replacementChar, String... paths) {
+      if (paths.length == 0) {
+        return "";
+      }
+      File file = null;
+      for (String path : paths) {
+        file = new File(file, path.replaceAll("\\W", replacementChar));
+      }
+
+      return file.getPath();
     }
   }
 }
