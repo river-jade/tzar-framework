@@ -173,7 +173,7 @@ class SharedFlags {
     @Parameter(names = "--revision", description = "The source control revision of the model code to schedule for " +
         "execution. Must be either an integer, 'runtime_head', or 'current_head'. 'runtime_head' will mean that " +
         "clients will always download the latest version of the code, 'current_head' will set the revision to be " +
-        "the head revision at the time the job is scheduled.")
+        "the head revision at the time the job is scheduled. This flag is mandatory if --svnurl is set.")
     private String revision = null;
 
     public String getCommandFlags() {
