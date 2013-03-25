@@ -23,11 +23,13 @@ class ModelRunner(Runner):
                 parser.print_help()
                 print # needed to flush the IOBuffer
                 return False
-            inputpath = java.io.File(java.io.File(modelpath, "projects/" + options.projectname), options.inputdir)
-            runner = rrunner.RRunner(rtermlocation=options.rlocation, rpath=os.path.join(modelpath.toString(), "R"),
+
+            projectname = options.projectname.strip()
+            inputpath = java.io.File(java.io.File(modelpath, "projects/" + projectname),
+                    options.inputdir.strip())
+            runner = rrunner.RRunner(rtermlocation=options.rlocation.strip(), rpath=os.path.join(modelpath.toString(), "R"),
                     inputpath=inputpath, dryrun=options.dryrun)
-            modelmodule = __import__("projects.%s.model" % options.projectname,
-                          fromlist=["Model"])
+            modelmodule = __import__("projects.%s.model" % projectname, fromlist=["Model"])
             model = modelmodule.Model(runner, inputpath, outputpath, runid, logger)
             start = datetime.datetime.now()
 
