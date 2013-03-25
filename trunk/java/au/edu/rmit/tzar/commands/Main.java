@@ -43,7 +43,11 @@ public class Main {
 
     if (SharedFlags.COMMON_FLAGS.isHelp()) {
       String cmdStr = jCommander.getParsedCommand();
-      jCommander.usage(cmdStr);
+      if (cmdStr != null) {
+        jCommander.usage(cmdStr);
+      } else {
+        jCommander.usage();
+      }
       System.exit(0);
     }
 
