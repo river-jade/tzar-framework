@@ -82,6 +82,9 @@ public class Main {
         if (!command.execute()) {
           System.exit(1);
         }
+      } catch (ParseException e) {
+        System.err.println(e.getMessage());
+        System.exit(2);
       } catch (Exception e) {
         LOG.log(Level.SEVERE, "An unrecoverable error occurred.", e);
         System.exit(3);
