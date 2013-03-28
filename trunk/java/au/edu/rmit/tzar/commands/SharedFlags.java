@@ -73,7 +73,7 @@ class SharedFlags {
         @Override
         public void checkRevisionNumber(String revision) {
           if (revision == null || revision.length() == 0) {
-            throw new ParseException("Must specify a revision when using SVN repository.");
+            throw new ParseException("You must specify a revision using --revision when using SVN repository.");
           }
           try {
             // check that revision number is valid
