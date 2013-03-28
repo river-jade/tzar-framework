@@ -27,6 +27,7 @@ class ConnectionFactory {
     config.setDefaultAutoCommit(false);
     config.setMaxConnectionsPerPartition(10);
     config.setStatementsCacheSize(20);
+    config.setExternalAuth(true);
 
     try {
       connectionPool = new BoneCP(config);
