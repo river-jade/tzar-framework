@@ -3,6 +3,7 @@
 import datetime
 import optparse
 import os
+import shlex
 import sys
 import traceback
 
@@ -78,5 +79,5 @@ class ModelRunner(Runner):
         parser.add_option("--seed", action="store", dest="seed",
                           help="Random number seed")
 
-        options, args = parser.parse_args(flags.split(' '))
+        options, args = parser.parse_args(shlex.split(flags))
         return options
