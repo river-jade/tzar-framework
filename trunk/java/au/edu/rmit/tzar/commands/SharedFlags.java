@@ -291,7 +291,7 @@ class SharedFlags {
     @Parameter(names = {"-q", "--quiet"}, description = "Quiet logging to console.")
     private boolean quiet = false;
 
-    @Parameter(names = {"--help"}, description = "Show help info.")
+    @Parameter(names = {"-h", "--help"}, description = "Show help info.")
     private boolean help = false;
 
     @Parameter(names = {"--version"}, description = "Show version info.")
