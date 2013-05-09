@@ -11,10 +11,9 @@
   </component>
   <component name="NewModuleRootManager" inherit-compiler-output="true">
     <exclude-output />
-    <content url="file://$MODULE_DIR$">
-      <sourceFolder url="file://$MODULE_DIR$/java" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/javatest" isTestSource="true" />
-      <sourceFolder url="file://$MODULE_DIR$/java/jython" isTestSource="false" packagePrefix="/" />
+    <content url="file://$USER_HOME$/src/tzar">
+      <sourceFolder url="file://$USER_HOME$/src/tzar/java" isTestSource="false" />
+      <sourceFolder url="file://$USER_HOME$/src/tzar/javatest" isTestSource="true" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
