@@ -237,12 +237,10 @@ class PollAndRun implements Command {
         }
       }
 
-      if (success) {
-        try {
-          resultsCopier.copyResults(run, executableRun.getOutputPath());
-        } catch (RdvException e) {
-          LOG.log(Level.WARNING, "Failed to copy the results for run: " + run, e);
-        }
+      try {
+        resultsCopier.copyResults(run, executableRun.getOutputPath(), success);
+      } catch (RdvException e) {
+        LOG.log(Level.WARNING, "Failed to copy the results for run: " + run, e);
       }
       callback.complete();
     }

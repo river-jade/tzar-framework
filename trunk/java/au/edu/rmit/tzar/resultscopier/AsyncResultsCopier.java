@@ -18,7 +18,7 @@ import java.util.logging.Logger;
 public class AsyncResultsCopier implements ResultsCopier, Runnable {
   private static final Logger LOG = Logger.getLogger(AsyncResultsCopier.class.getName());
 
-  private final BlockingQueue<RunAndPath> copyQueue = new LinkedBlockingQueue<RunAndPath>();
+  private final BlockingQueue<CopyJob> copyQueue = new LinkedBlockingQueue<CopyJob>();
   private final ResultsCopier delegate;
 
   public AsyncResultsCopier(ResultsCopier delegate) {
@@ -26,8 +26,8 @@ public class AsyncResultsCopier implements ResultsCopier, Runnable {
   }
 
   @Override
-  public void copyResults(Run run, File sourcePath) {
-    copyQueue.add(new RunAndPath(run, sourcePath));
+  public void copyResults(Run run, File sourcePath, boolean success) {
+    copyQueue.add(new CopyJob(run, sourcePath, success));
   }
 
   @Override
@@ -38,32 +38,34 @@ public class AsyncResultsCopier implements ResultsCopier, Runnable {
   @Override
   public void run() {
     while (true) {
-      RunAndPath runAndPath;
+      CopyJob copyJob;
       try {
-        runAndPath = copyQueue.take();
+        copyJob = copyQueue.take();
       } catch (InterruptedException e) {
         LOG.log(Level.WARNING, "Copy thread was interrupted.", e);
         Thread.currentThread().interrupt();
         return;
       }
 
-      Run run = runAndPath.run;
+      Run run = copyJob.run;
 
       try {
-        delegate.copyResults(run, runAndPath.path);
+        delegate.copyResults(run, copyJob.path, copyJob.success);
       } catch (RdvException e) {
         LOG.log(Level.WARNING, "Error copying results for run: " + run, e);
       }
     }
   }
 
-  private class RunAndPath {
+  private class CopyJob {
     private final Run run;
     private final File path;
+    private final boolean success;
 
-    private RunAndPath(Run run, File path) {
+    private CopyJob(Run run, File path, boolean success) {
       this.run = run;
       this.path = path;
+      this.success = success;
     }
   }
 }
