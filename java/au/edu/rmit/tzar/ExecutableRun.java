@@ -99,8 +99,12 @@ public class ExecutableRun {
       LOG.info(String.format("Running model: %s, run_id: %d, Project name: %s, Scenario name: %s, " +
           "Flags: %s", model, getRunId(), run.getProjectName(), run.getScenarioName(), run.getFlags()));
       // TODO(michaell): Add some more wildcards here?
-      Parameters parameters = run.getParameters().replaceWildcards(ImmutableMap.of("run_id",
-          Integer.toString(getRunId())));
+      Parameters parameters = run.getParameters().replaceWildcards(
+          ImmutableMap.of(
+              "run_id", Integer.toString(getRunId()),
+              "source_root", model.getAbsolutePath(),
+              "output_path", outputPath.getAbsolutePath()
+          ));
 
       FileHandler handler = null;
       boolean success = false;

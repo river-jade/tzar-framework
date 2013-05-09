@@ -53,6 +53,7 @@ public class ExecutableRunTest extends TestCase {
     when(run.getScenarioName()).thenReturn(SCENARIO_NAME);
     when(run.getRunset()).thenReturn(RUNSET);
     when(run.getRunnerClass()).thenReturn(RUNNER_CLASS);
+    when(run.getRevision()).thenReturn(REVISION);
     executableRun = ExecutableRun.createExecutableRun(run, BASE_OUTPUT_PATH, codeRepository,
         runnerFactory);
   }
