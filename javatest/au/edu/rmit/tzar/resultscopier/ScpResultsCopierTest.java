@@ -27,7 +27,7 @@ public class ScpResultsCopierTest extends AbstractResultsCopierTest {
     Mockito.when(mockSSHClientFactory.createSSHClient()).thenReturn(mockClient);
     Mockito.when(mockClient.newSCPFileTransfer()).thenReturn(mockFileTransfer);
     copier = new ScpResultsCopier(mockSSHClientFactory, baseDestPath);
-    copier.copyResults(run, localOutputPath);
+    copier.copyResults(run, localOutputPath, true);
 
     Mockito.verify(mockFileTransfer).upload(
         new FileSystemFile(localOutputPath), baseDestPath.getPath().replace(File.separatorChar, '/'));

@@ -24,15 +24,17 @@ public class DbUpdatingResultsCopier implements ResultsCopier {
   }
 
   @Override
-  public void copyResults(Run run, File sourcePath) {
+  public void copyResults(Run run, File sourcePath, boolean success) {
     if (!"completed".equals(run.getState())) {
       LOG.severe("Expected run to have status: 'completed'. Was '" + run.getState() + "'. Skipping copy for run: " +
           run);
     }
 
     try {
-      resultsCopier.copyResults(run, sourcePath);
-      run.setState("copied");
+      resultsCopier.copyResults(run, sourcePath, success);
+      if (success) {
+        run.setState("copied");
+      }
       run.setOutputPath(new File(resultsCopier.getBaseDestPath(), sourcePath.getName()));
       try {
         runDao.persistRun(run);

@@ -22,14 +22,14 @@ public class RetryingResultsCopier implements ResultsCopier {
   }
 
   @Override
-  public void copyResults(Run run, File sourcePath) throws RdvException {
+  public void copyResults(Run run, File sourcePath, boolean success) throws RdvException {
     RdvException e = null;
     for (int i = 0; i < retryCount; i++) {
       if (e != null) {
         LOG.log(Level.WARNING, "Error copying results for run: " + run + ". Retry: " + i, e);
       }
 
-      e = copyResultsInternal(run, sourcePath);
+      e = copyResultsInternal(run, sourcePath, success);
       if (e == null) { // success!
         return;
       }
@@ -37,9 +37,9 @@ public class RetryingResultsCopier implements ResultsCopier {
     throw e;
   }
 
-  private RdvException copyResultsInternal(Run run, File sourcePath) {
+  private RdvException copyResultsInternal(Run run, File sourcePath, boolean success) {
     try {
-      delegate.copyResults(run, sourcePath);
+      delegate.copyResults(run, sourcePath, success);
       return null;
     } catch (RdvException e) {
       return e;

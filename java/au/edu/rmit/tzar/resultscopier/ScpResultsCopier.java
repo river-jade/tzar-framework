@@ -33,7 +33,7 @@ public class ScpResultsCopier implements ResultsCopier {
   }
 
   @Override
-  public void copyResults(Run run, File sourcePath) throws RdvException {
+  public void copyResults(Run run, File sourcePath, boolean success) throws RdvException {
     // Retry copying 8 times, doubling the wait in between each attempt, up to 2 minutes wait.
     IOException failure = null;
     for (int i = 0; i < 8; ++i) {

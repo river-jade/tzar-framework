@@ -36,7 +36,7 @@ public class FileResultsCopier implements ResultsCopier {
   }
 
   @Override
-  public void copyResults(Run run, File sourcePath) throws RdvException {
+  public void copyResults(Run run, File sourcePath, boolean success) throws RdvException {
     if (!sourcePath.isDirectory()) {
       throw new RdvException("Source path was not a directory.");
     }
