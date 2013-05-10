@@ -15,6 +15,8 @@ public class RandomNullRunner implements Runner {
   @Override
   public boolean runModel(File model, File outputPath, String runId, String flagsString, Parameters parameters,
       Logger logger) throws RdvException {
-    return System.currentTimeMillis() % 2 == 0;
+    boolean success = System.currentTimeMillis() % 2 == 0;
+    logger.info("Run " + (success ? "succeeded" : "failed"));
+    return success;
   }
 }
