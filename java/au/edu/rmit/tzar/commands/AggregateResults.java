@@ -104,7 +104,7 @@ class AggregateResults implements Command {
       for (Run run : runs) {
         LOG.info("Copying results for run: " + run);
         String sourceHost = run.getOutputHost();
-        File runOutputPath = run.getOutputPath();
+        File runOutputPath = run.getRemoteOutputPath();
         if (hostname.equals(sourceHost)) {
           LOG.info("Results are on localhost. Using copy to copy results.");
           Utils.copyDirectory(runOutputPath, destPath, new RunIdRenamer(run.getRunId()), regexFilter);

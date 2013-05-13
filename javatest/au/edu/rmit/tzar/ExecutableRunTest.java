@@ -59,7 +59,7 @@ public class ExecutableRunTest extends TestCase {
   }
 
   public void testCreateExecutableRun() {
-    assertEquals(OUTPUT_DIR, executableRun.getOutputPath().toString());
+    assertEquals(OUTPUT_DIR + ExecutableRun.INPROGRESS_SUFFIX, executableRun.getOutputPath().toString());
     assertEquals(RUN_ID, executableRun.getRunId());
     assertEquals(run, executableRun.getRun());
 

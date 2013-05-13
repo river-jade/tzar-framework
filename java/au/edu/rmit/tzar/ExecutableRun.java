@@ -6,6 +6,7 @@ import au.edu.rmit.tzar.api.Run;
 import au.edu.rmit.tzar.api.Runner;
 import au.edu.rmit.tzar.parser.YamlParser;
 import au.edu.rmit.tzar.repository.CodeRepository;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Files;
 
@@ -25,12 +26,17 @@ public class ExecutableRun {
   // this is the Logger that will be used by runner to write to the console and logfiles
   private static final Logger RUNNER_LOGGER = Logger.getLogger("au.edu.rmit.tzar.ModelRunnerLogger");
 
-  private static final String INPROGRESS_SUFFIX = ".inprogress";
-  private static final String FAILED_SUFFIX = ".failed";
+  @VisibleForTesting
+  static final String INPROGRESS_SUFFIX = ".inprogress";
+  @VisibleForTesting
+  static final String FAILED_SUFFIX = ".failed";
 
   private static int nextRunId = 1;
 
-  private final File outputPath;
+  // the output path, not including the status suffix (ie failed, inprogress etc).
+  private final File baseOutputPath;
+  // the output path. ie the relative path on the local machine where results will be written.
+  private volatile File outputPath;
   private final Run run;
   private final CodeRepository codeRepository;
   private final RunnerFactory runnerFactory;
@@ -49,8 +55,8 @@ public class ExecutableRun {
       RunnerFactory runnerFactory) {
     String runset = run.getRunset();
     runset = (runset == null || runset.equals("")) ? "default_runset" : run.getRunset();
-    baseOutputPath = new File(baseOutputPath,
-        Utils.Path.combineAndReplaceWhitespace("_", run.getProjectName(), runset));
+    baseOutputPath = new File(baseOutputPath, Utils.Path.combineAndReplaceWhitespace("_", run.getProjectName(),
+        runset));
 
     if (run.getRunId() == -1) {
       run.setRunId(getNextRunId(baseOutputPath));
@@ -65,15 +71,16 @@ public class ExecutableRun {
    * Constructor.
    *
    * @param run            run to execute
-   * @param outputPath     local path for output for this run.
+   * @param baseOutputPath     local path for output for this run.
    * @param codeRepository the repository from which to download the model code
    * @param runnerFactory  factory to create runner instances
    */
-  private ExecutableRun(Run run, File outputPath, CodeRepository codeRepository, RunnerFactory runnerFactory) {
+  private ExecutableRun(Run run, File baseOutputPath, CodeRepository codeRepository, RunnerFactory runnerFactory) {
     this.run = run;
     this.codeRepository = codeRepository;
     this.runnerFactory = runnerFactory;
-    this.outputPath = outputPath;
+    this.baseOutputPath = baseOutputPath;
+    this.outputPath = new File(baseOutputPath + INPROGRESS_SUFFIX);
   }
 
   /**
@@ -84,16 +91,14 @@ public class ExecutableRun {
    */
   public boolean execute() throws RdvException {
     File model = codeRepository.getModel(run.getRevision());
-    File inprogressOutputPath = new File(outputPath + INPROGRESS_SUFFIX);
-
     try {
-      if (inprogressOutputPath.exists()) {
-        LOG.warning("Temp output path: " + inprogressOutputPath + " already exists. Deleting.");
-        Files.deleteRecursively(inprogressOutputPath);
+      if (outputPath.exists()) {
+        LOG.warning("Temp output path: " + outputPath + " already exists. Deleting.");
+        Files.deleteRecursively(outputPath);
       }
-      LOG.info("Creating temporary outputdir: " + inprogressOutputPath);
-      if (!inprogressOutputPath.mkdirs()) {
-        throw new IOException("Couldn't create temp output dir: " + inprogressOutputPath);
+      LOG.info("Creating temporary outputdir: " + outputPath);
+      if (!outputPath.mkdirs()) {
+        throw new IOException("Couldn't create temp output dir: " + outputPath);
       }
 
       LOG.info(String.format("Running model: %s, run_id: %d, Project name: %s, Scenario name: %s, " +
@@ -109,12 +114,12 @@ public class ExecutableRun {
       FileHandler handler = null;
       boolean success = false;
       try {
-        handler = setupLogFileHandler(inprogressOutputPath);
+        handler = setupLogFileHandler(outputPath);
         RUNNER_LOGGER.addHandler(handler);
-        File parametersFile = new File(inprogressOutputPath, "parameters.yaml");
+        File parametersFile = new File(outputPath, "parameters.yaml");
         yamlParser.parametersToYaml(parameters, parametersFile);
         Runner runner = runnerFactory.getRunner(run.getRunnerClass());
-        success = runner.runModel(model, inprogressOutputPath, Integer.toString(run.getRunId()), run.getFlags(),
+        success = runner.runModel(model, outputPath, Integer.toString(run.getRunId()), run.getFlags(),
             parameters, RUNNER_LOGGER);
       } finally {
         if (handler != null) {
@@ -122,10 +127,7 @@ public class ExecutableRun {
           handler.close();
         }
       }
-      renameOutputDir(inprogressOutputPath, success);
-      if (success) {
-        run.setOutputPath(outputPath);
-      }
+      renameOutputDir(success);
       return success;
     } catch (IOException e) {
       throw new RdvException(e);
@@ -188,8 +190,8 @@ public class ExecutableRun {
     return run.getRunId();
   }
 
-  private void renameOutputDir(File sourcePath, boolean success) throws RdvException {
-    File destPath = success ? outputPath : new File(outputPath + FAILED_SUFFIX);
+  private void renameOutputDir(boolean success) throws RdvException {
+    File destPath = success ? baseOutputPath : new File(baseOutputPath + FAILED_SUFFIX);
     if (destPath.exists()) {
       try {
         LOG.warning("Path: " + destPath + " already exists. Deleting.");
@@ -198,6 +200,7 @@ public class ExecutableRun {
         throw new RdvException("Unable to delete existing path: " + destPath, e);
       }
     }
-    Utils.fileRename(sourcePath, destPath);
+    Utils.fileRename(outputPath, destPath);
+    outputPath = destPath;
   }
 }
