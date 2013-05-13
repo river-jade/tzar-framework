@@ -2,7 +2,7 @@ package au.edu.rmit.tzar.runners;
 
 import au.edu.rmit.tzar.Utils;
 import au.edu.rmit.tzar.api.Parameters;
-import au.edu.rmit.tzar.api.RdvException;
+import au.edu.rmit.tzar.api.TzarException;
 import au.edu.rmit.tzar.api.Runner;
 import com.beust.jcommander.Parameter;
 
@@ -20,7 +20,7 @@ public class RRunner  extends SystemRunner implements Runner {
 
   @Override
   public boolean runModel(File model, File outputPath, String runId, String flagsString, Parameters parameters,
-      Logger logger) throws RdvException {
+      Logger logger) throws TzarException {
     Flags flags = parseFlags(flagsString.split(" "), new Flags());
 
     // TODO(michaell): urgh. get rid of this hard coded hackery!!

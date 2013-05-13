@@ -1,7 +1,7 @@
 package au.edu.rmit.tzar.db;
 
 import au.edu.rmit.tzar.api.Parameters;
-import au.edu.rmit.tzar.api.RdvException;
+import au.edu.rmit.tzar.api.TzarException;
 import au.edu.rmit.tzar.api.Run;
 import com.google.common.collect.Lists;
 import junit.framework.TestCase;
@@ -73,7 +73,7 @@ public class RunDaoTest extends TestCase {
     assertNull(runDao.getNextRun(null, CLUSTER_NAME));
   }
 
-  public void testInsertRuns() throws RdvException, SQLException {
+  public void testInsertRuns() throws TzarException, SQLException {
     List<Run> runs = Lists.newArrayList();
     runs.add(new Run(RUN_ID, PROJECT_NAME, SCENARIO_NAME, CODE_VERSION, COMMAND_FLAGS,
         Parameters.EMPTY_PARAMETERS, "state", RUNSET, CLUSTER_NAME, RUNNER_CLASS));

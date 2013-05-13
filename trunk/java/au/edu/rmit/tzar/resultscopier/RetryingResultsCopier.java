@@ -1,6 +1,6 @@
 package au.edu.rmit.tzar.resultscopier;
 
-import au.edu.rmit.tzar.api.RdvException;
+import au.edu.rmit.tzar.api.TzarException;
 import au.edu.rmit.tzar.api.Run;
 
 import java.io.File;
@@ -22,8 +22,8 @@ public class RetryingResultsCopier implements ResultsCopier {
   }
 
   @Override
-  public void copyResults(Run run, File sourcePath, boolean success) throws RdvException {
-    RdvException e = null;
+  public void copyResults(Run run, File sourcePath, boolean success) throws TzarException {
+    TzarException e = null;
     for (int i = 0; i < retryCount; i++) {
       if (e != null) {
         LOG.log(Level.WARNING, "Error copying results for run: " + run + ". Retry: " + i, e);
@@ -37,11 +37,11 @@ public class RetryingResultsCopier implements ResultsCopier {
     throw e;
   }
 
-  private RdvException copyResultsInternal(Run run, File sourcePath, boolean success) {
+  private TzarException copyResultsInternal(Run run, File sourcePath, boolean success) {
     try {
       delegate.copyResults(run, sourcePath, success);
       return null;
-    } catch (RdvException e) {
+    } catch (TzarException e) {
       return e;
     }
   }

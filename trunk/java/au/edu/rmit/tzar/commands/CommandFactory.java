@@ -3,7 +3,7 @@ package au.edu.rmit.tzar.commands;
 import au.edu.rmit.tzar.Constants;
 import au.edu.rmit.tzar.RunFactory;
 import au.edu.rmit.tzar.RunnerFactory;
-import au.edu.rmit.tzar.api.RdvException;
+import au.edu.rmit.tzar.api.TzarException;
 import au.edu.rmit.tzar.db.DaoFactory;
 import au.edu.rmit.tzar.db.RunDao;
 import au.edu.rmit.tzar.parser.YamlParser;
@@ -31,14 +31,14 @@ class CommandFactory {
     this.jCommander = jCommander;
   }
 
-  public Command newAggregateResults() throws ParseException, RdvException, IOException {
+  public Command newAggregateResults() throws ParseException, TzarException, IOException {
     DaoFactory daoFactory = new DaoFactory(getDbUrl());
     return new AggregateResults(LOAD_RUNS_FLAGS.getRunIds(), LOAD_RUNS_FLAGS.getStates(),
         LOAD_RUNS_FLAGS.getHostName(), LOAD_RUNS_FLAGS.getRunset(),
         daoFactory.createRunDao(), au.edu.rmit.tzar.Utils.getHostname(), AGGREGATE_RESULTS_FLAGS);
   }
 
-  public Command newExecLocalRuns() throws IOException, RdvException, ParseException {
+  public Command newExecLocalRuns() throws IOException, TzarException, ParseException {
     if (CREATE_RUNS_FLAGS.getProjectSpec() == null ^ CREATE_RUNS_FLAGS.getRunSpec() != null) {
       throw new ParseException("Must set exactly one of --projectspec or --runspec.");
     }
@@ -64,14 +64,14 @@ class CommandFactory {
     return new Help(jCommander, HELP_FLAGS.getCommand());
   }
 
-  public Command newPrintRuns() throws RdvException, ParseException {
+  public Command newPrintRuns() throws TzarException, ParseException {
     DaoFactory daoFactory = new DaoFactory(getDbUrl());
     return new PrintRuns(daoFactory.createRunDao(), LOAD_RUNS_FLAGS.getStates(),
         LOAD_RUNS_FLAGS.getHostName(), LOAD_RUNS_FLAGS.getRunset(), LOAD_RUNS_FLAGS.getRunIds(),
         PRINT_TABLE_FLAGS.isTruncateOutput(), PRINT_TABLE_FLAGS.getOutputType());
   }
 
-  public Command newPollAndRun() throws IOException, RdvException, ParseException {
+  public Command newPollAndRun() throws IOException, TzarException, ParseException {
     CodeRepository codeRepository = RUNNER_FLAGS.createRepository();
 
     ResultsCopier resultsCopier;
@@ -90,13 +90,13 @@ class CommandFactory {
         new RunnerFactory());
   }
 
-  public Command newPrintRun() throws RdvException, ParseException {
+  public Command newPrintRun() throws TzarException, ParseException {
     DaoFactory daoFactory = new DaoFactory(getDbUrl());
     return new PrintRun(daoFactory.createParametersDao(), PRINT_RUN_FLAGS.getRunId(),
         PRINT_TABLE_FLAGS.isTruncateOutput(), PRINT_TABLE_FLAGS.getOutputType());
   }
 
-  public Command newScheduleRuns() throws IOException, RdvException, ParseException {
+  public Command newScheduleRuns() throws IOException, TzarException, ParseException {
     if ((CREATE_RUNS_FLAGS.getProjectSpec() == null) == (CREATE_RUNS_FLAGS.getRunSpec() == null)) {
       throw new ParseException("Must set exactly one of --projectspec or --runspec.");
     }
@@ -144,43 +144,43 @@ class CommandFactory {
   static enum Commands {
     AGGREGATE_RESULTS("aggregate", AggregateResults.FLAGS) {
       @Override
-      public Command instantiate(CommandFactory factory) throws IOException, RdvException, ParseException {
+      public Command instantiate(CommandFactory factory) throws IOException, TzarException, ParseException {
         return factory.newAggregateResults();
       }
     },
     EXEC_LOCAL_RUNS("execlocalruns", ExecLocalRuns.FLAGS) {
       @Override
-      Command instantiate(CommandFactory factory) throws IOException, RdvException, ParseException {
+      Command instantiate(CommandFactory factory) throws IOException, TzarException, ParseException {
         return factory.newExecLocalRuns();
       }
     },
     HELP("help", Help.FLAGS) {
       @Override
-      Command instantiate(CommandFactory factory) throws IOException, RdvException {
+      Command instantiate(CommandFactory factory) throws IOException, TzarException {
         return factory.newHelp();
       }
     },
     POLL_AND_RUN("pollandrun", PollAndRun.FLAGS) {
       @Override
-      Command instantiate(CommandFactory factory) throws IOException, RdvException, ParseException {
+      Command instantiate(CommandFactory factory) throws IOException, TzarException, ParseException {
         return factory.newPollAndRun();
       }
     },
     PRINT_RUNS("printruns", PrintRuns.FLAGS) {
       @Override
-      Command instantiate(CommandFactory factory) throws IOException, RdvException, ParseException {
+      Command instantiate(CommandFactory factory) throws IOException, TzarException, ParseException {
         return factory.newPrintRuns();
       }
     },
     PRINT_RUN("printrun", PrintRun.FLAGS) {
       @Override
-      Command instantiate(CommandFactory factory) throws IOException, RdvException, ParseException {
+      Command instantiate(CommandFactory factory) throws IOException, TzarException, ParseException {
         return factory.newPrintRun();
       }
     },
     SCHEDULE_RUNS("scheduleruns", ScheduleRuns.FLAGS) {
       @Override
-      Command instantiate(CommandFactory factory) throws IOException, RdvException, ParseException {
+      Command instantiate(CommandFactory factory) throws IOException, TzarException, ParseException {
         return factory.newScheduleRuns();
       }
     };
@@ -206,7 +206,7 @@ class CommandFactory {
       this.flags = flags;
     }
 
-    abstract Command instantiate(CommandFactory factory) throws IOException, RdvException, ParseException;
+    abstract Command instantiate(CommandFactory factory) throws IOException, TzarException, ParseException;
 
     public static Commands getCommandByName(String name) {
       return map.get(name);

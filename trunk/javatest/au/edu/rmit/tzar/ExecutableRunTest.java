@@ -1,7 +1,7 @@
 package au.edu.rmit.tzar;
 
 import au.edu.rmit.tzar.api.Parameters;
-import au.edu.rmit.tzar.api.RdvException;
+import au.edu.rmit.tzar.api.TzarException;
 import au.edu.rmit.tzar.api.Run;
 import au.edu.rmit.tzar.api.Runner;
 import au.edu.rmit.tzar.repository.CodeRepository;
@@ -65,17 +65,17 @@ public class ExecutableRunTest extends TestCase {
 
   }
 
-  public void testExecuteSuccess() throws RdvException {
+  public void testExecuteSuccess() throws TzarException {
     testExecute(true);
     assertTrue(new File(OUTPUT_DIR).exists());
   }
 
-  public void testExecuteFailure() throws RdvException {
+  public void testExecuteFailure() throws TzarException {
     testExecute(false);
     assertTrue(new File(OUTPUT_DIR + ".failed").exists());
   }
 
-  public void testExecute(boolean success) throws RdvException {
+  public void testExecute(boolean success) throws TzarException {
     when(codeRepository.getModel(REVISION)).thenReturn(MODEL);
     Parameters parameters = Parameters.createParameters(VARIABLES, INPUT_FILES, OUTPUT_FILES);
     when(run.getParameters()).thenReturn(parameters);
@@ -97,7 +97,7 @@ public class ExecutableRunTest extends TestCase {
 
     @Override
     public boolean runModel(File model, File outputPath, String runId, String flagsString, Parameters parameters,
-          Logger logger) throws RdvException {
+          Logger logger) throws TzarException {
       Map<String, String> variables = Maps.newHashMap(VARIABLES);
       variables.put("aac", "124" + RUN_ID + "123"); // because the id wildcard will be replaced
       assertEquals(Parameters.createParameters(variables, INPUT_FILES, OUTPUT_FILES), parameters);

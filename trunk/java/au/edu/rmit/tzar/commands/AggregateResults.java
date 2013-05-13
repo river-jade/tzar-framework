@@ -1,7 +1,7 @@
 package au.edu.rmit.tzar.commands;
 
 import au.edu.rmit.tzar.Utils;
-import au.edu.rmit.tzar.api.RdvException;
+import au.edu.rmit.tzar.api.TzarException;
 import au.edu.rmit.tzar.api.Run;
 import au.edu.rmit.tzar.db.RunDao;
 import au.edu.rmit.tzar.resultscopier.SshClientFactoryKeyAuth;
@@ -98,7 +98,7 @@ class AggregateResults implements Command {
   }
 
   @Override
-  public boolean execute() throws RdvException {
+  public boolean execute() throws TzarException {
     List<Run> runs = runDao.getRuns(states, filterHostname, runset, runIds);
     try {
       for (Run run : runs) {
@@ -118,7 +118,7 @@ class AggregateResults implements Command {
         }
       }
     } catch (IOException e) {
-      throw new RdvException(e);
+      throw new TzarException(e);
     } finally {
       for (SSHClient connection : connections.values()) {
         try {

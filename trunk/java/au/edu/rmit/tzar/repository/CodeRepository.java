@@ -1,6 +1,6 @@
 package au.edu.rmit.tzar.repository;
 
-import au.edu.rmit.tzar.api.RdvException;
+import au.edu.rmit.tzar.api.TzarException;
 
 import java.io.File;
 
@@ -9,5 +9,5 @@ import java.io.File;
  * the revision number if not relevant.
  */
 public interface CodeRepository {
-  File getModel(String revision) throws RdvException;
+  File getModel(String revision) throws TzarException;
 }

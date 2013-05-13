@@ -1,6 +1,6 @@
 package au.edu.rmit.tzar.repository;
 
-import au.edu.rmit.tzar.api.RdvException;
+import au.edu.rmit.tzar.api.TzarException;
 import com.google.common.annotations.VisibleForTesting;
 import org.tmatesoft.svn.core.SVNDepth;
 import org.tmatesoft.svn.core.SVNException;
@@ -52,14 +52,14 @@ public class SvnRepository implements CodeRepository {
     DAVRepositoryFactory.setup();
   }
 
-  public static SVNRevision parseSvnRevision(String revision) throws RdvException {
+  public static SVNRevision parseSvnRevision(String revision) throws TzarException {
     if ("head".equalsIgnoreCase(revision)) {
       return SVNRevision.HEAD;
     }
     try {
       return SVNRevision.create(Long.parseLong(revision));
     } catch (NumberFormatException e) {
-      throw new RdvException("Unrecognised revision: '" + revision + "'. Must be 'head' or an integer.");
+      throw new TzarException("Unrecognised revision: '" + revision + "'. Must be 'head' or an integer.");
     }
   }
 
@@ -69,10 +69,10 @@ public class SvnRepository implements CodeRepository {
    *
    * @param revision the version of the model / framework to load
    * @return the path to the cached model / framework code
-   * @throws RdvException if an error occurs contacting the svn repository
+   * @throws TzarException if an error occurs contacting the svn repository
    */
   @Override
-  public File getModel(String revision) throws RdvException {
+  public File getModel(String revision) throws TzarException {
     LOG.info("Retrieving code revision: " + revision + ", to " + modelsPath);
     try {
       SVNURL url = SVNURL.parseURIEncoded(svnUrl);
@@ -85,17 +85,17 @@ public class SvnRepository implements CodeRepository {
       updateClient.doCheckout(url, modelsPath, svnRevision, svnRevision, SVNDepth.INFINITY, true);
       return modelsPath;
     } catch (SVNException e) {
-      throw new RdvException("Error retrieving model from SVN", e);
+      throw new TzarException("Error retrieving model from SVN", e);
     }
   }
 
-  public long getHeadRevision() throws RdvException {
+  public long getHeadRevision() throws TzarException {
     try {
       SVNRepository repository = SVNRepositoryFactory.create(SVNURL.parseURIEncoded(svnUrl));
       repository.setAuthenticationManager(SVNWCUtil.createDefaultAuthenticationManager());
       return repository.getLatestRevision();
     } catch (SVNException e) {
-      throw new RdvException("Couldn't retrieve the latest revision from SVN.", e);
+      throw new TzarException("Couldn't retrieve the latest revision from SVN.", e);
     }
   }
 

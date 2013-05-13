@@ -1,7 +1,7 @@
 package au.edu.rmit.tzar.commands;
 
 import au.edu.rmit.tzar.RunFactory;
-import au.edu.rmit.tzar.api.RdvException;
+import au.edu.rmit.tzar.api.TzarException;
 import au.edu.rmit.tzar.api.Run;
 import au.edu.rmit.tzar.db.RunDao;
 
@@ -33,7 +33,7 @@ class ScheduleRuns implements Command {
   }
 
   @Override
-  public boolean execute() throws RdvException {
+  public boolean execute() throws TzarException {
     List<Run> runs = runFactory.createRuns(numRuns, runnerClass);
     runDao.insertRuns(runs);
     for (Run run : runs) {

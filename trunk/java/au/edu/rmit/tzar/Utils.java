@@ -1,6 +1,6 @@
 package au.edu.rmit.tzar;
 
-import au.edu.rmit.tzar.api.RdvException;
+import au.edu.rmit.tzar.api.TzarException;
 import com.google.common.io.Files;
 
 import java.io.*;
@@ -83,9 +83,9 @@ public class Utils {
    *
    * @param source source to rename
    * @param dest   new name / path
-   * @throws RdvException if the file / directory cannot be renamed.
+   * @throws TzarException if the file / directory cannot be renamed.
    */
-  public static void fileRename(File source, File dest) throws RdvException {
+  public static void fileRename(File source, File dest) throws TzarException {
     LOG.info("Renaming \"" + source + "\" to \"" + dest + "\"");
     for (int i = 0; i < 10; i++) {
       if (source.renameTo(dest)) { // success!
@@ -98,10 +98,10 @@ public class Utils {
         Thread.sleep(delay); // exponential backoff, first wait is 1 second, last wait is 30s.
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
-        throw new RdvException(e);
+        throw new TzarException(e);
       }
     }
-    throw new RdvException("Unable to rename \"" + source + "\" to \"" + dest + "\"");
+    throw new TzarException("Unable to rename \"" + source + "\" to \"" + dest + "\"");
   }
 
   /**

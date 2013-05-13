@@ -1,6 +1,6 @@
 package au.edu.rmit.tzar.resultscopier;
 
-import au.edu.rmit.tzar.api.RdvException;
+import au.edu.rmit.tzar.api.TzarException;
 import au.edu.rmit.tzar.api.Run;
 import au.edu.rmit.tzar.db.RunDao;
 
@@ -38,10 +38,10 @@ public class DbUpdatingResultsCopier implements ResultsCopier {
       run.setRemoteOutputPath(new File(resultsCopier.getBaseDestPath(), sourcePath.getName()));
       try {
         runDao.persistRun(run);
-      } catch (RdvException e) {
+      } catch (TzarException e) {
         LOG.log(Level.SEVERE, "Failure updating run: " + run, e);
       }
-    } catch (RdvException e) {
+    } catch (TzarException e) {
       LOG.log(Level.WARNING, "Error copying results for run: " + run, e);
       handleFail(run);
     }
@@ -51,7 +51,7 @@ public class DbUpdatingResultsCopier implements ResultsCopier {
     run.setState("copy_failed");
     try {
       runDao.persistRun(run);
-    } catch (RdvException e) {
+    } catch (TzarException e) {
       LOG.log(Level.SEVERE, "Failure updating status to 'copy_failed' for run: " + run, e);
     }
   }

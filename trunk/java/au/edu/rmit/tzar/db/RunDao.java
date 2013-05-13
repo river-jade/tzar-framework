@@ -1,7 +1,7 @@
 package au.edu.rmit.tzar.db;
 
 import au.edu.rmit.tzar.api.Parameters;
-import au.edu.rmit.tzar.api.RdvException;
+import au.edu.rmit.tzar.api.TzarException;
 import au.edu.rmit.tzar.api.Run;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
@@ -44,7 +44,7 @@ public class RunDao {
   private final ParametersDao parametersDao;
   private final ConnectionFactory connectionFactory;
 
-  public RunDao(ConnectionFactory connectionFactory, ParametersDao parametersDao) throws RdvException {
+  public RunDao(ConnectionFactory connectionFactory, ParametersDao parametersDao) throws TzarException {
       this.connectionFactory = connectionFactory;
       this.parametersDao = parametersDao;
   }
@@ -57,9 +57,9 @@ public class RunDao {
    * @param runset runset to filter by or null to poll for any runset
    * @param clusterName we only poll for runs scheduled for the current cluster. Not null, but may be empty.
    * @return true if a run was found, false otherwise
-   * @throws RdvException if something goes wrong executing the run
+   * @throws TzarException if something goes wrong executing the run
    */
-  public synchronized Run getNextRun(String runset, String clusterName) throws RdvException {
+  public synchronized Run getNextRun(String runset, String clusterName) throws TzarException {
     Connection connection = connectionFactory.createConnection();
     boolean exceptionOccurred = true;
     try {
@@ -80,13 +80,13 @@ public class RunDao {
       return run;
     } catch (SQLException e) {
       LOG.log(Level.WARNING, "SQLException caused by:", e.getNextException());
-      throw new RdvException(e);
+      throw new TzarException(e);
     } finally {
       Utils.close(connection, exceptionOccurred);
     }
   }
 
-  public boolean markRunInProgress(Run run) throws RdvException {
+  public boolean markRunInProgress(Run run) throws TzarException {
     Connection connection = connectionFactory.createConnection();
     boolean exceptionOccurred = true;
 
@@ -96,7 +96,7 @@ public class RunDao {
       selectRun.setInt(1, run.getRunId());
       ResultSet resultSet = selectRun.executeQuery();
       if (!resultSet.next()) {
-        throw new RdvException("Expected to find record matching run_id: " + run.getRunId());
+        throw new TzarException("Expected to find record matching run_id: " + run.getRunId());
       }
       String status = resultSet.getString("state");
       if (!"scheduled".equals(status)) {
@@ -106,20 +106,20 @@ public class RunDao {
       }
     } catch (SQLException e) {
       LOG.log(Level.WARNING, "SQLException caused by:", e.getNextException());
-      throw new RdvException(e);
+      throw new TzarException(e);
     }
 
     persistRun(run, connection);
     return true;
   }
 
-  public synchronized void persistRun(Run run) throws RdvException {
+  public synchronized void persistRun(Run run) throws TzarException {
     Connection connection = connectionFactory.createConnection();
     persistRun(run, connection);
   }
 
   @RetryOnFailure(attempts = 5, delay=10, unit=TimeUnit.SECONDS)
-  private void persistRun(Run run, Connection connection) throws RdvException {
+  private void persistRun(Run run, Connection connection) throws TzarException {
     boolean exceptionOccurred = true;
 
     try {
@@ -141,7 +141,7 @@ public class RunDao {
       LOG.log(Level.WARNING, "SQLException thrown. Rolling back transaction.", e);
       LOG.log(Level.WARNING, "SQLException caused by:", e.getNextException());
       Utils.rollback(connection);
-      throw new RdvException(e);
+      throw new TzarException(e);
     } finally {
       Utils.close(connection, exceptionOccurred);
     }
@@ -152,9 +152,9 @@ public class RunDao {
    * Runs will be marked as 'scheduled'.
    *
    * @param runs runs to insert into the db
-   * @throws RdvException if an error occurs inserting the runs
+   * @throws TzarException if an error occurs inserting the runs
    */
-  public synchronized void insertRuns(List<? extends Run> runs) throws RdvException {
+  public synchronized void insertRuns(List<? extends Run> runs) throws TzarException {
     LOG.info("Saving new runs to database.");
     Connection connection = connectionFactory.createConnection();
 
@@ -196,7 +196,7 @@ public class RunDao {
       LOG.log(Level.WARNING, "SQLException thrown. Rolling back transaction.", e);
       LOG.log(Level.WARNING, "SQLException caused by:", e.getNextException());
       Utils.rollback(connection);
-      throw new RdvException(e);
+      throw new TzarException(e);
     } finally {
       Utils.close(connection, exceptionOccurred);
     }
@@ -211,15 +211,15 @@ public class RunDao {
    * @param runIds         list of run ids to match, may be null or empty
    * @param truncateOutput if the output should be truncated
    * @param outputType     output format
-   * @throws RdvException if the runs cannot be loaded
+   * @throws TzarException if the runs cannot be loaded
    */
   public synchronized void printRuns(List<String> states, String hostname, String runset, List<Integer> runIds,
-      boolean truncateOutput, Utils.OutputType outputType) throws RdvException {
+      boolean truncateOutput, Utils.OutputType outputType) throws TzarException {
     Utils.printResultSet(loadRuns(states, hostname, runset, runIds), truncateOutput, outputType);
   }
 
   public synchronized List<Run> getRuns(List<String> states, String hostname, String runset, List<Integer> runIds)
-      throws RdvException {
+      throws TzarException {
     ResultSet resultSet = loadRuns(states, hostname, runset, runIds);
     List<Run> runs = Lists.newArrayList();
     try {
@@ -229,7 +229,7 @@ public class RunDao {
       return runs;
     } catch (SQLException e) {
       LOG.log(Level.WARNING, "SQLException caused by:", e.getNextException());
-      throw new RdvException(e);
+      throw new TzarException(e);
     }
   }
 
@@ -238,7 +238,7 @@ public class RunDao {
   }
 
   private ResultSet loadRuns(List<String> states, String hostname, String runset, List<Integer> runIds)
-      throws RdvException {
+      throws TzarException {
     Connection connection = connectionFactory.createConnection();
     boolean exceptionOccurred = true;
 
@@ -277,7 +277,7 @@ public class RunDao {
       return resultSet;
     } catch (SQLException e) {
       LOG.log(Level.WARNING, "SQLException caused by:", e.getNextException());
-      throw new RdvException(e);
+      throw new TzarException(e);
     } finally {
       Utils.close(connection, exceptionOccurred);
     }
@@ -286,7 +286,7 @@ public class RunDao {
   // TODO(michaell): This is inefficient for cases where we're loading multiple runs,
   // as it does a db call for each run.
   // If this turns out to be a problem, it may be worth switching to an ORM such as Hibernate.
-  private Parameters loadParameters(int runId) throws RdvException {
+  private Parameters loadParameters(int runId) throws TzarException {
     return parametersDao.loadFromDatabase(runId);
   }
 
@@ -297,7 +297,7 @@ public class RunDao {
    * @param withParameters if true, also load the parameters for the run
    * @return newly created Run
    */
-  private Run runFromResultSet(ResultSet resultSet, boolean withParameters) throws SQLException, RdvException {
+  private Run runFromResultSet(ResultSet resultSet, boolean withParameters) throws SQLException, TzarException {
     int runId = resultSet.getInt("run_id");
     Parameters parameters = withParameters ? loadParameters(runId) : Parameters.EMPTY_PARAMETERS;
     Run run = new Run(runId, resultSet.getString("project_name"), resultSet.getString("scenario_name"),

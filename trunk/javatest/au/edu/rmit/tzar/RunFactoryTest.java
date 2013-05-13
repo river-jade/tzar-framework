@@ -38,7 +38,7 @@ public class RunFactoryTest extends TestCase {
    * is created, and that the parameters are applied in correct priority order: ie project, scenario, then
    * repetitions (from lowest priority to highest).
    */
-  public void testCreateRuns() throws RdvException {
+  public void testCreateRuns() throws TzarException {
     Parameters globalParams = Parameters.createParameters(ImmutableMap.of("A", -1, "B", -1, "C", -1, "D", -1),
         ImmutableMap.<String, String>of(), ImmutableMap.<String, String>of());
 

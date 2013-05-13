@@ -1,7 +1,7 @@
 package au.edu.rmit.tzar;
 
 import au.edu.rmit.tzar.api.Parameters;
-import au.edu.rmit.tzar.api.RdvException;
+import au.edu.rmit.tzar.api.TzarException;
 import au.edu.rmit.tzar.api.Run;
 import au.edu.rmit.tzar.api.Runner;
 import au.edu.rmit.tzar.parser.YamlParser;
@@ -87,9 +87,9 @@ public class ExecutableRun {
    * Execute this run.
    *
    * @return true if the run executed successfully, false otherwise
-   * @throws RdvException if an error occurs executing the run
+   * @throws TzarException if an error occurs executing the run
    */
-  public boolean execute() throws RdvException {
+  public boolean execute() throws TzarException {
     File model = codeRepository.getModel(run.getRevision());
     try {
       if (outputPath.exists()) {
@@ -130,7 +130,7 @@ public class ExecutableRun {
       renameOutputDir(success);
       return success;
     } catch (IOException e) {
-      throw new RdvException(e);
+      throw new TzarException(e);
     }
   }
 
@@ -190,14 +190,14 @@ public class ExecutableRun {
     return run.getRunId();
   }
 
-  private void renameOutputDir(boolean success) throws RdvException {
+  private void renameOutputDir(boolean success) throws TzarException {
     File destPath = success ? baseOutputPath : new File(baseOutputPath + FAILED_SUFFIX);
     if (destPath.exists()) {
       try {
         LOG.warning("Path: " + destPath + " already exists. Deleting.");
         Files.deleteRecursively(destPath);
       } catch (IOException e) {
-        throw new RdvException("Unable to delete existing path: " + destPath, e);
+        throw new TzarException("Unable to delete existing path: " + destPath, e);
       }
     }
     Utils.fileRename(outputPath, destPath);

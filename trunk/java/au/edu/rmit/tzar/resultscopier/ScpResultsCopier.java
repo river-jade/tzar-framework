@@ -1,6 +1,6 @@
 package au.edu.rmit.tzar.resultscopier;
 
-import au.edu.rmit.tzar.api.RdvException;
+import au.edu.rmit.tzar.api.TzarException;
 import au.edu.rmit.tzar.api.Run;
 import com.google.common.io.Closeables;
 import net.schmizz.sshj.SSHClient;
@@ -33,7 +33,7 @@ public class ScpResultsCopier implements ResultsCopier {
   }
 
   @Override
-  public void copyResults(Run run, File sourcePath, boolean success) throws RdvException {
+  public void copyResults(Run run, File sourcePath, boolean success) throws TzarException {
     // Retry copying 8 times, doubling the wait in between each attempt, up to 2 minutes wait.
     IOException failure = null;
     for (int i = 0; i < 8; ++i) {
@@ -81,7 +81,7 @@ public class ScpResultsCopier implements ResultsCopier {
       }
     }
     if (failure != null) {
-      throw new RdvException("Too many failed attempts to copy results for run: " + run.getRunId(), failure);
+      throw new TzarException("Too many failed attempts to copy results for run: " + run.getRunId(), failure);
     }
   }
 
