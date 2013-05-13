@@ -49,7 +49,7 @@ public class FileResultsCopier implements ResultsCopier {
       throw new RdvException(e);
     }
     run.setOutputHost(Utils.getHostname());
-    run.setOutputPath(dest);
+    run.setRemoteOutputPath(dest);
   }
 
   @Override

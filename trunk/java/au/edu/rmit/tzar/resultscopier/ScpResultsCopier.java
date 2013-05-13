@@ -55,7 +55,7 @@ public class ScpResultsCopier implements ResultsCopier {
           // This hack may break if the ssh server is a windows machine.
           scpFileTransfer.upload(new FileSystemFile(sourcePath),
               baseDestPath.getPath().replace(File.separatorChar, '/'));
-          run.setOutputPath(baseDestPath);
+          run.setRemoteOutputPath(baseDestPath);
           run.setOutputHost(hostname);
           LOG.log(Level.INFO, "Copied results for run: {0} from: {1} to {2}:{3}",
               new Object[]{run.getRunId(), sourcePath, hostname, baseDestPath});
