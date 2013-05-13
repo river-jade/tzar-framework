@@ -5,6 +5,7 @@ import au.edu.rmit.tzar.api.RdvException;
 import au.edu.rmit.tzar.api.Run;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
+import com.jcabi.aspects.RetryOnFailure;
 
 import java.io.File;
 import java.sql.*;
@@ -12,6 +13,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -116,6 +118,7 @@ public class RunDao {
     persistRun(run, connection);
   }
 
+  @RetryOnFailure(attempts = 5, delay=10, unit=TimeUnit.SECONDS)
   private void persistRun(Run run, Connection connection) throws RdvException {
     boolean exceptionOccurred = true;
 
@@ -126,7 +129,7 @@ public class RunDao {
       updateRun.setTimestamp(2, getTimestamp(run.getEndTime()), Calendar.getInstance(TimeZone.getTimeZone("UTC")));
       updateRun.setString(3, run.getState());
       updateRun.setString(4, run.getHostname());
-      File outputPath = run.getOutputPath();
+      File outputPath = run.getRemoteOutputPath();
       updateRun.setString(5, outputPath == null ? null : outputPath.getPath());
       updateRun.setString(6, run.getOutputHost());
       updateRun.setString(7, run.getRunnerClass());
@@ -303,7 +306,7 @@ public class RunDao {
         resultSet.getString("runner_class"));
     String outputPath = resultSet.getString("output_path");
     if (outputPath != null) {
-      run.setOutputPath(new File(outputPath));
+      run.setRemoteOutputPath(new File(outputPath));
     }
     run.setOutputHost(resultSet.getString("output_host"));
     return run;
