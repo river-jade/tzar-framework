@@ -1,6 +1,6 @@
 package au.edu.rmit.tzar.repository;
 
-import au.edu.rmit.tzar.api.RdvException;
+import au.edu.rmit.tzar.api.TzarException;
 import junit.framework.TestCase;
 import org.mockito.Mockito;
 import org.tmatesoft.svn.core.SVNDepth;
@@ -33,7 +33,7 @@ public class SvnRepositoryTest extends TestCase {
   /**
    * Simulates retrieving the model from sourceforge.
    */
-  public void testGetModel() throws SVNException, RdvException {
+  public void testGetModel() throws SVNException, TzarException {
     String revision = "1000";
 
     File expectedPath = SvnRepository.createModelPath(BASE_MODEL_PATH, TEST_URL);
@@ -49,8 +49,8 @@ public class SvnRepositoryTest extends TestCase {
   public void testGetModelBadRevision() {
     try {
       repository.getModel("foo");
-      fail("Expected RdvException to be thrown.");
-    } catch (RdvException e) {
+      fail("Expected TzarException to be thrown.");
+    } catch (TzarException e) {
     }
   }
 }

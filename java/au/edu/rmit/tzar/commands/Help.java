@@ -1,6 +1,6 @@
 package au.edu.rmit.tzar.commands;
 
-import au.edu.rmit.tzar.api.RdvException;
+import au.edu.rmit.tzar.api.TzarException;
 import com.beust.jcommander.JCommander;
 
 import java.util.List;
@@ -20,7 +20,7 @@ class Help implements Command {
   }
 
   @Override
-  public boolean execute() throws InterruptedException, RdvException {
+  public boolean execute() throws InterruptedException, TzarException {
     if (!commandList.isEmpty()) {
       jCommander.usage(commandList.get(0));
     } else {

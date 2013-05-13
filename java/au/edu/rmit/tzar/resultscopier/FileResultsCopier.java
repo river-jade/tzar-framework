@@ -1,7 +1,7 @@
 package au.edu.rmit.tzar.resultscopier;
 
 import au.edu.rmit.tzar.Utils;
-import au.edu.rmit.tzar.api.RdvException;
+import au.edu.rmit.tzar.api.TzarException;
 import au.edu.rmit.tzar.api.Run;
 
 import java.io.File;
@@ -36,9 +36,9 @@ public class FileResultsCopier implements ResultsCopier {
   }
 
   @Override
-  public void copyResults(Run run, File sourcePath, boolean success) throws RdvException {
+  public void copyResults(Run run, File sourcePath, boolean success) throws TzarException {
     if (!sourcePath.isDirectory()) {
-      throw new RdvException("Source path was not a directory.");
+      throw new TzarException("Source path was not a directory.");
     }
     File dest = new File(baseDestPath, sourcePath.getName());
     dest.mkdir();
@@ -46,7 +46,7 @@ public class FileResultsCopier implements ResultsCopier {
     try {
       Utils.copyDirectory(sourcePath, dest);
     } catch (IOException e) {
-      throw new RdvException(e);
+      throw new TzarException(e);
     }
     run.setOutputHost(Utils.getHostname());
     run.setRemoteOutputPath(dest);

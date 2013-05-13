@@ -1,6 +1,6 @@
 package au.edu.rmit.tzar.resultscopier;
 
-import au.edu.rmit.tzar.api.RdvException;
+import au.edu.rmit.tzar.api.TzarException;
 import au.edu.rmit.tzar.api.Run;
 
 import java.io.File;
@@ -51,7 +51,7 @@ public class AsyncResultsCopier implements ResultsCopier, Runnable {
 
       try {
         delegate.copyResults(run, copyJob.path, copyJob.success);
-      } catch (RdvException e) {
+      } catch (TzarException e) {
         LOG.log(Level.WARNING, "Error copying results for run: " + run, e);
       }
     }

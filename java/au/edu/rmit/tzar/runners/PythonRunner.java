@@ -1,7 +1,7 @@
 package au.edu.rmit.tzar.runners;
 
 import au.edu.rmit.tzar.api.Parameters;
-import au.edu.rmit.tzar.api.RdvException;
+import au.edu.rmit.tzar.api.TzarException;
 import au.edu.rmit.tzar.api.Runner;
 import com.beust.jcommander.Parameter;
 
@@ -19,7 +19,7 @@ public class PythonRunner extends SystemRunner implements Runner {
 
   @Override
   public boolean runModel(File model, File outputPath, String runId, String flagsString, Parameters parameters,
-                          Logger logger) throws RdvException {
+                          Logger logger) throws TzarException {
     Flags flags = parseFlags(flagsString.split(" "), new Flags());
 
     File variablesFile = writeVariablesFile(outputPath, parameters);
@@ -38,11 +38,11 @@ public class PythonRunner extends SystemRunner implements Runner {
           "--runid=" + runId,
           "-p" + flags.projectName);
     } catch (IOException e) {
-      throw new RdvException("Couldn't create temporary file");
+      throw new TzarException("Couldn't create temporary file");
     }
   }
 
-  private File extractResource(String resourceName, File outputFile) throws RdvException {
+  private File extractResource(String resourceName, File outputFile) throws TzarException {
     BufferedReader reader = new BufferedReader(new InputStreamReader(
         getClass().getClassLoader().getResourceAsStream(resourceName))); // TODO(river): check for null
 
@@ -56,7 +56,7 @@ public class PythonRunner extends SystemRunner implements Runner {
       }
       writer.close();
     } catch (IOException e) {
-      throw new RdvException("Couldn't read pythonrunner.py");
+      throw new TzarException("Couldn't read pythonrunner.py");
     }
     return outputFile;
   }
