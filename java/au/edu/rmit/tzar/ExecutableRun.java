@@ -13,6 +13,7 @@ import com.google.common.io.Files;
 import java.io.File;
 import java.io.IOException;
 import java.util.logging.FileHandler;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -64,7 +65,7 @@ public class ExecutableRun {
     }
     // replace whitespace and punctuation in run name with '_' to make a valid path.
     String dirName = Utils.Path.combineAndReplaceWhitespace("_", run.getRunId() + "_" + run.getScenarioName());
-    LOG.finer(String.format("Creating run: %s", run));
+    LOG.log(Level.FINER, "Creating run: {0}", run);
     return new ExecutableRun(run, new File(baseOutputPath, dirName), codeRepository, runnerFactory);
   }
 

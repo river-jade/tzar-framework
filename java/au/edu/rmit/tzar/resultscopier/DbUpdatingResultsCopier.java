@@ -26,8 +26,8 @@ public class DbUpdatingResultsCopier implements ResultsCopier {
   @Override
   public void copyResults(Run run, File sourcePath, boolean success) {
     if (!("completed".equals(run.getState()) || "failed".equals(run.getState()))) {
-      LOG.severe("Expected run to have status: 'completed' or 'failed'. Was '" + run.getState() +
-          "'. Skipping copy for run: " + run);
+      LOG.log(Level.SEVERE, "Expected run to have status: 'completed' or 'failed'. Was '{0}'. " +
+          "Skipping copy for run: {1}", new Object[]{run.getState(), run});
     }
 
     try {

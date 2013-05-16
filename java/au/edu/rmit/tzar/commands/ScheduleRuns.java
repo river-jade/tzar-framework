@@ -6,6 +6,7 @@ import au.edu.rmit.tzar.api.Run;
 import au.edu.rmit.tzar.db.RunDao;
 
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static au.edu.rmit.tzar.commands.CommandFlags.SCHEDULE_RUNS_FLAGS;
@@ -37,9 +38,9 @@ class ScheduleRuns implements Command {
     List<Run> runs = runFactory.createRuns(numRuns, runnerClass);
     runDao.insertRuns(runs);
     for (Run run : runs) {
-      LOG.info("Scheduled run: " + run);
+      LOG.log(Level.INFO, "Scheduled run:{0} ", run);
     }
-    LOG.info(String.format("Inserted %d runs.", runs.size()));
+    LOG.log(Level.INFO, "Inserted {0} runs.", runs.size());
     return true;
   }
 }

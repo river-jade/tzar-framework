@@ -30,10 +30,13 @@ public class BriefLogFormatter extends Formatter {
         .append("[")
         .append(record.getLevel()).append('|')
         .append(format.format(new Date(record.getMillis())))
-        .append("]: ")
-        .append(MessageFormat.format(record.getMessage(), record.getParameters()))
-        .append(' ')
-        .append(lineSep);
+        .append("]: ");
+    if (record.getParameters() == null || record.getParameters().length == 0) {
+      output.append(record.getMessage());
+    } else {
+      output.append(MessageFormat.format(record.getMessage(), record.getParameters()));
+    }
+    output.append(' ').append(lineSep);
     if (record.getThrown() != null) {
       try {
         StringWriter sw = new StringWriter();

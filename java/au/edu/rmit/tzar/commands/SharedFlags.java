@@ -211,7 +211,6 @@ class SharedFlags {
     }
 
     public String getRevision() {
-
       return revision;
     }
 
