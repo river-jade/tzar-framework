@@ -43,11 +43,17 @@ public class DbUpdatingResultsCopier implements ResultsCopier {
       }
     } catch (TzarException e) {
       LOG.log(Level.WARNING, "Error copying results for run: " + run, e);
-      handleFail(run);
+      handleFail(run, success);
     }
   }
 
-  private void handleFail(Run run) {
+  private void handleFail(Run run, boolean success) {
+    // we only update the status for completed runs. If the run failed, setting the status to copy_failed
+    // would be misleading.
+    if (!success) {
+      return;
+    }
+
     run.setState("copy_failed");
     try {
       runDao.persistRun(run);
