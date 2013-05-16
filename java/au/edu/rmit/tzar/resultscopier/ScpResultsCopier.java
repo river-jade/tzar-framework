@@ -60,7 +60,7 @@ public class ScpResultsCopier implements ResultsCopier {
                 baseDestPath.getPath().replace(File.separatorChar, '/'));
             run.setRemoteOutputPath(baseDestPath);
             run.setOutputHost(hostname);
-            Files.deleteRecursively(sourcePath);
+            Files.deleteRecursively(sourcePath.getCanonicalFile());
             LOG.log(Level.INFO, "Copied results for run: {0,number,#} from: {1} to {2}:{3}",
                 new Object[]{run.getRunId(), sourcePath, hostname, baseDestPath});
             thrown = false;
