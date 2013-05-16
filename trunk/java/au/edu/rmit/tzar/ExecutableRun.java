@@ -37,6 +37,7 @@ public class ExecutableRun {
   private final File baseOutputPath;
   // the output path. ie the relative path on the local machine where results will be written.
   private volatile File outputPath;
+
   private final Run run;
   private final CodeRepository codeRepository;
   private final RunnerFactory runnerFactory;
