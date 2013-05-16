@@ -62,7 +62,7 @@ class ExecLocalRuns implements Command {
     } else {
       level = Level.WARNING;
     }
-    LOG.log(level, String.format("Executed %d runs: %d succeeded. %d failed", count, count - failed, failed));
+    LOG.log(level, "Executed {0} runs: {1} succeeded. {2} failed", new Object[]{count, count - failed, failed});
     if (!allSuccess) {
       LOG.warning("Failed IDs were: " + failedIds);
     }
