@@ -229,7 +229,13 @@ class PollAndRun implements Command {
         }
 
         try {
-          runDao.persistRun(run);
+          Utils.Retryable.retryWithBackoff(5/* retry attempts */ ,
+              5000/* initial backoff */,
+              new Utils.Retryable() {
+            public void exec() throws TzarException {
+              runDao.persistRun(run);
+            }
+          });
         } catch (TzarException e) {
           LOG.log(Level.SEVERE, "Error occurred persisting run status change for Run:" + run.getRunId() +
               " to database. Run status will be invalid.", e);
@@ -240,7 +246,7 @@ class PollAndRun implements Command {
       try {
         resultsCopier.copyResults(run, executableRun.getOutputPath(), success);
       } catch (TzarException e) {
-        LOG.log(Level.WARNING, "Failed to copy the results for run: " + run, e);
+        LOG.log(Level.WARNING, "Failed to copy the results for run: " + run.getRunId(), e);
       }
       callback.complete();
     }

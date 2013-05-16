@@ -5,15 +5,11 @@ import au.edu.rmit.tzar.api.TzarException;
 import au.edu.rmit.tzar.api.Run;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
-import com.jcabi.aspects.RetryOnFailure;
 
 import java.io.File;
 import java.sql.*;
-import java.util.Calendar;
+import java.util.*;
 import java.util.Date;
-import java.util.List;
-import java.util.TimeZone;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -118,7 +114,6 @@ public class RunDao {
     persistRun(run, connection);
   }
 
-  @RetryOnFailure(attempts = 5, delay=10, unit=TimeUnit.SECONDS)
   private void persistRun(Run run, Connection connection) throws TzarException {
     boolean exceptionOccurred = true;
 
