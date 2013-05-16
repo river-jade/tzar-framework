@@ -127,8 +127,8 @@ public class ExecutableRun {
           RUNNER_LOGGER.removeHandler(handler);
           handler.close();
         }
+        renameOutputDir(success);
       }
-      renameOutputDir(success);
       return success;
     } catch (IOException e) {
       throw new TzarException(e);
