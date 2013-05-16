@@ -238,5 +238,47 @@ public class Utils {
       return file.getPath();
     }
   }
+
+  /**
+   * Utility class which retries a method with exponential backoff.
+   */
+  public static abstract class Retryable {
+    private static Logger LOG = Logger.getLogger(Retryable.class.getName());
+
+    /**
+     * Executes the exec method of the passed Retryable object. If it throws a TzarException,
+     * retry the method [retryCount] times, pausing for initialSleepTimeMillis after the
+     * first failure, and doubling the sleep time between each attempt.
+     * @param retryCount number of times to retry
+     * @param initialSleepTimeMillis number of millisecods to pause after the first attempt
+     * @param retryable the object containing the method to retry (usually an anonymous wrapper class)
+     * @throws TzarException if the method fails for each of the retry attempts
+     */
+    public static void retryWithBackoff(int retryCount, int initialSleepTimeMillis, Retryable retryable)
+        throws TzarException {
+      int sleepTime = initialSleepTimeMillis;
+      TzarException lastException = null;
+      for (int i = 0; i < retryCount; i++) {
+        try {
+          retryable.exec();
+          return;
+        } catch (TzarException e) {
+          LOG.log(Level.WARNING, "Exception occurred, pausing for {0}ms and retrying. Retry #{1}. " +
+              "Error was: {2}", new Object[]{sleepTime, i, e.getMessage()});
+          lastException = e;
+          try {
+            Thread.sleep(sleepTime);
+            sleepTime *= 2;
+          } catch (InterruptedException e1) {
+            throw new TzarException(e1);
+          }
+        }
+      }
+      throw lastException;
+    }
+
+    public abstract void exec() throws TzarException;
+  }
+
 }
 
