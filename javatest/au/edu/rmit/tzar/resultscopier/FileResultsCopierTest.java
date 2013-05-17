@@ -21,7 +21,7 @@ public class FileResultsCopierTest extends AbstractResultsCopierTest {
    * @throws Exception if thrown, test has failed
    */
   public void testCopyResults() throws Exception {
-    copier.copyResults(run, localOutputPath, true);
+    copier.copyResults(run, localOutputPath);
 
     File destDir = new File(baseDestPath, localOutputPath.getName());
     File destPath1 = new File(destDir, sourcePath.getName());

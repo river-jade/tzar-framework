@@ -26,13 +26,11 @@ public abstract class AbstractResultsCopierTest extends TestCase {
   public void setUp() throws Exception {
     super.setUp();
     File tempSourceDir = Files.createTempDir();
-    run = new Run(1234, "a project", "a scenario", "4321", "", Parameters.EMPTY_PARAMETERS, "scheduled", "", "",
-        RUNNER_CLASS);
+    run = new Run(1234, "a run", "4321", "", Parameters.EMPTY_PARAMETERS, "scheduled", "", "", RUNNER_CLASS);
     ExecutableRun executableRun = ExecutableRun.createExecutableRun(run, tempSourceDir, null, new RunnerFactory());
     localOutputPath = executableRun.getOutputPath();
     localOutputPath.mkdir();
     baseDestPath = Files.createTempDir();
-    localOutputPath.mkdirs();
     sourcePath = File.createTempFile("file", null, localOutputPath);
     sourcePath2 = File.createTempFile("file", null, localOutputPath);
   }

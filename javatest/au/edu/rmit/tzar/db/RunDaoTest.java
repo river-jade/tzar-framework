@@ -1,7 +1,7 @@
 package au.edu.rmit.tzar.db;
 
 import au.edu.rmit.tzar.api.Parameters;
-import au.edu.rmit.tzar.api.TzarException;
+import au.edu.rmit.tzar.api.RdvException;
 import au.edu.rmit.tzar.api.Run;
 import com.google.common.collect.Lists;
 import junit.framework.TestCase;
@@ -21,8 +21,7 @@ import static org.mockito.Mockito.*;
 public class RunDaoTest extends TestCase {
   private static final int RUN_ID = 1234;
   private static final String CODE_VERSION = "4321";
-  private static final String PROJECT_NAME = "cool project";
-  private static final String SCENARIO_NAME = "cool scenario";
+  private static final String RUN_NAME = "cool run";
   private static final String COMMAND_FLAGS = "-pexample";
   private static final String RUNSET = "a runset";
   private static final String CLUSTER_NAME = "a cluster";
@@ -46,8 +45,7 @@ public class RunDaoTest extends TestCase {
     when(mockConnectionFactory.createConnection()).thenReturn(mockConnection);
 
     when(resultSet.getInt("run_id")).thenReturn(RUN_ID);
-    when(resultSet.getString("project_name")).thenReturn(PROJECT_NAME);
-    when(resultSet.getString("scenario_name")).thenReturn(SCENARIO_NAME);
+    when(resultSet.getString("run_name")).thenReturn(RUN_NAME);
     when(resultSet.getString("command_flags")).thenReturn(COMMAND_FLAGS);
     when(resultSet.getString("runset")).thenReturn(RUNSET);
     when(resultSet.getString("cluster_name")).thenReturn(CLUSTER_NAME);
@@ -64,7 +62,7 @@ public class RunDaoTest extends TestCase {
 
   public void testGetNextRun() throws Exception {
     when(resultSet.next()).thenReturn(true);
-    assertEquals(new Run(RUN_ID, PROJECT_NAME, SCENARIO_NAME, CODE_VERSION, COMMAND_FLAGS, Parameters.EMPTY_PARAMETERS,
+    assertEquals(new Run(RUN_ID, RUN_NAME, CODE_VERSION, COMMAND_FLAGS, Parameters.EMPTY_PARAMETERS,
         "scheduled", RUNSET, CLUSTER_NAME, RUNNER_CLASS), runDao.getNextRun(null, CLUSTER_NAME));
   }
 
@@ -73,11 +71,11 @@ public class RunDaoTest extends TestCase {
     assertNull(runDao.getNextRun(null, CLUSTER_NAME));
   }
 
-  public void testInsertRuns() throws TzarException, SQLException {
+  public void testInsertRuns() throws RdvException, SQLException {
     List<Run> runs = Lists.newArrayList();
-    runs.add(new Run(RUN_ID, PROJECT_NAME, SCENARIO_NAME, CODE_VERSION, COMMAND_FLAGS,
+    runs.add(new Run(RUN_ID, RUN_NAME, CODE_VERSION, COMMAND_FLAGS,
         Parameters.EMPTY_PARAMETERS, "state", RUNSET, CLUSTER_NAME, RUNNER_CLASS));
-    runs.add(new Run(RUN_ID, PROJECT_NAME, SCENARIO_NAME + "1", CODE_VERSION + 1, COMMAND_FLAGS,
+    runs.add(new Run(RUN_ID, RUN_NAME + "1", CODE_VERSION + 1, COMMAND_FLAGS,
         Parameters.EMPTY_PARAMETERS, "state", RUNSET, CLUSTER_NAME, RUNNER_CLASS));
 
 
@@ -98,20 +96,18 @@ public class RunDaoTest extends TestCase {
     inOrder.verify(insertRun).setInt(1, FIRST_RUN_ID);
     inOrder.verify(insertRun).setString(2, "scheduled");
     inOrder.verify(insertRun).setString(3, CODE_VERSION);
-    inOrder.verify(insertRun).setString(4, PROJECT_NAME);
-    inOrder.verify(insertRun).setString(5, SCENARIO_NAME);
-    inOrder.verify(insertRun).setString(6, COMMAND_FLAGS);
-    inOrder.verify(insertRun).setString(7, RUNSET);
-    inOrder.verify(insertRun).setString(8, CLUSTER_NAME);
-    inOrder.verify(insertRun).setString(9, RUNNER_CLASS);
+    inOrder.verify(insertRun).setString(4, RUN_NAME);
+    inOrder.verify(insertRun).setString(5, COMMAND_FLAGS);
+    inOrder.verify(insertRun).setString(6, RUNSET);
+    inOrder.verify(insertRun).setString(7, CLUSTER_NAME);
+    inOrder.verify(insertRun).setString(8, RUNNER_CLASS);
     inOrder.verify(insertRun).setInt(1, FIRST_RUN_ID + 1);
     inOrder.verify(insertRun).setString(2, "scheduled");
     inOrder.verify(insertRun).setString(3, CODE_VERSION + 1);
-    inOrder.verify(insertRun).setString(4, PROJECT_NAME);
-    inOrder.verify(insertRun).setString(5, SCENARIO_NAME + "1");
-    inOrder.verify(insertRun).setString(6, COMMAND_FLAGS);
-    inOrder.verify(insertRun).setString(7, RUNSET);
-    inOrder.verify(insertRun).setString(8, CLUSTER_NAME);
-    inOrder.verify(insertRun).setString(9, RUNNER_CLASS);
+    inOrder.verify(insertRun).setString(4, RUN_NAME + "1");
+    inOrder.verify(insertRun).setString(5, COMMAND_FLAGS);
+    inOrder.verify(insertRun).setString(6, RUNSET);
+    inOrder.verify(insertRun).setString(7, CLUSTER_NAME);
+    inOrder.verify(insertRun).setString(8, RUNNER_CLASS);
   }
 }

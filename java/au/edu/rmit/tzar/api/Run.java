@@ -9,8 +9,7 @@ import java.util.Date;
 public class Run {
   private volatile int runId;
 
-  private final String projectName;
-  private final String scenarioName;
+  private final String runName;
 
   private final String revision;
   private final String flags;
@@ -25,30 +24,28 @@ public class Run {
   private final String runset;
   private final String clusterName;
 
-  private volatile File remoteOutputPath;
+  private volatile File outputPath;
   private volatile String outputHost;
   private volatile String runnerClass;
 
   /**
    * Constructor.
    *
-   * @param runId        the unique id for this run or null if the id is not yet known
-   * @param projectName  the name of the project which defines this run
-   * @param scenarioName the name of the scenario which defines this run or null if this run is without scenario
-   * @param revision     the revision number of the model code to download and execute
-   * @param flags        the flags to pass to the command to be executed
-   * @param parameters   parameters for the run
-   * @param state        execution state of the run
-   * @param runset       name of a runset for this run
-   * @param clusterName  name of the cluster to run upon
-   * @param runnerClass  class to use to execute the run
+   * @param runId      the unique id for this run or null if the id is not yet known
+   * @param runName    the name of this run (not necessarily unique)
+   * @param revision   the revision number of the model code to download and execute
+   * @param flags      the flags to pass to the command to be executed
+   * @param parameters parameters for the run
+   * @param state      execution state of the run
+   * @param runset     name of a runset for this run
+   * @param clusterName name of the cluster to run upon
+   * @param runnerClass class to use to execute the run
    */
-  public Run(Integer runId, String projectName, String scenarioName, String revision, String flags,
-             Parameters parameters, String state, String runset, String clusterName, String runnerClass) {
+  public Run(Integer runId, String runName, String revision, String flags, Parameters parameters, String state,
+             String runset, String clusterName, String runnerClass) {
     this.runnerClass = runnerClass;
     this.runId = runId == null ? -1 : runId;
-    this.projectName = projectName;
-    this.scenarioName = scenarioName;
+    this.runName = runName;
     this.revision = revision;
     this.flags = flags;
     this.parameters = parameters;
@@ -66,7 +63,7 @@ public class Run {
   }
 
   public String getName() {
-    return projectName + (scenarioName == null ? "" : "_" + scenarioName);
+    return runName;
   }
 
   public Date getStartTime() {
@@ -105,20 +102,12 @@ public class Run {
     this.outputHost = outputHost;
   }
 
-  /**
-   * The path where the results of this run are stored on the machine specified by getOutputHost().
-   * @return
-   */
-  public File getRemoteOutputPath() {
-    return remoteOutputPath;
+  public File getOutputPath() {
+    return outputPath;
   }
 
-  /**
-   * Sets the path where the results of this run are stored on the machine specified by getOutputHost().
-   * @return
-   */
-  public void setRemoteOutputPath(File outputPath) {
-    this.remoteOutputPath = outputPath;
+  public void setOutputPath(File outputPath) {
+    this.outputPath = outputPath;
   }
 
   /**
@@ -130,14 +119,6 @@ public class Run {
 
   public void setRunId(int runId) {
     this.runId = runId;
-  }
-
-  public String getProjectName() {
-    return projectName;
-  }
-
-  public String getScenarioName() {
-    return scenarioName;
   }
 
   public String getRunset() {
@@ -164,8 +145,7 @@ public class Run {
   public String toString() {
     return "Run{" +
         "runId=" + runId +
-        ", projectName='" + projectName + '\'' +
-        ", scenarioName='" + scenarioName + '\'' +
+        ", runName='" + runName + '\'' +
         ", revision='" + revision + '\'' +
         ", flags='" + flags + '\'' +
         ", state='" + state + '\'' +
@@ -187,11 +167,10 @@ public class Run {
     if (flags != null ? !flags.equals(run.flags) : run.flags != null) return false;
     if (hostname != null ? !hostname.equals(run.hostname) : run.hostname != null) return false;
     if (outputHost != null ? !outputHost.equals(run.outputHost) : run.outputHost != null) return false;
-    if (remoteOutputPath != null ? !remoteOutputPath.equals(run.remoteOutputPath) : run.remoteOutputPath != null) return false;
+    if (outputPath != null ? !outputPath.equals(run.outputPath) : run.outputPath != null) return false;
     if (parameters != null ? !parameters.equals(run.parameters) : run.parameters != null) return false;
     if (revision != null ? !revision.equals(run.revision) : run.revision != null) return false;
-    if (projectName != null ? !projectName.equals(run.projectName) : run.projectName != null) return false;
-    if (scenarioName != null ? !scenarioName.equals(run.scenarioName) : run.scenarioName != null) return false;
+    if (runName != null ? !runName.equals(run.runName) : run.runName != null) return false;
     if (runset != null ? !runset.equals(run.runset) : run.runset != null) return false;
     if (clusterName != null ? !clusterName.equals(run.clusterName) : run.clusterName != null) return false;
     if (startTime != null ? !startTime.equals(run.startTime) : run.startTime != null) return false;
@@ -204,8 +183,7 @@ public class Run {
   @Override
   public int hashCode() {
     int result = runId;
-    result = 31 * result + (projectName != null ? projectName.hashCode() : 0);
-    result = 31 * result + (scenarioName != null ? scenarioName.hashCode() : 0);
+    result = 31 * result + (runName != null ? runName.hashCode() : 0);
     result = 31 * result + (revision != null ? revision.hashCode() : 0);
     result = 31 * result + (flags != null ? flags.hashCode() : 0);
     result = 31 * result + (hostname != null ? hostname.hashCode() : 0);
@@ -215,7 +193,7 @@ public class Run {
     result = 31 * result + (state != null ? state.hashCode() : 0);
     result = 31 * result + (runset != null ? runset.hashCode() : 0);
     result = 31 * result + (clusterName != null ? clusterName.hashCode() : 0);
-    result = 31 * result + (remoteOutputPath != null ? remoteOutputPath.hashCode() : 0);
+    result = 31 * result + (outputPath != null ? outputPath.hashCode() : 0);
     result = 31 * result + (outputHost != null ? outputHost.hashCode() : 0);
     result = 31 * result + (runnerClass != null ? runnerClass.hashCode() : 0);
     return result;

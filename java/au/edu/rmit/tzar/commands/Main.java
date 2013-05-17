@@ -41,16 +41,6 @@ public class Main {
       System.exit(2);
     }
 
-    if (SharedFlags.COMMON_FLAGS.isHelp()) {
-      String cmdStr = jCommander.getParsedCommand();
-      if (cmdStr != null) {
-        jCommander.usage(cmdStr);
-      } else {
-        jCommander.usage();
-      }
-      System.exit(0);
-    }
-
     // We create the default tzar base directory because the logging code expects $HOME/tzar to exist.
     // This is to workaround the following bug:
     // http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6244047
@@ -82,9 +72,6 @@ public class Main {
         if (!command.execute()) {
           System.exit(1);
         }
-      } catch (ParseException e) {
-        System.err.println(e.getMessage());
-        System.exit(2);
       } catch (Exception e) {
         LOG.log(Level.SEVERE, "An unrecoverable error occurred.", e);
         System.exit(3);
