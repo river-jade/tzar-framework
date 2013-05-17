@@ -1,7 +1,7 @@
 package au.edu.rmit.tzar.db;
 
 import au.edu.rmit.tzar.api.Parameters;
-import au.edu.rmit.tzar.api.TzarException;
+import au.edu.rmit.tzar.api.RdvException;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Maps;
 
@@ -40,16 +40,16 @@ public class ParametersDao {
    *
    * @param runId
    * @param parameters
-   * @throws TzarException
+   * @throws RdvException
    */
-  public void insertParams(int runId, Parameters parameters) throws TzarException {
+  public void insertParams(int runId, Parameters parameters) throws RdvException {
     Connection connection = connectionFactory.createConnection();
     try {
       PreparedStatement insertParam = connection.prepareStatement(INSERT_PARAM_SQL);
       batchInsertParams(runId, parameters, insertParam);
       insertParam.executeBatch();
     } catch (SQLException e) {
-      throw new TzarException(e);
+      throw new RdvException(e);
     }
   }
 
@@ -60,7 +60,7 @@ public class ParametersDao {
    * @return
    * @throws SQLException
    */
-  public Parameters loadFromDatabase(int runId) throws TzarException {
+  public Parameters loadFromDatabase(int runId) throws RdvException {
     Connection connection = connectionFactory.createConnection();
     boolean exceptionOccurred = true;
     try {
@@ -86,7 +86,7 @@ public class ParametersDao {
       exceptionOccurred = false;
       return parameters;
     } catch (SQLException e) {
-      throw new TzarException(e);
+      throw new RdvException(e);
     } finally {
       Utils.close(connection, exceptionOccurred);
     }
@@ -98,9 +98,9 @@ public class ParametersDao {
    * @param runId          the run whose parameters are to be printed
    * @param truncateOutput if the output fields should be truncated for formatting
    * @param outputType     output format
-   * @throws TzarException if the parameters can't be loaded
+   * @throws RdvException if the parameters can't be loaded
    */
-  public void printParameters(int runId, boolean truncateOutput, Utils.OutputType outputType) throws TzarException {
+  public void printParameters(int runId, boolean truncateOutput, Utils.OutputType outputType) throws RdvException {
     Connection connection = connectionFactory.createConnection();
     boolean exceptionOccurred = true;
     try {
@@ -109,7 +109,7 @@ public class ParametersDao {
       Utils.printResultSet(loadParams.executeQuery(), truncateOutput, outputType);
       exceptionOccurred = false;
     } catch (SQLException e) {
-      throw new TzarException(e);
+      throw new RdvException(e);
     } finally {
       Utils.close(connection, exceptionOccurred);
     }

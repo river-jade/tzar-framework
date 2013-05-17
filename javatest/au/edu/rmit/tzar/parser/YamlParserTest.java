@@ -2,7 +2,7 @@ package au.edu.rmit.tzar.parser;
 
 import au.edu.rmit.tzar.api.Parameters;
 import au.edu.rmit.tzar.api.ProjectSpec;
-import au.edu.rmit.tzar.api.TzarException;
+import au.edu.rmit.tzar.api.RdvException;
 import au.edu.rmit.tzar.api.Scenario;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -27,7 +27,7 @@ public class YamlParserTest extends TestCase {
     yamlParser = new YamlParser();
   }
 
-  public void testWriteThenReadProjectSpec() throws IOException, TzarException {
+  public void testWriteThenReadProjectSpec() throws IOException, RdvException {
     Map<String, Object> variables = Maps.newLinkedHashMap();
     variables.put("test1", 3);
     variables.put("test2", true);
@@ -65,9 +65,9 @@ public class YamlParserTest extends TestCase {
    * (each generating 10 values), gives a set of parameter sets (with each set unique) of size
    * 200 (2 * 10 * 10).
    *
-   * @throws TzarException
+   * @throws au.edu.rmit.tzar.api.RdvException
    */
-  public void testRepetitionDeserialisationAndGeneration() throws TzarException {
+  public void testRepetitionDeserialisationAndGeneration() throws RdvException {
     String yaml =
         "repetitions : \n" +
         "  - variables : \n" +
@@ -98,9 +98,9 @@ public class YamlParserTest extends TestCase {
    * Tests that parsing a yaml string containing 2 static repetitions and no generators
    * gives a set of parameter sets (with each set unique) of size 2.
    *
-   * @throws TzarException
+   * @throws au.edu.rmit.tzar.api.RdvException
    */
-  public void testRepetitionDeserialisationNoGenerators() throws TzarException {
+  public void testRepetitionDeserialisationNoGenerators() throws RdvException {
     String yaml = "{ repetitions : [ { variables : { A : 1 } }, { variables : " +
         "{ A : 2 } } ] }";
     Repetitions repetitions = yamlParser.repetitionsFromYaml(yaml);

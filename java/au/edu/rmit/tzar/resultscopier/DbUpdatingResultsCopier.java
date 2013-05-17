@@ -1,6 +1,6 @@
 package au.edu.rmit.tzar.resultscopier;
 
-import au.edu.rmit.tzar.api.TzarException;
+import au.edu.rmit.tzar.api.RdvException;
 import au.edu.rmit.tzar.api.Run;
 import au.edu.rmit.tzar.db.RunDao;
 
@@ -24,40 +24,32 @@ public class DbUpdatingResultsCopier implements ResultsCopier {
   }
 
   @Override
-  public void copyResults(Run run, File sourcePath, boolean success) {
-    if (!("completed".equals(run.getState()) || "failed".equals(run.getState()))) {
-      LOG.log(Level.SEVERE, "Expected run to have status: 'completed' or 'failed'. Was '{0}'. " +
-          "Skipping copy for run: {1}", new Object[]{run.getState(), run});
+  public void copyResults(Run run, File sourcePath) {
+    if (!"completed".equals(run.getState())) {
+      LOG.severe("Expected run to have status: 'completed'. Was '" + run.getState() + "'. Skipping copy for run: " +
+          run);
     }
 
     try {
-      resultsCopier.copyResults(run, sourcePath, success);
-      if (success) {
-        run.setState("copied");
-      }
-      run.setRemoteOutputPath(new File(resultsCopier.getBaseDestPath(), sourcePath.getName()));
+      resultsCopier.copyResults(run, sourcePath);
+      run.setState("copied");
+      run.setOutputPath(new File(resultsCopier.getBaseDestPath(), sourcePath.getName()));
       try {
         runDao.persistRun(run);
-      } catch (TzarException e) {
+      } catch (RdvException e) {
         LOG.log(Level.SEVERE, "Failure updating run: " + run, e);
       }
-    } catch (TzarException e) {
+    } catch (RdvException e) {
       LOG.log(Level.WARNING, "Error copying results for run: " + run, e);
-      handleFail(run, success);
+      handleFail(run);
     }
   }
 
-  private void handleFail(Run run, boolean success) {
-    // we only update the status for completed runs. If the run failed, setting the status to copy_failed
-    // would be misleading.
-    if (!success) {
-      return;
-    }
-
+  private void handleFail(Run run) {
     run.setState("copy_failed");
     try {
       runDao.persistRun(run);
-    } catch (TzarException e) {
+    } catch (RdvException e) {
       LOG.log(Level.SEVERE, "Failure updating status to 'copy_failed' for run: " + run, e);
     }
   }

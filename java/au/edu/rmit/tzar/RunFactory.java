@@ -41,9 +41,9 @@ public class RunFactory {
    *                repetitions
    * @param runnerClass Runner implementation to use to execute the runs
    * @return the list of created runs
-   * @throws TzarException
+   * @throws RdvException
    */
-  public List<Run> createRuns(int numRuns, String runnerClass) throws TzarException {
+  public List<Run> createRuns(int numRuns, String runnerClass) throws RdvException {
     Parameters projectParams = projectSpec.getBaseParams();
     projectParams = globalParams.mergeParameters(projectParams);
     List<Run> runs = Lists.newArrayList();
@@ -58,7 +58,7 @@ public class RunFactory {
    * Create a List of Runs, one for each repetition in the Repetitions object, for each scenario in the projectSpec.
    */
   private List<Run> createRuns(ProjectSpec projectSpec, Parameters baseParams, Repetitions repetitions,
-      String runnerClass) throws TzarException {
+      String runnerClass) throws RdvException {
     List<Run> runs = Lists.newArrayList();
 
     for (Parameters repetitionParams : repetitions.getParamsList()) {

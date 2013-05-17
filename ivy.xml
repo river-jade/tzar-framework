@@ -25,7 +25,7 @@
         <dependency org="org.mockito" name="mockito-core" rev="1.9.0-rc1" conf="test"/>
         <dependency org="org.python" name="jython-standalone" rev="2.5.3" conf="tzar"/>
         <dependency org="org.slf4j" name="slf4j-jdk14" rev="1.6.6" conf="tzar-dist"/>
-        <dependency org="org.tmatesoft.svnkit" name="svnkit" rev="1.7.8"/>
+        <dependency org="org.tmatesoft.svnkit" name="svnkit" rev="1.7.5-v1"/>
         <dependency org="org.yaml" name="snakeyaml" rev="1.10"/>
         <dependency org="postgresql" name="postgresql" rev="9.1-901.jdbc4"/>
     </dependencies>

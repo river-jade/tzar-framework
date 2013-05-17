@@ -1,7 +1,7 @@
 package au.edu.rmit.tzar;
 
 import au.edu.rmit.tzar.api.Parameters;
-import au.edu.rmit.tzar.api.TzarException;
+import au.edu.rmit.tzar.api.RdvException;
 import au.edu.rmit.tzar.api.Run;
 import au.edu.rmit.tzar.api.Runner;
 import au.edu.rmit.tzar.repository.CodeRepository;
@@ -53,29 +53,28 @@ public class ExecutableRunTest extends TestCase {
     when(run.getScenarioName()).thenReturn(SCENARIO_NAME);
     when(run.getRunset()).thenReturn(RUNSET);
     when(run.getRunnerClass()).thenReturn(RUNNER_CLASS);
-    when(run.getRevision()).thenReturn(REVISION);
     executableRun = ExecutableRun.createExecutableRun(run, BASE_OUTPUT_PATH, codeRepository,
         runnerFactory);
   }
 
   public void testCreateExecutableRun() {
-    assertEquals(OUTPUT_DIR + ExecutableRun.INPROGRESS_SUFFIX, executableRun.getOutputPath().toString());
+    assertEquals(OUTPUT_DIR, executableRun.getOutputPath().toString());
     assertEquals(RUN_ID, executableRun.getRunId());
     assertEquals(run, executableRun.getRun());
 
   }
 
-  public void testExecuteSuccess() throws TzarException {
+  public void testExecuteSuccess() throws RdvException {
     testExecute(true);
     assertTrue(new File(OUTPUT_DIR).exists());
   }
 
-  public void testExecuteFailure() throws TzarException {
+  public void testExecuteFailure() throws RdvException {
     testExecute(false);
     assertTrue(new File(OUTPUT_DIR + ".failed").exists());
   }
 
-  public void testExecute(boolean success) throws TzarException {
+  public void testExecute(boolean success) throws RdvException {
     when(codeRepository.getModel(REVISION)).thenReturn(MODEL);
     Parameters parameters = Parameters.createParameters(VARIABLES, INPUT_FILES, OUTPUT_FILES);
     when(run.getParameters()).thenReturn(parameters);
@@ -97,7 +96,7 @@ public class ExecutableRunTest extends TestCase {
 
     @Override
     public boolean runModel(File model, File outputPath, String runId, String flagsString, Parameters parameters,
-          Logger logger) throws TzarException {
+          Logger logger) throws RdvException {
       Map<String, String> variables = Maps.newHashMap(VARIABLES);
       variables.put("aac", "124" + RUN_ID + "123"); // because the id wildcard will be replaced
       assertEquals(Parameters.createParameters(variables, INPUT_FILES, OUTPUT_FILES), parameters);

@@ -1,6 +1,6 @@
 package au.edu.rmit.tzar.resultscopier;
 
-import au.edu.rmit.tzar.api.TzarException;
+import au.edu.rmit.tzar.api.RdvException;
 import au.edu.rmit.tzar.api.Run;
 
 import java.io.File;
@@ -18,7 +18,7 @@ import java.util.logging.Logger;
 public class AsyncResultsCopier implements ResultsCopier, Runnable {
   private static final Logger LOG = Logger.getLogger(AsyncResultsCopier.class.getName());
 
-  private final BlockingQueue<CopyJob> copyQueue = new LinkedBlockingQueue<CopyJob>();
+  private final BlockingQueue<RunAndPath> copyQueue = new LinkedBlockingQueue<RunAndPath>();
   private final ResultsCopier delegate;
 
   public AsyncResultsCopier(ResultsCopier delegate) {
@@ -26,8 +26,8 @@ public class AsyncResultsCopier implements ResultsCopier, Runnable {
   }
 
   @Override
-  public void copyResults(Run run, File sourcePath, boolean success) {
-    copyQueue.add(new CopyJob(run, sourcePath, success));
+  public void copyResults(Run run, File sourcePath) {
+    copyQueue.add(new RunAndPath(run, sourcePath));
   }
 
   @Override
@@ -38,34 +38,32 @@ public class AsyncResultsCopier implements ResultsCopier, Runnable {
   @Override
   public void run() {
     while (true) {
-      CopyJob copyJob;
+      RunAndPath runAndPath;
       try {
-        copyJob = copyQueue.take();
+        runAndPath = copyQueue.take();
       } catch (InterruptedException e) {
         LOG.log(Level.WARNING, "Copy thread was interrupted.", e);
         Thread.currentThread().interrupt();
         return;
       }
 
-      Run run = copyJob.run;
+      Run run = runAndPath.run;
 
       try {
-        delegate.copyResults(run, copyJob.path, copyJob.success);
-      } catch (TzarException e) {
+        delegate.copyResults(run, runAndPath.path);
+      } catch (RdvException e) {
         LOG.log(Level.WARNING, "Error copying results for run: " + run, e);
       }
     }
   }
 
-  private class CopyJob {
+  private class RunAndPath {
     private final Run run;
     private final File path;
-    private final boolean success;
 
-    private CopyJob(Run run, File path, boolean success) {
+    private RunAndPath(Run run, File path) {
       this.run = run;
       this.path = path;
-      this.success = success;
     }
   }
 }

@@ -43,11 +43,7 @@ public class Main {
 
     if (SharedFlags.COMMON_FLAGS.isHelp()) {
       String cmdStr = jCommander.getParsedCommand();
-      if (cmdStr != null) {
-        jCommander.usage(cmdStr);
-      } else {
-        jCommander.usage();
-      }
+      jCommander.usage(cmdStr);
       System.exit(0);
     }
 
@@ -82,9 +78,6 @@ public class Main {
         if (!command.execute()) {
           System.exit(1);
         }
-      } catch (ParseException e) {
-        System.err.println(e.getMessage());
-        System.exit(2);
       } catch (Exception e) {
         LOG.log(Level.SEVERE, "An unrecoverable error occurred.", e);
         System.exit(3);

@@ -1,7 +1,7 @@
 package au.edu.rmit.tzar.commands;
 
 import au.edu.rmit.tzar.Constants;
-import au.edu.rmit.tzar.api.TzarException;
+import au.edu.rmit.tzar.api.RdvException;
 import au.edu.rmit.tzar.db.Utils;
 import au.edu.rmit.tzar.repository.CodeRepository;
 import au.edu.rmit.tzar.repository.LocalFileRepository;
@@ -73,12 +73,12 @@ class SharedFlags {
         @Override
         public void checkRevisionNumber(String revision) {
           if (revision == null || revision.length() == 0) {
-            throw new ParseException("You must specify a revision using --revision when using SVN repository.");
+            throw new ParseException("Must specify a revision when using SVN repository.");
           }
           try {
             // check that revision number is valid
             SvnRepository.parseSvnRevision(revision);
-          } catch (TzarException e) {
+          } catch (RdvException e) {
             throw new ParseException(e);
           }
         }
@@ -173,8 +173,7 @@ class SharedFlags {
     @Parameter(names = "--revision", description = "The source control revision of the model code to schedule for " +
         "execution. Must be either an integer, 'runtime_head', or 'current_head'. 'runtime_head' will mean that " +
         "clients will always download the latest version of the code, 'current_head' will set the revision to be " +
-        "the head revision at the time the job is scheduled. This flag is mandatory if --svnurl is set. Conversely, " +
-        "--svnurl is mandatory if the value of this flag is 'current_head'.")
+        "the head revision at the time the job is scheduled.")
     private String revision = null;
 
     public String getCommandFlags() {
@@ -211,6 +210,7 @@ class SharedFlags {
     }
 
     public String getRevision() {
+
       return revision;
     }
 
@@ -290,7 +290,7 @@ class SharedFlags {
     @Parameter(names = {"-q", "--quiet"}, description = "Quiet logging to console.")
     private boolean quiet = false;
 
-    @Parameter(names = {"-h", "--help"}, description = "Show help info.")
+    @Parameter(names = {"--help"}, description = "Show help info.")
     private boolean help = false;
 
     @Parameter(names = {"--version"}, description = "Show version info.")

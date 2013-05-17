@@ -1,6 +1,6 @@
 package au.edu.rmit.tzar;
 
-import au.edu.rmit.tzar.api.TzarException;
+import au.edu.rmit.tzar.api.RdvException;
 import com.google.common.io.Files;
 
 import java.io.*;
@@ -83,9 +83,9 @@ public class Utils {
    *
    * @param source source to rename
    * @param dest   new name / path
-   * @throws TzarException if the file / directory cannot be renamed.
+   * @throws RdvException if the file / directory cannot be renamed.
    */
-  public static void fileRename(File source, File dest) throws TzarException {
+  public static void fileRename(File source, File dest) throws RdvException {
     LOG.info("Renaming \"" + source + "\" to \"" + dest + "\"");
     for (int i = 0; i < 10; i++) {
       if (source.renameTo(dest)) { // success!
@@ -98,10 +98,10 @@ public class Utils {
         Thread.sleep(delay); // exponential backoff, first wait is 1 second, last wait is 30s.
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
-        throw new TzarException(e);
+        throw new RdvException(e);
       }
     }
-    throw new TzarException("Unable to rename \"" + source + "\" to \"" + dest + "\"");
+    throw new RdvException("Unable to rename \"" + source + "\" to \"" + dest + "\"");
   }
 
   /**
@@ -238,47 +238,5 @@ public class Utils {
       return file.getPath();
     }
   }
-
-  /**
-   * Utility class which retries a method with exponential backoff.
-   */
-  public static abstract class Retryable {
-    private static Logger LOG = Logger.getLogger(Retryable.class.getName());
-
-    /**
-     * Executes the exec method of the passed Retryable object. If it throws a TzarException,
-     * retry the method [retryCount] times, pausing for initialSleepTimeMillis after the
-     * first failure, and doubling the sleep time between each attempt.
-     * @param retryCount number of times to retry
-     * @param initialSleepTimeMillis number of millisecods to pause after the first attempt
-     * @param retryable the object containing the method to retry (usually an anonymous wrapper class)
-     * @throws TzarException if the method fails for each of the retry attempts
-     */
-    public static void retryWithBackoff(int retryCount, int initialSleepTimeMillis, Retryable retryable)
-        throws TzarException {
-      int sleepTime = initialSleepTimeMillis;
-      TzarException lastException = null;
-      for (int i = 0; i < retryCount; i++) {
-        try {
-          retryable.exec();
-          return;
-        } catch (TzarException e) {
-          LOG.log(Level.WARNING, "Exception occurred, pausing for {0}ms and retrying. Retry #{1}. " +
-              "Error was: {2}", new Object[]{sleepTime, i, e.getMessage()});
-          lastException = e;
-          try {
-            Thread.sleep(sleepTime);
-            sleepTime *= 2;
-          } catch (InterruptedException e1) {
-            throw new TzarException(e1);
-          }
-        }
-      }
-      throw lastException;
-    }
-
-    public abstract void exec() throws TzarException;
-  }
-
 }
 

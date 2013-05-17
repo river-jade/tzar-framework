@@ -1,10 +1,8 @@
 package au.edu.rmit.tzar.resultscopier;
 
-import au.edu.rmit.tzar.Utils;
-import au.edu.rmit.tzar.api.TzarException;
+import au.edu.rmit.tzar.api.RdvException;
 import au.edu.rmit.tzar.api.Run;
 import com.google.common.io.Closeables;
-import com.google.common.io.Files;
 import net.schmizz.sshj.SSHClient;
 import net.schmizz.sshj.xfer.FileSystemFile;
 import net.schmizz.sshj.xfer.scp.SCPFileTransfer;
@@ -35,48 +33,56 @@ public class ScpResultsCopier implements ResultsCopier {
   }
 
   @Override
-  public void copyResults(final Run run, final File sourcePath, boolean success) throws TzarException {
+  public void copyResults(Run run, File sourcePath) throws RdvException {
     // Retry copying 8 times, doubling the wait in between each attempt, up to 2 minutes wait.
-    Utils.Retryable.retryWithBackoff(8, 1000, new Utils.Retryable() {
-      @Override
-      public void exec() throws TzarException {
-        String hostname = sshClientFactory.getHostname();
-        LOG.info("Copying results from: " + sourcePath + " to " + hostname + ":" + baseDestPath);
+    IOException failure = null;
+    for (int i = 0; i < 8; ++i) {
+      String hostname = sshClientFactory.getHostname();
+      LOG.info("Copying results from: " + sourcePath + " to " + hostname + ":" + baseDestPath);
+      try {
+        boolean thrown = true;
+        SSHClient sshClient = null;
         try {
-          boolean thrown = true;
-          SSHClient sshClient = null;
-          try {
-            // we create a new ssh connection for each copy attempt, as we were having issues with
-            // connections dropping and not reconnecting. this is a bit less efficient, but more robust.
-            sshClient = sshClientFactory.createSSHClient();
-            SCPFileTransfer scpFileTransfer = sshClient.newSCPFileTransfer();
+          // we create a new ssh connection for each copy attempt, as we were having issues with
+          // connections dropping and not reconnecting. this is a bit less efficient, but more robust.
+          sshClient = sshClientFactory.createSSHClient();
+          SCPFileTransfer scpFileTransfer = sshClient.newSCPFileTransfer();
 
-            // slight hack here because the SCPFileTransfer class upload method doesn't accept a File object for
-            // the destination path (ie only accepts a String), and if this is run on a windows machine where the
-            // separator character is '\', a single directory gets created on the destination with name a\b\c,
-            // instead of a tree a/b/c.
-            // This hack may break if the ssh server is a windows machine.
-            scpFileTransfer.upload(new FileSystemFile(sourcePath),
-                baseDestPath.getPath().replace(File.separatorChar, '/'));
-            run.setRemoteOutputPath(baseDestPath);
-            run.setOutputHost(hostname);
-            Files.deleteRecursively(sourcePath.getCanonicalFile());
-            LOG.log(Level.INFO, "Copied results for run: {0,number,#} from: {1} to {2}:{3}",
-                new Object[]{run.getRunId(), sourcePath, hostname, baseDestPath});
-            thrown = false;
-          } finally {
-            if (sshClient != null) {
-              // if an exception was thrown, we make sure we don't
-              // throw another one while closing the connection (as this would mean that the first one
-              // would be lost).
-              Closeables.close(sshClient, thrown);
-            }
+          // slight hack here because the SCPFileTransfer class upload method doesn't accept a File object for
+          // the destination path (ie only accepts a String), and if this is run on a windows machine where the
+          // separator character is '\', a single directory gets created on the destination with name a\b\c,
+          // instead of a tree a/b/c.
+          // This hack may break if the ssh server is a windows machine.
+          scpFileTransfer.upload(new FileSystemFile(sourcePath),
+              baseDestPath.getPath().replace(File.separatorChar, '/'));
+          run.setOutputPath(baseDestPath);
+          run.setOutputHost(hostname);
+          LOG.log(Level.INFO, "Copied results for run: {0} from: {1} to {2}:{3}",
+              new Object[]{run.getRunId(), sourcePath, hostname, baseDestPath});
+          failure = null;
+          thrown = false; // got through with no exception
+          break;
+        } finally {
+          if (sshClient != null) {
+            Closeables.close(sshClient, thrown); // if an exception was thrown, we make sure we don't
+            // throw another one while closing the connection (as this would mean that the first one
+            // would be lost).
           }
-        } catch (IOException e) {
-          throw new TzarException(e);
+        }
+      } catch (IOException e) {
+        LOG.log(Level.WARNING, "IOException copying results for run: " + run.getRunId() + ", attempt: " + i, e);
+        failure = e;
+        try {
+          Thread.sleep(2^i * 1000);
+        } catch (InterruptedException e1) {
+          Thread.currentThread().interrupt();
+          LOG.log(Level.WARNING, "Waiting thread interrupted.", e1);
         }
       }
-    });
+    }
+    if (failure != null) {
+      throw new RdvException("Too many failed attempts to copy results for run: " + run.getRunId(), failure);
+    }
   }
 
   @Override
