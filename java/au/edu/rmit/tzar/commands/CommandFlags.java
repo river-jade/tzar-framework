@@ -104,14 +104,6 @@ public class CommandFlags {
   public static class ScheduleRunsFlags {
     private ScheduleRunsFlags() {
     }
-
-    @Parameter(names = "--svnurl", description = "URL for the SVN repository. Required if 'current_head' is used for " +
-        "the revision number.")
-    private String svnUrl = null;
-
-    public String getSvnUrl() {
-      return svnUrl;
-    }
   }
 
   @Parameters(commandDescription = "Display help information about the specified command. " +
@@ -163,14 +155,6 @@ public class CommandFlags {
         "uses the current user")
     private final String scpUserName = System.getProperty("user.name");
 
-    @Parameter(names = "--pemfile", description = "Path to ssh private key for connecting to the remote output data " +
-        "server. Defaults to $HOME/.ssh/id_rsa", converter = FileConverter.class)
-    private File pemFile = new File(System.getProperty("user.home"), ".ssh/id_rsa");
-
-    @Parameter(names = "--passwordprompt", description = "Prompt for an ssh password for connecting to the remote " +
-        "machines")
-    private boolean passwordPrompt = false;
-
     private AggregateResultsFlags() {
     }
 
@@ -184,14 +168,6 @@ public class CommandFlags {
 
     public String getScpUserName() {
       return scpUserName;
-    }
-
-    public File getPemFile() {
-      return pemFile;
-    }
-
-    public boolean isPasswordPrompt() {
-      return passwordPrompt;
     }
   }
 }

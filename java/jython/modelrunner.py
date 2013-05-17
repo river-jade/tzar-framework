@@ -3,7 +3,6 @@
 import datetime
 import optparse
 import os
-import shlex
 import sys
 import traceback
 
@@ -24,13 +23,11 @@ class ModelRunner(Runner):
                 parser.print_help()
                 print # needed to flush the IOBuffer
                 return False
-
-            projectname = options.projectname.strip()
-            inputpath = java.io.File(java.io.File(modelpath, "projects/" + projectname),
-                    options.inputdir.strip())
-            runner = rrunner.RRunner(rtermlocation=options.rlocation.strip(), rpath=os.path.join(modelpath.toString(), "R"),
+            inputpath = java.io.File(java.io.File(modelpath, "projects/" + options.projectname), options.inputdir)
+            runner = rrunner.RRunner(rtermlocation=options.rlocation, rpath=os.path.join(modelpath.toString(), "R"),
                     inputpath=inputpath, dryrun=options.dryrun)
-            modelmodule = __import__("projects.%s.model" % projectname, fromlist=["Model"])
+            modelmodule = __import__("projects.%s.model" % options.projectname,
+                          fromlist=["Model"])
             model = modelmodule.Model(runner, inputpath, outputpath, runid, logger)
             start = datetime.datetime.now()
 
@@ -79,5 +76,5 @@ class ModelRunner(Runner):
         parser.add_option("--seed", action="store", dest="seed",
                           help="Random number seed")
 
-        options, args = parser.parse_args(shlex.split(flags))
+        options, args = parser.parse_args(flags.split(' '))
         return options

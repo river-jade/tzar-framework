@@ -1,5 +1,7 @@
 package au.edu.rmit.tzar.api;
 
+import com.google.gson.annotations.SerializedName;
+
 import java.util.List;
 
 /**
@@ -41,14 +43,14 @@ public class ProjectSpec {
    * Validates that the project spec has been correctly initialised. Throws an exception if baseParams
    * or projectName are not set.
    *
-   * @throws TzarException
+   * @throws RdvException
    */
-  public void validate() throws TzarException {
+  public void validate() throws RdvException {
     if (baseParams == null) {
-      throw new TzarException("Base parameters must be set, either programatically, or in the json specification.");
+      throw new RdvException("Base parameters must be set, either programatically, or in the json specification.");
     }
     if (projectName == null) {
-      throw new TzarException("Project name must be set, either programatically, or in the json specification.");
+      throw new RdvException("Project name must be set, either programatically, or in the json specification.");
     }
   }
 

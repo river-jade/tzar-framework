@@ -1,14 +1,15 @@
 package au.edu.rmit.tzar.repository;
 
-import au.edu.rmit.tzar.api.TzarException;
+import au.edu.rmit.tzar.api.RdvException;
 import com.google.common.annotations.VisibleForTesting;
 import org.tmatesoft.svn.core.SVNDepth;
 import org.tmatesoft.svn.core.SVNException;
 import org.tmatesoft.svn.core.SVNURL;
 import org.tmatesoft.svn.core.internal.io.dav.DAVRepositoryFactory;
-import org.tmatesoft.svn.core.io.SVNRepository;
-import org.tmatesoft.svn.core.io.SVNRepositoryFactory;
-import org.tmatesoft.svn.core.wc.*;
+import org.tmatesoft.svn.core.wc.SVNClientManager;
+import org.tmatesoft.svn.core.wc.SVNRevision;
+import org.tmatesoft.svn.core.wc.SVNUpdateClient;
+import org.tmatesoft.svn.core.wc.SVNWCClient;
 
 import java.io.File;
 import java.util.logging.Logger;
@@ -52,14 +53,14 @@ public class SvnRepository implements CodeRepository {
     DAVRepositoryFactory.setup();
   }
 
-  public static SVNRevision parseSvnRevision(String revision) throws TzarException {
+  public static SVNRevision parseSvnRevision(String revision) throws RdvException {
     if ("head".equalsIgnoreCase(revision)) {
       return SVNRevision.HEAD;
     }
     try {
       return SVNRevision.create(Long.parseLong(revision));
     } catch (NumberFormatException e) {
-      throw new TzarException("Unrecognised revision: '" + revision + "'. Must be 'head' or an integer.");
+      throw new RdvException("Unrecognised revision: '" + revision + "'. Must be 'head' or an integer.");
     }
   }
 
@@ -69,10 +70,10 @@ public class SvnRepository implements CodeRepository {
    *
    * @param revision the version of the model / framework to load
    * @return the path to the cached model / framework code
-   * @throws TzarException if an error occurs contacting the svn repository
+   * @throws RdvException if an error occurs contacting the svn repository
    */
   @Override
-  public File getModel(String revision) throws TzarException {
+  public File getModel(String revision) throws RdvException {
     LOG.info("Retrieving code revision: " + revision + ", to " + modelsPath);
     try {
       SVNURL url = SVNURL.parseURIEncoded(svnUrl);
@@ -85,17 +86,7 @@ public class SvnRepository implements CodeRepository {
       updateClient.doCheckout(url, modelsPath, svnRevision, svnRevision, SVNDepth.INFINITY, true);
       return modelsPath;
     } catch (SVNException e) {
-      throw new TzarException("Error retrieving model from SVN", e);
-    }
-  }
-
-  public long getHeadRevision() throws TzarException {
-    try {
-      SVNRepository repository = SVNRepositoryFactory.create(SVNURL.parseURIEncoded(svnUrl));
-      repository.setAuthenticationManager(SVNWCUtil.createDefaultAuthenticationManager());
-      return repository.getLatestRevision();
-    } catch (SVNException e) {
-      throw new TzarException("Couldn't retrieve the latest revision from SVN.", e);
+      throw new RdvException("Error retrieving model from SVN", e);
     }
   }
 

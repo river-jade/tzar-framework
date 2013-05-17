@@ -1,8 +1,7 @@
 package au.edu.rmit.tzar.runners;
 
-import au.edu.rmit.tzar.Utils;
 import au.edu.rmit.tzar.api.Parameters;
-import au.edu.rmit.tzar.api.TzarException;
+import au.edu.rmit.tzar.api.RdvException;
 import au.edu.rmit.tzar.api.Runner;
 import com.beust.jcommander.Parameter;
 
@@ -20,26 +19,23 @@ public class RRunner  extends SystemRunner implements Runner {
 
   @Override
   public boolean runModel(File model, File outputPath, String runId, String flagsString, Parameters parameters,
-      Logger logger) throws TzarException {
+      Logger logger) throws RdvException {
     Flags flags = parseFlags(flagsString.split(" "), new Flags());
 
     // TODO(michaell): urgh. get rid of this hard coded hackery!!
-    String projectPath = Utils.Path.combine(model.getPath(), "projects/" + flags.projectName) + File.separator;
+    File projectPath = new File(model, "projects/" + flags.projectName);
 
     File variablesFile = writeVariablesFile(outputPath, parameters);
 
     // TODO(michaell): put this in the jar and pipe it into R?
     // a la: cat R/rrunner.R | R --vanilla --args --paramfile=/tmp/variables.json --rscript R/example.R
     // otherwise, find somewhere else for it to live...
-    String rrunnerPath = Utils.Path.combine(model.getPath(), "R/rrunner.R");
+    File rrunnerPath = new File(model, "R/rrunner.R");
 
     return executeCommand(model, logger, flags.rLocation.getPath(),
-        rrunnerPath,
+        rrunnerPath.getPath(),
         "--paramfile=" + variablesFile.getPath(),
-        "--rscript=" + new File(projectPath, flags.rScript.getPath()).getPath(),
-        "--outputpath=" + outputPath.getAbsolutePath() + File.separator,
-        "--inputpath=" + projectPath
-    );
+        "--rscript=" + new File(projectPath, flags.rScript.getPath()).getPath());
   }
 
   /**
