@@ -1,6 +1,6 @@
 package au.edu.rmit.tzar.commands;
 
-import au.edu.rmit.tzar.api.TzarException;
+import au.edu.rmit.tzar.api.RdvException;
 import au.edu.rmit.tzar.db.RunDao;
 import au.edu.rmit.tzar.db.Utils;
 
@@ -35,7 +35,7 @@ public class PrintRuns implements Command {
   }
 
   @Override
-  public boolean execute() throws InterruptedException, TzarException {
+  public boolean execute() throws InterruptedException, RdvException {
     runDao.printRuns(states, hostname, runset, runIds, truncateOutput, outputType);
     return true;
   }

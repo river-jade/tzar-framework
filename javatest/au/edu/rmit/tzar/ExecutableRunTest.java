@@ -1,7 +1,7 @@
 package au.edu.rmit.tzar;
 
 import au.edu.rmit.tzar.api.Parameters;
-import au.edu.rmit.tzar.api.TzarException;
+import au.edu.rmit.tzar.api.RdvException;
 import au.edu.rmit.tzar.api.Run;
 import au.edu.rmit.tzar.api.Runner;
 import au.edu.rmit.tzar.repository.CodeRepository;
@@ -24,7 +24,6 @@ public class ExecutableRunTest extends TestCase {
   public static final int RUN_ID = 1234;
   private static final String REVISION = "12334a";
   private static final File MODEL = new File("/path/to/model");
-  private static final String PROJECT_NAME = "project name";
   private static final Map<String, String> VARIABLES = new HashMap<String, String>();
   { VARIABLES.put("aaa", "123");
     VARIABLES.put("aab", "124");
@@ -33,8 +32,6 @@ public class ExecutableRunTest extends TestCase {
   private static final Map<String, String> INPUT_FILES = new HashMap<String, String>();
   private static final Map<String, String> OUTPUT_FILES = new HashMap<String, String>();
   private static final String RUNNER_CLASS = "MockRunner";
-  private static final String SCENARIO_NAME = "a scenario";
-  private static final String RUNSET = "runset_1";
 
   private Run run = mock(Run.class);
   private CodeRepository codeRepository = mock(CodeRepository.class);
@@ -45,37 +42,33 @@ public class ExecutableRunTest extends TestCase {
   @Override
   public void setUp() throws Exception {
     File BASE_OUTPUT_PATH = Files.createTempDir();
-    OUTPUT_DIR = new File(BASE_OUTPUT_PATH, Utils.Path.combineAndReplaceWhitespace("_", PROJECT_NAME, RUNSET,
-        RUN_ID + "_" + SCENARIO_NAME)).toString();
+    OUTPUT_DIR = BASE_OUTPUT_PATH + "/a_run_name_" + RUN_ID;
 
     when(run.getRunId()).thenReturn(RUN_ID);
-    when(run.getProjectName()).thenReturn(PROJECT_NAME);
-    when(run.getScenarioName()).thenReturn(SCENARIO_NAME);
-    when(run.getRunset()).thenReturn(RUNSET);
+    when(run.getName()).thenReturn("a run name");
     when(run.getRunnerClass()).thenReturn(RUNNER_CLASS);
-    when(run.getRevision()).thenReturn(REVISION);
     executableRun = ExecutableRun.createExecutableRun(run, BASE_OUTPUT_PATH, codeRepository,
         runnerFactory);
   }
 
   public void testCreateExecutableRun() {
-    assertEquals(OUTPUT_DIR + ExecutableRun.INPROGRESS_SUFFIX, executableRun.getOutputPath().toString());
+    assertEquals(OUTPUT_DIR, executableRun.getOutputPath().toString());
     assertEquals(RUN_ID, executableRun.getRunId());
     assertEquals(run, executableRun.getRun());
 
   }
 
-  public void testExecuteSuccess() throws TzarException {
+  public void testExecuteSuccess() throws RdvException {
     testExecute(true);
     assertTrue(new File(OUTPUT_DIR).exists());
   }
 
-  public void testExecuteFailure() throws TzarException {
+  public void testExecuteFailure() throws RdvException {
     testExecute(false);
     assertTrue(new File(OUTPUT_DIR + ".failed").exists());
   }
 
-  public void testExecute(boolean success) throws TzarException {
+  public void testExecute(boolean success) throws RdvException {
     when(codeRepository.getModel(REVISION)).thenReturn(MODEL);
     Parameters parameters = Parameters.createParameters(VARIABLES, INPUT_FILES, OUTPUT_FILES);
     when(run.getParameters()).thenReturn(parameters);
@@ -97,7 +90,7 @@ public class ExecutableRunTest extends TestCase {
 
     @Override
     public boolean runModel(File model, File outputPath, String runId, String flagsString, Parameters parameters,
-          Logger logger) throws TzarException {
+          Logger logger) throws RdvException {
       Map<String, String> variables = Maps.newHashMap(VARIABLES);
       variables.put("aac", "124" + RUN_ID + "123"); // because the id wildcard will be replaced
       assertEquals(Parameters.createParameters(variables, INPUT_FILES, OUTPUT_FILES), parameters);

@@ -1,7 +1,7 @@
 package au.edu.rmit.tzar;
 
 import au.edu.rmit.tzar.api.Parameters;
-import au.edu.rmit.tzar.api.TzarException;
+import au.edu.rmit.tzar.api.RdvException;
 import au.edu.rmit.tzar.api.Runner;
 import com.google.common.base.Joiner;
 
@@ -24,7 +24,7 @@ public class CommandRunner implements Runner {
 
   @Override
   public boolean runModel(File model, File outputPath, String runId, String flagsString, Parameters parameters,
-      Logger logger) throws TzarException {
+      Logger logger) throws RdvException {
     String[] command = new String[]{model.getPath() + "/run_model", "-v", "-o", outputPath.getAbsolutePath()};
     LOG.info("Executing: " + joiner.join(command));
 
@@ -32,7 +32,7 @@ public class CommandRunner implements Runner {
     try {
       process = Runtime.getRuntime().exec(command, new String[]{}, model);
     } catch (IOException e) {
-      throw new TzarException(e);
+      throw new RdvException(e);
     }
 
     Utils.copyStreamToLog(process.getInputStream(), LOG, Level.INFO);
@@ -42,7 +42,7 @@ public class CommandRunner implements Runner {
       return retVal == 0;
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
-      throw new TzarException(e);
+      throw new RdvException(e);
     }
   }
 }

@@ -1,19 +1,17 @@
 package au.edu.rmit.tzar;
 
 import au.edu.rmit.tzar.api.Parameters;
-import au.edu.rmit.tzar.api.TzarException;
+import au.edu.rmit.tzar.api.RdvException;
 import au.edu.rmit.tzar.api.Run;
 import au.edu.rmit.tzar.api.Runner;
 import au.edu.rmit.tzar.parser.YamlParser;
 import au.edu.rmit.tzar.repository.CodeRepository;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Files;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.logging.FileHandler;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -25,20 +23,14 @@ import java.util.regex.Pattern;
 public class ExecutableRun {
   private static final Logger LOG = Logger.getLogger(ExecutableRun.class.getName());
   // this is the Logger that will be used by runner to write to the console and logfiles
-  private static final Logger RUNNER_LOGGER = Logger.getLogger("au.edu.rmit.tzar.ModelRunnerLogger");
+  private static final Logger RUNNER_LOGGER = Logger.getLogger("ModelRunnerLogger");
 
-  @VisibleForTesting
-  static final String INPROGRESS_SUFFIX = ".inprogress";
-  @VisibleForTesting
-  static final String FAILED_SUFFIX = ".failed";
+  private static final String INPROGRESS_SUFFIX = ".inprogress";
+  private static final String FAILED_SUFFIX = ".failed";
 
   private static int nextRunId = 1;
 
-  // the output path, not including the status suffix (ie failed, inprogress etc).
-  private final File baseOutputPath;
-  // the output path. ie the relative path on the local machine where results will be written.
-  private volatile File outputPath;
-
+  private final File outputPath;
   private final Run run;
   private final CodeRepository codeRepository;
   private final RunnerFactory runnerFactory;
@@ -55,17 +47,12 @@ public class ExecutableRun {
    */
   public static ExecutableRun createExecutableRun(Run run, File baseOutputPath, CodeRepository codeRepository,
       RunnerFactory runnerFactory) {
-    String runset = run.getRunset();
-    runset = (runset == null || runset.equals("")) ? "default_runset" : run.getRunset();
-    baseOutputPath = new File(baseOutputPath, Utils.Path.combineAndReplaceWhitespace("_", run.getProjectName(),
-        runset));
-
     if (run.getRunId() == -1) {
       run.setRunId(getNextRunId(baseOutputPath));
     }
     // replace whitespace and punctuation in run name with '_' to make a valid path.
-    String dirName = Utils.Path.combineAndReplaceWhitespace("_", run.getRunId() + "_" + run.getScenarioName());
-    LOG.log(Level.FINER, "Creating run: {0}", run);
+    String dirName = run.getName().replaceAll("\\W", "_") + "_" + run.getRunId();
+    LOG.finer(String.format("Creating run: %s", run));
     return new ExecutableRun(run, new File(baseOutputPath, dirName), codeRepository, runnerFactory);
   }
 
@@ -73,66 +60,66 @@ public class ExecutableRun {
    * Constructor.
    *
    * @param run            run to execute
-   * @param baseOutputPath     local path for output for this run.
+   * @param outputPath     local path for output for this run.
    * @param codeRepository the repository from which to download the model code
    * @param runnerFactory  factory to create runner instances
    */
-  private ExecutableRun(Run run, File baseOutputPath, CodeRepository codeRepository, RunnerFactory runnerFactory) {
+  private ExecutableRun(Run run, File outputPath, CodeRepository codeRepository, RunnerFactory runnerFactory) {
     this.run = run;
     this.codeRepository = codeRepository;
     this.runnerFactory = runnerFactory;
-    this.baseOutputPath = baseOutputPath;
-    this.outputPath = new File(baseOutputPath + INPROGRESS_SUFFIX);
+    this.outputPath = outputPath;
   }
 
   /**
    * Execute this run.
    *
    * @return true if the run executed successfully, false otherwise
-   * @throws TzarException if an error occurs executing the run
+   * @throws RdvException if an error occurs executing the run
    */
-  public boolean execute() throws TzarException {
+  public boolean execute() throws RdvException {
     File model = codeRepository.getModel(run.getRevision());
+    File inprogressOutputPath = new File(outputPath + INPROGRESS_SUFFIX);
+
     try {
-      if (outputPath.exists()) {
-        LOG.warning("Temp output path: " + outputPath + " already exists. Deleting.");
-        Files.deleteRecursively(outputPath);
+      if (inprogressOutputPath.exists()) {
+        LOG.warning("Temp output path: " + inprogressOutputPath + " already exists. Deleting.");
+        Files.deleteRecursively(inprogressOutputPath);
       }
-      LOG.info("Creating temporary outputdir: " + outputPath);
-      if (!outputPath.mkdirs()) {
-        throw new IOException("Couldn't create temp output dir: " + outputPath);
+      LOG.info("Creating temporary outputdir: " + inprogressOutputPath);
+      if (!inprogressOutputPath.mkdirs()) {
+        throw new IOException("Couldn't create temp output dir: " + inprogressOutputPath);
       }
 
-      LOG.info(String.format("Running model: %s, run_id: %d, Project name: %s, Scenario name: %s, " +
-          "Flags: %s", model, getRunId(), run.getProjectName(), run.getScenarioName(), run.getFlags()));
+      LOG.info(String.format("Running model: %s, run_id: %d, Run name: %s, Flags: %s", model, getRunId(),
+          run.getName(), run.getFlags()));
       // TODO(michaell): Add some more wildcards here?
-      Parameters parameters = run.getParameters().replaceWildcards(
-          ImmutableMap.of(
-              "run_id", Integer.toString(getRunId()),
-              "source_root", model.getAbsolutePath(),
-              "output_path", outputPath.getAbsolutePath()
-          ));
+      Parameters parameters = run.getParameters().replaceWildcards(ImmutableMap.of("run_id",
+          Integer.toString(getRunId())));
 
       FileHandler handler = null;
       boolean success = false;
       try {
-        handler = setupLogFileHandler(outputPath);
+        handler = setupLogFileHandler(inprogressOutputPath);
         RUNNER_LOGGER.addHandler(handler);
-        File parametersFile = new File(outputPath, "parameters.yaml");
+        File parametersFile = new File(inprogressOutputPath, "parameters.yaml");
         yamlParser.parametersToYaml(parameters, parametersFile);
         Runner runner = runnerFactory.getRunner(run.getRunnerClass());
-        success = runner.runModel(model, outputPath, Integer.toString(run.getRunId()), run.getFlags(),
+        success = runner.runModel(model, inprogressOutputPath, Integer.toString(run.getRunId()), run.getFlags(),
             parameters, RUNNER_LOGGER);
       } finally {
         if (handler != null) {
           RUNNER_LOGGER.removeHandler(handler);
           handler.close();
         }
-        renameOutputDir(success);
+      }
+      renameOutputDir(inprogressOutputPath, success);
+      if (success) {
+        run.setOutputPath(outputPath);
       }
       return success;
     } catch (IOException e) {
-      throw new TzarException(e);
+      throw new RdvException(e);
     }
   }
 
@@ -149,12 +136,12 @@ public class ExecutableRun {
       LOG.info("Outputdir doesn't exist. Creating it (and parents)");
       baseOutputPath.mkdirs();
     }
-    Pattern pattern = Pattern.compile("(\\d+)(_.*)+(?:\\.failed|\\.inprogress)?");
+    Pattern pattern = Pattern.compile("(.*_)+([^\\.]*)(?:\\.failed|\\.inprogress)?");
     for (File file : baseOutputPath.listFiles()) {
       Matcher matcher = pattern.matcher(file.getName());
       if (matcher.matches() && matcher.groupCount() >= 2) {
         try {
-          int id = Integer.parseInt(matcher.group(1));
+          int id = Integer.parseInt(matcher.group(2));
           max = Math.max(max, id + 1);
         } catch (NumberFormatException e) {
           LOG.fine(file + " does not match expected pattern for output directory.");
@@ -192,17 +179,16 @@ public class ExecutableRun {
     return run.getRunId();
   }
 
-  private void renameOutputDir(boolean success) throws TzarException {
-    File destPath = success ? baseOutputPath : new File(baseOutputPath + FAILED_SUFFIX);
+  private void renameOutputDir(File sourcePath, boolean success) throws RdvException {
+    File destPath = success ? outputPath : new File(outputPath + FAILED_SUFFIX);
     if (destPath.exists()) {
       try {
         LOG.warning("Path: " + destPath + " already exists. Deleting.");
         Files.deleteRecursively(destPath);
       } catch (IOException e) {
-        throw new TzarException("Unable to delete existing path: " + destPath, e);
+        throw new RdvException("Unable to delete existing path: " + destPath, e);
       }
     }
-    Utils.fileRename(outputPath, destPath);
-    outputPath = destPath;
+    Utils.fileRename(sourcePath, destPath);
   }
 }

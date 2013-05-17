@@ -1,6 +1,6 @@
 package au.edu.rmit.tzar.db;
 
-import au.edu.rmit.tzar.api.TzarException;
+import au.edu.rmit.tzar.api.RdvException;
 
 import java.sql.SQLException;
 
@@ -10,23 +10,23 @@ import java.sql.SQLException;
 public class DaoFactory {
   private final ConnectionFactory connectionFactory;
 
-  public DaoFactory(String dbUrl) throws TzarException {
+  public DaoFactory(String dbUrl) throws RdvException {
     this.connectionFactory = new ConnectionFactory(dbUrl);
   }
 
-  public RunDao createRunDao() throws TzarException {
+  public RunDao createRunDao() throws RdvException {
     try {
       return new RunDao(connectionFactory, new ParametersDao(connectionFactory));
     } catch (SQLException e) {
-      throw new TzarException(e);
+      throw new RdvException(e);
     }
   }
 
-  public ParametersDao createParametersDao() throws TzarException {
+  public ParametersDao createParametersDao() throws RdvException {
     try {
       return new ParametersDao(connectionFactory);
     } catch (SQLException e) {
-      throw new TzarException(e);
+      throw new RdvException(e);
     }
   }
 }

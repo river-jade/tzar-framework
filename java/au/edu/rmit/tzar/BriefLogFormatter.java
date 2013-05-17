@@ -3,7 +3,6 @@ package au.edu.rmit.tzar;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.text.DateFormat;
-import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.logging.Formatter;
@@ -30,13 +29,9 @@ public class BriefLogFormatter extends Formatter {
         .append("[")
         .append(record.getLevel()).append('|')
         .append(format.format(new Date(record.getMillis())))
-        .append("]: ");
-    if (record.getParameters() == null || record.getParameters().length == 0) {
-      output.append(record.getMessage());
-    } else {
-      output.append(MessageFormat.format(record.getMessage(), record.getParameters()));
-    }
-    output.append(' ').append(lineSep);
+        .append("]: ")
+        .append(record.getMessage()).append(' ')
+        .append(lineSep);
     if (record.getThrown() != null) {
       try {
         StringWriter sw = new StringWriter();
