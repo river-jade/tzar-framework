@@ -1,7 +1,7 @@
 package au.edu.rmit.tzar.parser;
 
 import au.edu.rmit.tzar.api.Parameters;
-import au.edu.rmit.tzar.api.TzarException;
+import au.edu.rmit.tzar.api.RdvException;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import junit.framework.TestCase;
@@ -52,7 +52,7 @@ public class RepetitionsTest extends TestCase {
    * Tests that if there are no generated repetitions define, the parameters list is
    * just equal to the static repetitions.
    */
-  public void testStaticRepetitions() throws TzarException {
+  public void testStaticRepetitions() throws RdvException {
     Repetitions repetitions = new Repetitions(staticRepetitions, null);
     assertEquals(staticRepetitions, repetitions.getParamsList());
   }
@@ -60,7 +60,7 @@ public class RepetitionsTest extends TestCase {
   /**
    * Tests basic linear step generation with no static repetitions.
    */
-  public void testGeneratedRepetitions() throws TzarException {
+  public void testGeneratedRepetitions() throws RdvException {
     List<RepetitionGenerator<?>> generators = Lists.newArrayList();
     generators.add(new LinearStepGenerator(KEY, BigDecimal.valueOf(1.0), 10, BigDecimal.valueOf(2.0)));
     Repetitions repetitions = new Repetitions(null, generators);

@@ -22,9 +22,9 @@ public interface Runner {
    * will log to a file in the output directory. By default, INFO level logs will go to
    * console. If --verbose is set, then FINE logs will also go to console.
    * @return true if the run succeeded, false otherwise
-   * @throws TzarException
+   * @throws RdvException
    */
   // TODO(michaell): read flags from project spec
   boolean runModel(File model, File outputPath, String runId, String flagsString, Parameters parameters,
-      Logger logger) throws TzarException;
+      Logger logger) throws RdvException;
 }

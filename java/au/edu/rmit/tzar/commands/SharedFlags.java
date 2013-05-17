@@ -1,7 +1,7 @@
 package au.edu.rmit.tzar.commands;
 
 import au.edu.rmit.tzar.Constants;
-import au.edu.rmit.tzar.api.TzarException;
+import au.edu.rmit.tzar.api.RdvException;
 import au.edu.rmit.tzar.db.Utils;
 import au.edu.rmit.tzar.repository.CodeRepository;
 import au.edu.rmit.tzar.repository.LocalFileRepository;
@@ -78,7 +78,7 @@ class SharedFlags {
           try {
             // check that revision number is valid
             SvnRepository.parseSvnRevision(revision);
-          } catch (TzarException e) {
+          } catch (RdvException e) {
             throw new ParseException(e);
           }
         }
@@ -211,6 +211,7 @@ class SharedFlags {
     }
 
     public String getRevision() {
+
       return revision;
     }
 

@@ -1,7 +1,7 @@
 package au.edu.rmit.tzar.db;
 
 import au.com.bytecode.opencsv.CSVWriter;
-import au.edu.rmit.tzar.api.TzarException;
+import au.edu.rmit.tzar.api.RdvException;
 import com.google.common.collect.Lists;
 
 import java.io.IOException;
@@ -20,7 +20,7 @@ import java.util.logging.Logger;
 public class Utils {
   private static final Logger LOG = Logger.getLogger(Utils.class.getName());
 
-  public static void close(Connection connection, boolean exceptionOccurred) throws TzarException {
+  public static void close(Connection connection, boolean exceptionOccurred) throws RdvException {
     try {
       connection.close();
     } catch (SQLException e) {
@@ -29,7 +29,7 @@ public class Utils {
         // so that we don't lose the original one...
         LOG.log(Level.SEVERE, "Unable to close JDBC Connection", e);
       } else {
-        throw new TzarException("Unable to close JDBC Connection");
+        throw new RdvException("Unable to close JDBC Connection");
       }
     }
   }
@@ -40,9 +40,9 @@ public class Utils {
    * @param rs             the resultset to print
    * @param truncateOutput if the output columns should be truncated. ignore unless outputType is PRETTY.
    * @param outputType     output format to print
-   * @throws TzarException if the result set can't be read
+   * @throws RdvException if the result set can't be read
    */
-  public static void printResultSet(ResultSet rs, boolean truncateOutput, OutputType outputType) throws TzarException {
+  public static void printResultSet(ResultSet rs, boolean truncateOutput, OutputType outputType) throws RdvException {
     try {
       switch (outputType) {
         case PRETTY:
@@ -53,9 +53,9 @@ public class Utils {
           break;
       }
     } catch (SQLException e) {
-      throw new TzarException(e);
+      throw new RdvException(e);
     } catch (IOException e) {
-      throw new TzarException(e);
+      throw new RdvException(e);
     }
   }
 

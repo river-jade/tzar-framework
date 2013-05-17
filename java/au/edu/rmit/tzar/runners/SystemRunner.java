@@ -1,7 +1,7 @@
 package au.edu.rmit.tzar.runners;
 
 import au.edu.rmit.tzar.api.Parameters;
-import au.edu.rmit.tzar.api.TzarException;
+import au.edu.rmit.tzar.api.RdvException;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
 import com.google.common.base.Joiner;
@@ -17,7 +17,7 @@ import java.util.logging.Logger;
  * system command (eg Python, or R) and run a script.
  */
 public abstract class SystemRunner {
-  protected File writeVariablesFile(File outputPath, Parameters parameters) throws TzarException {
+  protected File writeVariablesFile(File outputPath, Parameters parameters) throws RdvException {
     Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
     File variablesFile = new File(outputPath, "parameters.json");
@@ -26,12 +26,12 @@ public abstract class SystemRunner {
       gson.toJson(parameters, writer);
       writer.close();
     } catch (IOException e) {
-      throw new TzarException(e);
+      throw new RdvException(e);
     }
     return variablesFile;
   }
 
-  protected boolean executeCommand(File model, Logger logger, String... command) throws TzarException {
+  protected boolean executeCommand(File model, Logger logger, String... command) throws RdvException {
     try {
       logger.fine(Joiner.on(" ").join(command));
       ProcessBuilder processBuilder = new ProcessBuilder(command);
@@ -49,18 +49,18 @@ public abstract class SystemRunner {
       }
       return process.waitFor() == 0;
     } catch (IOException e) {
-      throw new TzarException(e);
+      throw new RdvException(e);
     } catch (InterruptedException e) {
-      throw new TzarException(e);
+      throw new RdvException(e);
     }
   }
 
-  protected static <T> T parseFlags(String[] flagString, T flags) throws TzarException {
+  protected static <T> T parseFlags(String[] flagString, T flags) throws RdvException {
     JCommander jcommander = new JCommander(flags);
     try {
       jcommander.parse(flagString);
     } catch (ParameterException e) {
-      throw new TzarException("Error parsing flag string: " + Arrays.toString(flagString), e);
+      throw new RdvException("Error parsing flag string: " + Arrays.toString(flagString), e);
     }
     return flags;
   }

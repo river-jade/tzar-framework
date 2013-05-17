@@ -2,7 +2,7 @@ package au.edu.rmit.tzar.parser;
 
 import au.edu.rmit.tzar.api.Parameters;
 import au.edu.rmit.tzar.api.ProjectSpec;
-import au.edu.rmit.tzar.api.TzarException;
+import au.edu.rmit.tzar.api.RdvException;
 import au.edu.rmit.tzar.api.Scenario;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
@@ -39,9 +39,9 @@ public class YamlParser {
    * @param file the yaml file
    * @return a newly constructed and populated Parameters object
    * @throws java.io.FileNotFoundException if the file does not exist
-   * @throws TzarException          if the file cannot be parsed
+   * @throws au.edu.rmit.tzar.api.RdvException          if the file cannot be parsed
    */
-  public Parameters parametersFromYaml(File file) throws FileNotFoundException, TzarException {
+  public Parameters parametersFromYaml(File file) throws FileNotFoundException, RdvException {
     if (file == null) {
       return Parameters.EMPTY_PARAMETERS;
     }
@@ -59,9 +59,9 @@ public class YamlParser {
    * @param file the yaml file
    * @return a newly constructed and populated ProjectSpec object
    * @throws java.io.FileNotFoundException if the file does not exist
-   * @throws TzarException          if the file cannot be parsed
+   * @throws au.edu.rmit.tzar.api.RdvException          if the file cannot be parsed
    */
-  public ProjectSpec projectSpecFromYaml(File file) throws FileNotFoundException, TzarException {
+  public ProjectSpec projectSpecFromYaml(File file) throws FileNotFoundException, RdvException {
     Yaml yaml = new Yaml(new ProjectSpecConstructor());
     ProjectSpec projectSpec = objectFromYaml(file, ProjectSpecBean.class, yaml).toProjectSpec();
     projectSpec.validate();
@@ -79,7 +79,7 @@ public class YamlParser {
     objectToYaml(ProjectSpecBean.fromProjectSpec(spec), file);
   }
 
-  public Repetitions repetitionsFromYaml(File repetitionsFile) throws TzarException, FileNotFoundException {
+  public Repetitions repetitionsFromYaml(File repetitionsFile) throws RdvException, FileNotFoundException {
     if (repetitionsFile == null) {
       return Repetitions.EMPTY_REPETITIONS;
     }
@@ -87,7 +87,7 @@ public class YamlParser {
     return objectFromYaml(repetitionsFile, RepetitionsBean.class, yaml).toRepetitions();
   }
 
-  public Repetitions repetitionsFromYaml(String repetitionsYaml) throws TzarException {
+  public Repetitions repetitionsFromYaml(String repetitionsYaml) throws RdvException {
     Yaml yaml = new Yaml(new Constructor(RepetitionsBean.class));
     return objectFromYaml(repetitionsYaml, RepetitionsBean.class, yaml).toRepetitions();
   }
@@ -106,7 +106,7 @@ public class YamlParser {
     }
   }
 
-  private <T> T objectFromYaml(File file, Class<T> aClass, Yaml yaml) throws FileNotFoundException, TzarException {
+  private <T> T objectFromYaml(File file, Class<T> aClass, Yaml yaml) throws FileNotFoundException, RdvException {
     yaml.setBeanAccess(BeanAccess.FIELD);
     return yaml.loadAs(new FileReader(file), aClass);
   }
@@ -130,13 +130,13 @@ public class YamlParser {
   }
 
   @SuppressWarnings("unchecked")
-  private <T> T objectFromYaml(String yamlStr, Class<T> aClass, Yaml yaml) throws TzarException {
+  private <T> T objectFromYaml(String yamlStr, Class<T> aClass, Yaml yaml) throws RdvException {
     yaml.setBeanAccess(BeanAccess.FIELD);
     Object obj = yaml.load(yamlStr);
     if (obj.getClass() == aClass) {
       return (T) obj;
     } else {
-      throw new TzarException("Yaml load resulted in unexpected type: " + obj.getClass());
+      throw new RdvException("Yaml load resulted in unexpected type: " + obj.getClass());
     }
   }
 
@@ -177,7 +177,7 @@ public class YamlParser {
             variables == null ? ImmutableMap.<String, Object>of() : variables,
             input_files == null ? ImmutableMap.<String, String>of() : input_files,
             output_files == null ? ImmutableMap.<String, String>of() : output_files);
-      } catch (TzarException e) {
+      } catch (RdvException e) {
         throw new YAMLException("Couldn't parse parameters.", e);
       }
     }

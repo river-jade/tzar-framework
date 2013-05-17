@@ -1,6 +1,6 @@
 package au.edu.rmit.tzar.resultscopier;
 
-import au.edu.rmit.tzar.api.TzarException;
+import au.edu.rmit.tzar.api.RdvException;
 import au.edu.rmit.tzar.api.Run;
 
 import java.io.File;
@@ -18,9 +18,9 @@ public interface ResultsCopier {
    * @param run        the run containing the results to be copied
    * @param sourcePath the path containing the run results
    * @param success    true if the run was successful
-   * @throws TzarException if the files could not be copied
+   * @throws RdvException if the files could not be copied
    */
-  void copyResults(Run run, File sourcePath, boolean success) throws TzarException;
+  void copyResults(Run run, File sourcePath, boolean success) throws RdvException;
 
   /**
    * Gets the base destination path for this copier.

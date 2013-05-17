@@ -1,6 +1,6 @@
 package au.edu.rmit.tzar.db;
 
-import au.edu.rmit.tzar.api.TzarException;
+import au.edu.rmit.tzar.api.RdvException;
 import com.jolbox.bonecp.BoneCP;
 import com.jolbox.bonecp.BoneCPConfig;
 
@@ -15,12 +15,12 @@ class ConnectionFactory {
   private static final Logger LOG = Logger.getLogger(ConnectionFactory.class.getName());
   private final BoneCP connectionPool;
 
-  public ConnectionFactory(String dbString) throws TzarException {
+  public ConnectionFactory(String dbString) throws RdvException {
     LOG.fine("Creating connection to DB: " + dbString);
     try {
       Class.forName("org.postgresql.Driver"); 	// load the DB driver
     } catch (ClassNotFoundException e) {
-      throw new TzarException("Couldn't load postgres driver", e);
+      throw new RdvException("Couldn't load postgres driver", e);
     }
     BoneCPConfig config = new BoneCPConfig();
     config.setJdbcUrl(dbString);
@@ -32,7 +32,7 @@ class ConnectionFactory {
     try {
       connectionPool = new BoneCP(config);
     } catch (SQLException e) {
-      throw new TzarException(e);
+      throw new RdvException(e);
     }
   }
 
@@ -44,13 +44,13 @@ class ConnectionFactory {
    * if a connection doesn't become available after a time, an exception will
    * be thrown.
    * @return a database connection
-   * @throws TzarException if the connection couldn't be obtained
+   * @throws RdvException if the connection couldn't be obtained
    */
-  public Connection createConnection() throws TzarException {
+  public Connection createConnection() throws RdvException {
     try {
       return connectionPool.getConnection();
     } catch (SQLException e) {
-      throw new TzarException(e);
+      throw new RdvException(e);
     }
   }
 }

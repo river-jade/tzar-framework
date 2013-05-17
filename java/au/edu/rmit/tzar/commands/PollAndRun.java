@@ -3,7 +3,7 @@ package au.edu.rmit.tzar.commands;
 import au.edu.rmit.tzar.ExecutableRun;
 import au.edu.rmit.tzar.RunnerFactory;
 import au.edu.rmit.tzar.Utils;
-import au.edu.rmit.tzar.api.TzarException;
+import au.edu.rmit.tzar.api.RdvException;
 import au.edu.rmit.tzar.api.Run;
 import au.edu.rmit.tzar.db.RunDao;
 import au.edu.rmit.tzar.repository.CodeRepository;
@@ -83,7 +83,7 @@ class PollAndRun implements Command {
    * @param runnerFactory to create runners
    */
   public PollAndRun(RunDao runDao, ResultsCopier resultsCopier,
-        File baseOutputPath, CodeRepository codeRepository, RunnerFactory runnerFactory) throws TzarException {
+        File baseOutputPath, CodeRepository codeRepository, RunnerFactory runnerFactory) throws RdvException {
     this.baseOutputPath = baseOutputPath;
     this.codeRepository = codeRepository;
     this.runnerFactory = runnerFactory;
@@ -130,7 +130,7 @@ class PollAndRun implements Command {
           if (spinCounter * spinnerDelay >= pollCounter * sleepTimeMillis) {
             pollCounter++;
           }
-        } catch (TzarException e) {
+        } catch (RdvException e) {
           LOG.log(Level.SEVERE, "Error occurred executing run.", e);
           System.out.println("\n");
           runningTasks.release();
@@ -164,7 +164,7 @@ class PollAndRun implements Command {
     }
   }
 
-  private void executeRun(final Run run) throws TzarException, InterruptedException {
+  private void executeRun(final Run run) throws RdvException, InterruptedException {
     ExecutableRun executableRun = ExecutableRun.createExecutableRun(run, baseOutputPath, codeRepository,
         runnerFactory);
 
@@ -215,7 +215,7 @@ class PollAndRun implements Command {
       boolean success = false;
       try {
         success = executableRun.execute();
-      } catch (TzarException e) {
+      } catch (RdvException e) {
         LOG.log(Level.SEVERE, "Error occurred executing run: " + run.getRunId(), e);
         System.out.println("\n");
       } finally {
@@ -229,14 +229,8 @@ class PollAndRun implements Command {
         }
 
         try {
-          Utils.Retryable.retryWithBackoff(5/* retry attempts */ ,
-              5000/* initial backoff */,
-              new Utils.Retryable() {
-            public void exec() throws TzarException {
-              runDao.persistRun(run);
-            }
-          });
-        } catch (TzarException e) {
+          runDao.persistRun(run);
+        } catch (RdvException e) {
           LOG.log(Level.SEVERE, "Error occurred persisting run status change for Run:" + run.getRunId() +
               " to database. Run status will be invalid.", e);
           System.out.println("\n");
@@ -245,8 +239,8 @@ class PollAndRun implements Command {
 
       try {
         resultsCopier.copyResults(run, executableRun.getOutputPath(), success);
-      } catch (TzarException e) {
-        LOG.log(Level.WARNING, "Failed to copy the results for run: " + run.getRunId(), e);
+      } catch (RdvException e) {
+        LOG.log(Level.WARNING, "Failed to copy the results for run: " + run, e);
       }
       callback.complete();
     }

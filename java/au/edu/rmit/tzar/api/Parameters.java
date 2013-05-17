@@ -32,10 +32,10 @@ public class Parameters {
    * @param inputFiles
    * @param outputFiles
    * @return a new Parameters object
-   * @throws TzarException if there are duplicate keys
+   * @throws RdvException if there are duplicate keys
    */
   public static Parameters createParameters(Map<String, ?> variables, Map<String, String> inputFiles,
-      Map<String, String> outputFiles) throws TzarException {
+      Map<String, String> outputFiles) throws RdvException {
     checkForDuplicateKeys(variables, inputFiles);
     checkForDuplicateKeys(variables, outputFiles);
     checkForDuplicateKeys(inputFiles, outputFiles);
@@ -113,7 +113,7 @@ public class Parameters {
    * @return a new Parameters object containing a merged version of the two provided Parameters
    *         objects
    */
-  public Parameters mergeParameters(Parameters overrideParameters) throws TzarException {
+  public Parameters mergeParameters(Parameters overrideParameters) throws RdvException {
     Map<String, Object> variables = mergeParameters(getVariables(), overrideParameters.getVariables());
     Map<String, String> inputFiles = mergeParameters(getInputFiles(),
         overrideParameters.getInputFiles());
@@ -124,7 +124,7 @@ public class Parameters {
 
   // TODO(michaell): javadocs
   public Parameters mergeParameters(Map<String, Object> variables, Map<String, String> inputFiles,
-      Map<String, String> outputFiles) throws TzarException {
+      Map<String, String> outputFiles) throws RdvException {
     return mergeParameters(createParameters(variables, inputFiles, outputFiles));
   }
 
@@ -177,10 +177,10 @@ public class Parameters {
     return map.put(key, (T) value);
   }
 
-  private static void checkForDuplicateKeys(Map<String, ?> map1, Map<String, ?> map2) throws TzarException {
+  private static void checkForDuplicateKeys(Map<String, ?> map1, Map<String, ?> map2) throws RdvException {
     Sets.SetView<String> intersection = Sets.intersection(map1.keySet(), map2.keySet());
     if (!intersection.isEmpty()) {
-      throw new TzarException("Duplicate keys found. There cannot be any shared keys between variables, " +
+      throw new RdvException("Duplicate keys found. There cannot be any shared keys between variables, " +
           "input_files and output_files. Duplicate keys are: " + intersection);
     }
   }

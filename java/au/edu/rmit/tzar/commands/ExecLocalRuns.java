@@ -3,7 +3,7 @@ package au.edu.rmit.tzar.commands;
 import au.edu.rmit.tzar.ExecutableRun;
 import au.edu.rmit.tzar.RunFactory;
 import au.edu.rmit.tzar.RunnerFactory;
-import au.edu.rmit.tzar.api.TzarException;
+import au.edu.rmit.tzar.api.RdvException;
 import au.edu.rmit.tzar.api.Run;
 import au.edu.rmit.tzar.repository.CodeRepository;
 import com.google.common.collect.Lists;
@@ -34,7 +34,7 @@ class ExecLocalRuns implements Command {
 
   public ExecLocalRuns(int numRuns, RunFactory runFactory, File baseOutputPath,
       CodeRepository codeRepository, RunnerFactory runnerFactory, String runnerClass)
-      throws TzarException, IOException {
+      throws RdvException, IOException {
     this.numRuns = numRuns;
     this.baseOutputPath = baseOutputPath;
     this.codeRepository = codeRepository;
@@ -44,7 +44,7 @@ class ExecLocalRuns implements Command {
   }
 
   @Override
-  public boolean execute() throws InterruptedException, TzarException {
+  public boolean execute() throws InterruptedException, RdvException {
     List<Run> runs = runFactory.createRuns(numRuns, runnerClass);
     List<Integer> failedIds = Lists.newArrayList();
     for (Run run : runs) {
@@ -62,14 +62,14 @@ class ExecLocalRuns implements Command {
     } else {
       level = Level.WARNING;
     }
-    LOG.log(level, "Executed {0} runs: {1} succeeded. {2} failed", new Object[]{count, count - failed, failed});
+    LOG.log(level, String.format("Executed %d runs: %d succeeded. %d failed", count, count - failed, failed));
     if (!allSuccess) {
       LOG.warning("Failed IDs were: " + failedIds);
     }
     return allSuccess;
   }
 
-  private boolean executeRun(ExecutableRun run) throws TzarException {
+  private boolean executeRun(ExecutableRun run) throws RdvException {
     if (run.execute()) {
       LOG.info("Run " + run.getRunId() + " succeeded.");
       return true;

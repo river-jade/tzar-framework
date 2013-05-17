@@ -1,7 +1,7 @@
 package au.edu.rmit.tzar.commands;
 
 import au.edu.rmit.tzar.Utils;
-import au.edu.rmit.tzar.api.TzarException;
+import au.edu.rmit.tzar.api.RdvException;
 import au.edu.rmit.tzar.api.Run;
 import au.edu.rmit.tzar.db.RunDao;
 import au.edu.rmit.tzar.resultscopier.SshClientFactoryKeyAuth;
@@ -98,13 +98,13 @@ class AggregateResults implements Command {
   }
 
   @Override
-  public boolean execute() throws TzarException {
+  public boolean execute() throws RdvException {
     List<Run> runs = runDao.getRuns(states, filterHostname, runset, runIds);
     try {
       for (Run run : runs) {
         LOG.info("Copying results for run: " + run);
         String sourceHost = run.getOutputHost();
-        File runOutputPath = run.getRemoteOutputPath();
+        File runOutputPath = run.getOutputPath();
         if (hostname.equals(sourceHost)) {
           LOG.info("Results are on localhost. Using copy to copy results.");
           Utils.copyDirectory(runOutputPath, destPath, new RunIdRenamer(run.getRunId()), regexFilter);
@@ -118,7 +118,7 @@ class AggregateResults implements Command {
         }
       }
     } catch (IOException e) {
-      throw new TzarException(e);
+      throw new RdvException(e);
     } finally {
       for (SSHClient connection : connections.values()) {
         try {

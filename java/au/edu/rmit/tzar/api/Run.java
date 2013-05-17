@@ -25,7 +25,7 @@ public class Run {
   private final String runset;
   private final String clusterName;
 
-  private volatile File remoteOutputPath;
+  private volatile File outputPath;
   private volatile String outputHost;
   private volatile String runnerClass;
 
@@ -105,20 +105,12 @@ public class Run {
     this.outputHost = outputHost;
   }
 
-  /**
-   * The path where the results of this run are stored on the machine specified by getOutputHost().
-   * @return
-   */
-  public File getRemoteOutputPath() {
-    return remoteOutputPath;
+  public File getOutputPath() {
+    return outputPath;
   }
 
-  /**
-   * Sets the path where the results of this run are stored on the machine specified by getOutputHost().
-   * @return
-   */
-  public void setRemoteOutputPath(File outputPath) {
-    this.remoteOutputPath = outputPath;
+  public void setOutputPath(File outputPath) {
+    this.outputPath = outputPath;
   }
 
   /**
@@ -187,7 +179,7 @@ public class Run {
     if (flags != null ? !flags.equals(run.flags) : run.flags != null) return false;
     if (hostname != null ? !hostname.equals(run.hostname) : run.hostname != null) return false;
     if (outputHost != null ? !outputHost.equals(run.outputHost) : run.outputHost != null) return false;
-    if (remoteOutputPath != null ? !remoteOutputPath.equals(run.remoteOutputPath) : run.remoteOutputPath != null) return false;
+    if (outputPath != null ? !outputPath.equals(run.outputPath) : run.outputPath != null) return false;
     if (parameters != null ? !parameters.equals(run.parameters) : run.parameters != null) return false;
     if (revision != null ? !revision.equals(run.revision) : run.revision != null) return false;
     if (projectName != null ? !projectName.equals(run.projectName) : run.projectName != null) return false;
@@ -215,7 +207,7 @@ public class Run {
     result = 31 * result + (state != null ? state.hashCode() : 0);
     result = 31 * result + (runset != null ? runset.hashCode() : 0);
     result = 31 * result + (clusterName != null ? clusterName.hashCode() : 0);
-    result = 31 * result + (remoteOutputPath != null ? remoteOutputPath.hashCode() : 0);
+    result = 31 * result + (outputPath != null ? outputPath.hashCode() : 0);
     result = 31 * result + (outputHost != null ? outputHost.hashCode() : 0);
     result = 31 * result + (runnerClass != null ? runnerClass.hashCode() : 0);
     return result;

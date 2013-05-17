@@ -20,6 +20,7 @@
         <dependency org="junit" name="junit" rev="4.10" conf="test"/>
         <dependency org="net.schmizz" name="sshj" rev="0.8.1"/>
         <dependency org="net.sf.opencsv" name="opencsv" rev="2.3" conf="tzar"/>
+        <dependency org="com.jcabi" name="jcabi-aspects" rev="0.7.19" conf="tzar"/>
         <dependency org="org.bouncycastle" name="bcprov-jdk16" rev="1.46" conf="tzar-dist; test"/>
         <dependency org="org.fusesource.jansi" name="jansi" rev="1.9"/>
         <dependency org="org.mockito" name="mockito-core" rev="1.9.0-rc1" conf="test"/>

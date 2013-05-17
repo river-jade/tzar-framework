@@ -37,16 +37,16 @@ public class ParametersTest extends TestCase {
     assertEquals(6, parameters.getSize());
   }
 
-  public void testDuplicateKeys() throws TzarException {
+  public void testDuplicateKeys() throws RdvException {
     outputFiles = ImmutableMap.of("x", "foo.gif", "y", "bar.gif");
     try {
       parameters = Parameters.createParameters(variables, inputFiles, outputFiles);
-      fail("Expected TzarException to be thrown but it was not.");
-    } catch (TzarException e) {
+      fail("Expected RdvException to be thrown but it was not.");
+    } catch (RdvException e) {
     }
   }
 
-  public void testMergeParameters() throws TzarException {
+  public void testMergeParameters() throws RdvException {
     Parameters overrides = Parameters.createParameters(ImmutableMap.of("a", 3, "b", 2), ImmutableMap.of("x",
         "foobar.txt"), ImmutableMap.of("c", "foobar.gif"));
     Parameters result1 = parameters.mergeParameters(overrides);
@@ -61,7 +61,7 @@ public class ParametersTest extends TestCase {
     assertEquals("bar.gif", result1.getOutputFiles().get("d"));
   }
 
-  public void testReplaceWildcards() throws TzarException {
+  public void testReplaceWildcards() throws RdvException {
     variables = ImmutableMap.of("a", 1, "b", "$$foo$$");
     inputFiles = ImmutableMap.of("x", "$$foo$$.txt", "y", "bar.txt");
     outputFiles = ImmutableMap.of("c", "$$foo$$.gif", "d", "bar.gif");
