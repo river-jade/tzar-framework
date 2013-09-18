@@ -32,10 +32,6 @@
     </target>
 
     <target name="dist-tzar" depends="checkjar, javac, init-ivy" unless="jar.uptodate">
-        <!-- Add the libs -->
-        <copy todir="${build.dir}/lib">
-            <fileset dir="${lib.dir}"/>
-        </copy>
         <!-- Copy any properties files from source tree to build dir -->
         <copy todir="${build.dir}">
             <fileset dir="${src.dir}">
@@ -63,6 +59,8 @@
          -->
         <jar jarfile="external-libs.jar" keepcompression="false">
             <zipgroupfileset refid="libs.fileset"/>
+            <!-- Add the non-ivy libs -->
+            <zipgroupfileset dir="${lib.dir}" includes="*.jar"/>
         </jar>
         <!-- Build the jar -->
         <jar destfile="${jar.name}" basedir="${build.dir}" keepcompression="false">
