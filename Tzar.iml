@@ -18,67 +18,6 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module-library">
-      <library name="IvyIDEA">
-        <CLASSES>
-          <root url="jar://$USER_HOME$/.ivy2/cache/com.google.guava/guava/jars/guava-r09.jar!/" />
-          <root url="jar://$USER_HOME$/.ivy2/cache/org.slf4j/slf4j-api/jars/slf4j-api-1.6.1.jar!/" />
-          <root url="jar://$USER_HOME$/.ivy2/cache/org.python/jython-standalone/jars/jython-standalone-2.5.3.jar!/" />
-          <root url="jar://$USER_HOME$/.ivy2/cache/org.bouncycastle/bcprov-jdk16/jars/bcprov-jdk16-1.46.jar!/" />
-          <root url="jar://$USER_HOME$/.ivy2/cache/org.hamcrest/hamcrest-core/jars/hamcrest-core-1.1.jar!/" />
-          <root url="jar://$USER_HOME$/.ivy2/cache/org.mockito/mockito-core/jars/mockito-core-1.9.0-rc1.jar!/" />
-          <root url="jar://$USER_HOME$/.ivy2/cache/org.objenesis/objenesis/jars/objenesis-1.0.jar!/" />
-          <root url="jar://$USER_HOME$/.ivy2/cache/com.beust/jcommander/jars/jcommander-1.27.jar!/" />
-          <root url="jar://$USER_HOME$/.ivy2/cache/net.schmizz/sshj/bundles/sshj-0.8.1.jar!/" />
-          <root url="jar://$USER_HOME$/.ivy2/cache/com.google.code.gson/gson/jars/gson-2.2.2.jar!/" />
-          <root url="jar://$USER_HOME$/.ivy2/cache/com.jcraft/jzlib/jars/jzlib-1.1.1.jar!/" />
-          <root url="jar://$USER_HOME$/.ivy2/cache/com.jolbox/bonecp/bundles/bonecp-0.7.1.RELEASE.jar!/" />
-          <root url="jar://$USER_HOME$/.ivy2/cache/net.sf.opencsv/opencsv/jars/opencsv-2.3.jar!/" />
-          <root url="jar://$USER_HOME$/.ivy2/cache/org.fusesource.jansi/jansi/jars/jansi-1.9.jar!/" />
-          <root url="jar://$USER_HOME$/.ivy2/cache/de.regnis.q.sequence/sequence-library/jars/sequence-library-1.0.2.jar!/" />
-          <root url="jar://$USER_HOME$/.ivy2/cache/net.java.dev.jna/jna/jars/jna-3.4.0.jar!/" />
-          <root url="jar://$USER_HOME$/.ivy2/cache/org.antlr/antlr-runtime/jars/antlr-runtime-3.4.jar!/" />
-          <root url="jar://$USER_HOME$/.ivy2/cache/com.trilead/trilead-ssh2/jars/trilead-ssh2-1.0.0-build215.jar!/" />
-          <root url="jar://$USER_HOME$/.ivy2/cache/org.yaml/snakeyaml/bundles/snakeyaml-1.10.jar!/" />
-          <root url="jar://$USER_HOME$/.ivy2/cache/postgresql/postgresql/jars/postgresql-9.1-901.jdbc4.jar!/" />
-          <root url="jar://$USER_HOME$/.ivy2/cache/org.slf4j/slf4j-jdk14/jars/slf4j-jdk14-1.6.6.jar!/" />
-          <root url="jar://$USER_HOME$/.ivy2/cache/org.slf4j/slf4j-api/jars/slf4j-api-1.6.6.jar!/" />
-          <root url="jar://$USER_HOME$/.ivy2/cache/junit/junit/jars/junit-4.10.jar!/" />
-          <root url="jar://$USER_HOME$/.ivy2/cache/com.jcabi/jcabi-aspects/jars/jcabi-aspects-0.7.19.jar!/" />
-          <root url="jar://$USER_HOME$/.ivy2/cache/com.jcabi/jcabi-log/jars/jcabi-log-0.7.jar!/" />
-          <root url="jar://$USER_HOME$/.ivy2/cache/javax.validation/validation-api/jars/validation-api-1.1.0.Final.jar!/" />
-          <root url="jar://$USER_HOME$/.ivy2/cache/commons-lang/commons-lang/jars/commons-lang-2.6.jar!/" />
-          <root url="jar://$USER_HOME$/.ivy2/cache/org.aspectj/aspectjrt/jars/aspectjrt-1.7.2.jar!/" />
-          <root url="jar://$USER_HOME$/.ivy2/cache/org.hibernate/hibernate-validator/jars/hibernate-validator-5.0.0.Final.jar!/" />
-          <root url="jar://$USER_HOME$/.ivy2/cache/org.jboss.logging/jboss-logging/jars/jboss-logging-3.1.1.GA.jar!/" />
-          <root url="jar://$USER_HOME$/.ivy2/cache/com.fasterxml/classmate/bundles/classmate-0.8.0.jar!/" />
-          <root url="jar://$USER_HOME$/.ivy2/cache/org.glassfish.web/javax.el/jars/javax.el-2.2.4.jar!/" />
-          <root url="jar://$USER_HOME$/.ivy2/cache/javax.el/javax.el-api/jars/javax.el-api-2.2.4.jar!/" />
-          <root url="jar://$USER_HOME$/.ivy2/cache/org.tmatesoft.svnkit/svnkit/jars/svnkit-1.7.8.jar!/" />
-          <root url="jar://$USER_HOME$/.ivy2/cache/org.tmatesoft.sqljet/sqljet/jars/sqljet-1.1.6.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES>
-          <root url="jar://$USER_HOME$/.ivy2/cache/com.google.guava/guava/sources/guava-r09-sources.jar!/" />
-          <root url="jar://$USER_HOME$/.ivy2/cache/org.python/jython-standalone/sources/jython-standalone-2.5.3-sources.jar!/" />
-          <root url="jar://$USER_HOME$/.ivy2/cache/org.bouncycastle/bcprov-jdk16/sources/bcprov-jdk16-1.46-sources.jar!/" />
-          <root url="jar://$USER_HOME$/.ivy2/cache/org.mockito/mockito-core/sources/mockito-core-1.9.0-rc1-sources.jar!/" />
-          <root url="jar://$USER_HOME$/.ivy2/cache/com.beust/jcommander/sources/jcommander-1.27-sources.jar!/" />
-          <root url="jar://$USER_HOME$/.ivy2/cache/net.schmizz/sshj/sources/sshj-0.8.1-sources.jar!/" />
-          <root url="jar://$USER_HOME$/.ivy2/cache/com.google.code.gson/gson/sources/gson-2.2.2-sources.jar!/" />
-          <root url="jar://$USER_HOME$/.ivy2/cache/com.jcraft/jzlib/sources/jzlib-1.1.1-sources.jar!/" />
-          <root url="jar://$USER_HOME$/.ivy2/cache/com.jolbox/bonecp/sources/bonecp-0.7.1.RELEASE-sources.jar!/" />
-          <root url="jar://$USER_HOME$/.ivy2/cache/net.sf.opencsv/opencsv/sources/opencsv-2.3-sources.jar!/" />
-          <root url="jar://$USER_HOME$/.ivy2/cache/org.fusesource.jansi/jansi/sources/jansi-1.9-sources.jar!/" />
-          <root url="jar://$USER_HOME$/.ivy2/cache/org.yaml/snakeyaml/sources/snakeyaml-1.10-sources.jar!/" />
-          <root url="jar://$USER_HOME$/.ivy2/cache/postgresql/postgresql/sources/postgresql-9.1-901.jdbc4-sources.jar!/" />
-          <root url="jar://$USER_HOME$/.ivy2/cache/org.slf4j/slf4j-jdk14/sources/slf4j-jdk14-1.6.6-sources.jar!/" />
-          <root url="jar://$USER_HOME$/.ivy2/cache/junit/junit/sources/junit-4.10-sources.jar!/" />
-          <root url="jar://$USER_HOME$/.ivy2/cache/com.jcabi/jcabi-aspects/sources/jcabi-aspects-0.7.19-sources.jar!/" />
-          <root url="jar://$USER_HOME$/.ivy2/cache/org.tmatesoft.svnkit/svnkit/sources/svnkit-1.7.8-sources.jar!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
       <library>
         <CLASSES>
           <root url="jar://$MODULE_DIR$/lib/yamlbeans-1.06.jar!/" />
@@ -89,6 +28,58 @@
         </SOURCES>
       </library>
     </orderEntry>
+    <orderEntry type="module-library">
+      <library name="IvyIDEA">
+        <CLASSES>
+          <root url="jar://$USER_HOME$/.ivy2/cache/com.google.code.gson/gson/jars/gson-2.2.2.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/com.google.guava/guava/jars/guava-r09.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/com.beust/jcommander/jars/jcommander-1.27.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/com.jcraft/jzlib/jars/jzlib-1.1.1.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/com.jolbox/bonecp/bundles/bonecp-0.7.1.RELEASE.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/net.schmizz/sshj/bundles/sshj-0.8.1.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/org.slf4j/slf4j-api/jars/slf4j-api-1.6.1.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/net.sf.opencsv/opencsv/jars/opencsv-2.3.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/org.fusesource.jansi/jansi/jars/jansi-1.9.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/org.python/jython-standalone/jars/jython-standalone-2.5.3.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/org.tmatesoft.svnkit/svnkit/jars/svnkit-1.7.8.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/org.tmatesoft.sqljet/sqljet/jars/sqljet-1.1.6.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/org.antlr/antlr-runtime/jars/antlr-runtime-3.4.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/de.regnis.q.sequence/sequence-library/jars/sequence-library-1.0.2.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/net.java.dev.jna/jna/jars/jna-3.4.0.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/com.trilead/trilead-ssh2/jars/trilead-ssh2-1.0.0-build215.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/org.objenesis/objenesis/jars/objenesis-1.1.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/cglib/cglib-nodep/jars/cglib-nodep-2.2.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/org.yaml/snakeyaml/bundles/snakeyaml-1.10.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/postgresql/postgresql/jars/postgresql-9.1-901.jdbc4.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/org.bouncycastle/bcprov-jdk16/jars/bcprov-jdk16-1.46.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/org.slf4j/slf4j-jdk14/jars/slf4j-jdk14-1.6.6.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/org.slf4j/slf4j-api/jars/slf4j-api-1.6.6.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/junit/junit/jars/junit-4.10.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/org.hamcrest/hamcrest-core/jars/hamcrest-core-1.1.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/org.mockito/mockito-core/jars/mockito-core-1.9.0-rc1.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="jar://$USER_HOME$/.ivy2/cache/com.google.code.gson/gson/sources/gson-2.2.2-sources.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/com.google.guava/guava/sources/guava-r09-sources.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/com.beust/jcommander/sources/jcommander-1.27-sources.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/com.jcraft/jzlib/sources/jzlib-1.1.1-sources.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/com.jolbox/bonecp/sources/bonecp-0.7.1.RELEASE-sources.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/net.schmizz/sshj/sources/sshj-0.8.1-sources.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/net.sf.opencsv/opencsv/sources/opencsv-2.3-sources.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/org.fusesource.jansi/jansi/sources/jansi-1.9-sources.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/org.python/jython-standalone/sources/jython-standalone-2.5.3-sources.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/org.tmatesoft.svnkit/svnkit/sources/svnkit-1.7.8-sources.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/org.yaml/snakeyaml/sources/snakeyaml-1.10-sources.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/postgresql/postgresql/sources/postgresql-9.1-901.jdbc4-sources.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/org.bouncycastle/bcprov-jdk16/sources/bcprov-jdk16-1.46-sources.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/org.slf4j/slf4j-jdk14/sources/slf4j-jdk14-1.6.6-sources.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/junit/junit/sources/junit-4.10-sources.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/org.mockito/mockito-core/sources/mockito-core-1.9.0-rc1-sources.jar!/" />
+        </SOURCES>
+      </library>
+    </orderEntry>
+    <orderEntry type="library" name="jcl-core-2.3" level="project" />
   </component>
 </module>
 

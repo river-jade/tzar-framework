@@ -21,12 +21,12 @@ public class RRunner  extends SystemRunner implements Runner {
   @Override
   public boolean runModel(File model, File outputPath, String runId, String flagsString, Parameters parameters,
       Logger logger) throws TzarException {
-    Flags flags = parseFlags(flagsString.split(" "), new Flags());
+    Flags flags = RunnerUtils.parseFlags(flagsString.split(" "), new Flags());
 
     // TODO(michaell): urgh. get rid of this hard coded hackery!!
     String projectPath = Utils.Path.combine(model.getPath(), "projects/" + flags.projectName) + File.separator;
 
-    File variablesFile = writeVariablesFile(outputPath, parameters);
+    File variablesFile = RunnerUtils.writeVariablesFile(outputPath, parameters);
 
     // TODO(michaell): put this in the jar and pipe it into R?
     // a la: cat R/rrunner.R | R --vanilla --args --paramfile=/tmp/variables.json --rscript R/example.R
