@@ -26,7 +26,7 @@ public class JavaRunner implements Runner {
       Logger logger) throws TzarException {
 
     Flags flags = RunnerUtils.parseFlags(flagsString.split(" "), new Flags());
-    File jarPath = new File(model, flags.jarLocation);
+    File jarPath = new File(model, flags.jarPath);
 
     try {
       if (!jarPath.getCanonicalPath().startsWith(model.getCanonicalPath())) {
@@ -60,16 +60,10 @@ public class JavaRunner implements Runner {
   @com.beust.jcommander.Parameters(separators = "= ")
   private static class Flags {
     /**
-     * Project name.
-     */
-    @Parameter(names = "-p", description = "Name of the project to run.", required = true)
-    private final String projectName = null;
-
-    /**
      * Path to the module jar file.
      */
-    @Parameter(names = "--jarpath", description = "Relative path to the project jar file")
-    private String jarLocation = null;
+    @Parameter(names = "--jarpath", description = "Relative path to the project jar file", required=true)
+    private String jarPath = null;
 
     /**
      * Java class name to execute. Default: RunnerImpl. Note that the default is tzar.RunnerImpl,
