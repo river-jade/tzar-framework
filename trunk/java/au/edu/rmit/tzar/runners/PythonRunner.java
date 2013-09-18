@@ -20,9 +20,9 @@ public class PythonRunner extends SystemRunner implements Runner {
   @Override
   public boolean runModel(File model, File outputPath, String runId, String flagsString, Parameters parameters,
                           Logger logger) throws TzarException {
-    Flags flags = parseFlags(flagsString.split(" "), new Flags());
+    Flags flags = RunnerUtils.parseFlags(flagsString.split(" "), new Flags());
 
-    File variablesFile = writeVariablesFile(outputPath, parameters);
+    File variablesFile = RunnerUtils.writeVariablesFile(outputPath, parameters);
 
     try {
       File pythonRunner = File.createTempFile("pythonrunner", ".py");
@@ -61,13 +61,6 @@ public class PythonRunner extends SystemRunner implements Runner {
     return outputFile;
   }
 
-  /**
-   * Helper class to parse the flags passed to the runner. We can't use jCommander here
-   * because the -p flag is historically used without a separator (eg -pexample), which
-   * jCommand doesn't support. Thus, we parse the flags the old fashioned way, with
-   * regular expressions.
-   */
-
   @com.beust.jcommander.Parameters(separators = "= ")
   private static class Flags {
     /**
@@ -77,7 +70,7 @@ public class PythonRunner extends SystemRunner implements Runner {
     private final String projectName = null;
 
     /**
-     * Path to Rscript executable.
+     * Path to python executable.
      */
     @Parameter(names = "--python-location", description = "Name of the python executable. Default: python")
     private final File pythonLocation = new File("python");

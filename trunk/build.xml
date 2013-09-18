@@ -24,11 +24,18 @@
         <javac srcdir="${src.dir}" destdir="${build.dir}" includeantruntime="false" debug="true">
             <classpath>
                 <path refid="tzar.classpath"/>
+                <fileset dir="${lib.dir}">
+                    <include name="*.jar"/>
+                </fileset>
             </classpath>
         </javac>
     </target>
 
     <target name="dist-tzar" depends="checkjar, javac, init-ivy" unless="jar.uptodate">
+        <!-- Add the libs -->
+        <copy todir="${build.dir}/lib">
+            <fileset dir="${lib.dir}"/>
+        </copy>
         <!-- Copy any properties files from source tree to build dir -->
         <copy todir="${build.dir}">
             <fileset dir="${src.dir}">
