@@ -1,0 +1,13 @@
+#summary Introduction to Tzar.
+
+= Introduction =
+
+Tzar is a framework for running computer simulation models in a way which is reproducible, scalable, and flexible. It's primary goal is to address the issue of reproducibility in modelling science, by allowing researchers to rerun simulations with the same code and sets of parameters at some point in the future.
+
+
+= Details =
+
+Add your content here.  Format your content with:
+  * Text in *bold* or _italic_
+  * Headings, paragraphs, and lists
+  * Automatic links to other wiki pages
