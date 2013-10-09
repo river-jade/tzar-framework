@@ -1,0 +1,5 @@
+--runnerclass=JythonRunner
+--projectspec=../example/projectparams.yaml
+--commandlineflags="-p example"
+--revision=head
+--numruns=100
