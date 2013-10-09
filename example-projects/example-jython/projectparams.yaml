@@ -1,5 +1,7 @@
 project_name: Example Project
-base_params: 
+runner_class: JythonRunner
+
+base_params:
     variables: 
         # Random seed based on run_id. The $$ syntax specifies that this value 
         # is to be substituted at runtime.

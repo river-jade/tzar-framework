@@ -1,5 +1,7 @@
 project_name: example-jython-calling-R
-base_params: 
+runner_class: JythonRunner
+
+base_params:
     variables: 
         test.variable.1: 123
         test.variable.2: 456

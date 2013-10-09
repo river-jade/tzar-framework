@@ -96,7 +96,7 @@ public class ExecutableRunTest extends TestCase {
     }
 
     @Override
-    public boolean runModel(File model, File outputPath, String runId, String flagsString, Parameters parameters,
+    public boolean runModel(File model, File outputPath, String runId, String runnerFlags, Parameters parameters,
           Logger logger) throws TzarException {
       Map<String, String> variables = Maps.newHashMap(VARIABLES);
       variables.put("aac", "124" + RUN_ID + "123"); // because the id wildcard will be replaced

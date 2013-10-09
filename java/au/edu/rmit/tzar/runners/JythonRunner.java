@@ -11,6 +11,8 @@ import org.python.util.PythonInterpreter;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.logging.Logger;
 
 /**
@@ -23,7 +25,7 @@ public class JythonRunner implements Runner {
   private static Logger LOG = Logger.getLogger(JythonRunner.class.getName());
 
   @Override
-  public boolean runModel(File model, File outputPath, String runId, String flagsString, Parameters parameters,
+  public boolean runModel(File model, File outputPath, String runId, String runnerFlags, Parameters parameters,
       Logger logger) throws TzarException {
     Runner runner;
     try {
@@ -33,13 +35,13 @@ public class JythonRunner implements Runner {
     }
 
     try {
-      return runner.runModel(model, outputPath, runId, flagsString, parameters, logger);
+      return runner.runModel(model, outputPath, runId, runnerFlags, parameters, logger);
     } catch (PyException e) {
       throw new TzarException("Error occurred running the jython code.", e);
     }
   }
 
-  private Runner getJythonModelRunner(File model) throws IOException {
+  private Runner getJythonModelRunner(File model) throws IOException, TzarException {
     PythonInterpreter interpreter = new PythonInterpreter();
 
     PySystemState sys = Py.getSystemState();
@@ -48,9 +50,12 @@ public class JythonRunner implements Runner {
     interpreter.setOut(System.out);
     interpreter.setErr(System.err);
 
-    // Not sure why we need to explictly get the ClassLoader here, rather than just calling
-    // getClass().getResourceAsStream(), but for some reason, the latter fails...
-    interpreter.execfile(getClass().getClassLoader().getResourceAsStream("modelrunner.py"));
+    Path tempDirectory = Files.createTempDirectory(null);
+    sys.path.append(new PyString(tempDirectory.toAbsolutePath().toString()));
+    File modelRunner = RunnerUtils.extractResourceToFile(tempDirectory, "jython/", "modelrunner.py");
+    RunnerUtils.extractResourceToFile(tempDirectory, "jython/", "basemodel.py");
+    RunnerUtils.extractResourceToFile(tempDirectory, "jython/", "rrunner.py");
+    interpreter.execfile(modelRunner.toString());
     interpreter.exec("modelrunner=ModelRunner()");
     try {
       Class runnerClass = Class.forName("au.edu.rmit.tzar.api.Runner");

@@ -33,7 +33,6 @@
         <CLASSES>
           <root url="jar://$USER_HOME$/.ivy2/cache/com.google.code.gson/gson/jars/gson-2.2.2.jar!/" />
           <root url="jar://$USER_HOME$/.ivy2/cache/com.google.guava/guava/jars/guava-r09.jar!/" />
-          <root url="jar://$USER_HOME$/.ivy2/cache/com.beust/jcommander/jars/jcommander-1.27.jar!/" />
           <root url="jar://$USER_HOME$/.ivy2/cache/com.jcraft/jzlib/jars/jzlib-1.1.1.jar!/" />
           <root url="jar://$USER_HOME$/.ivy2/cache/com.jolbox/bonecp/bundles/bonecp-0.7.1.RELEASE.jar!/" />
           <root url="jar://$USER_HOME$/.ivy2/cache/net.schmizz/sshj/bundles/sshj-0.8.1.jar!/" />
@@ -57,12 +56,12 @@
           <root url="jar://$USER_HOME$/.ivy2/cache/junit/junit/jars/junit-4.10.jar!/" />
           <root url="jar://$USER_HOME$/.ivy2/cache/org.hamcrest/hamcrest-core/jars/hamcrest-core-1.1.jar!/" />
           <root url="jar://$USER_HOME$/.ivy2/cache/org.mockito/mockito-core/jars/mockito-core-1.9.0-rc1.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/com.beust/jcommander/jars/jcommander-1.32.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES>
           <root url="jar://$USER_HOME$/.ivy2/cache/com.google.code.gson/gson/sources/gson-2.2.2-sources.jar!/" />
           <root url="jar://$USER_HOME$/.ivy2/cache/com.google.guava/guava/sources/guava-r09-sources.jar!/" />
-          <root url="jar://$USER_HOME$/.ivy2/cache/com.beust/jcommander/sources/jcommander-1.27-sources.jar!/" />
           <root url="jar://$USER_HOME$/.ivy2/cache/com.jcraft/jzlib/sources/jzlib-1.1.1-sources.jar!/" />
           <root url="jar://$USER_HOME$/.ivy2/cache/com.jolbox/bonecp/sources/bonecp-0.7.1.RELEASE-sources.jar!/" />
           <root url="jar://$USER_HOME$/.ivy2/cache/net.schmizz/sshj/sources/sshj-0.8.1-sources.jar!/" />
@@ -76,6 +75,7 @@
           <root url="jar://$USER_HOME$/.ivy2/cache/org.slf4j/slf4j-jdk14/sources/slf4j-jdk14-1.6.6-sources.jar!/" />
           <root url="jar://$USER_HOME$/.ivy2/cache/junit/junit/sources/junit-4.10-sources.jar!/" />
           <root url="jar://$USER_HOME$/.ivy2/cache/org.mockito/mockito-core/sources/mockito-core-1.9.0-rc1-sources.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/com.beust/jcommander/sources/jcommander-1.32-sources.jar!/" />
         </SOURCES>
       </library>
     </orderEntry>

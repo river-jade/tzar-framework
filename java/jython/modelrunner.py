@@ -7,6 +7,7 @@ import shlex
 import sys
 import traceback
 
+from model import Model
 import rrunner
 
 import java.io.File
@@ -20,18 +21,15 @@ class ModelRunner(Runner):
         try:
             parser = optparse.OptionParser()
             options = self.parse_flags(parser, flags)
-            if not options.projectname or not options.inputdir:
+            if not options.inputdir:
                 parser.print_help()
                 print # needed to flush the IOBuffer
                 return False
 
-            projectname = options.projectname.strip()
-            inputpath = java.io.File(java.io.File(modelpath, "projects/" + projectname),
-                    options.inputdir.strip())
+            inputpath = java.io.File(modelpath, options.inputdir.strip())
             runner = rrunner.RRunner(rtermlocation=options.rlocation.strip(), rpath=os.path.join(modelpath.toString(), "R"),
                     inputpath=inputpath, dryrun=options.dryrun)
-            modelmodule = __import__("projects.%s.model" % projectname, fromlist=["Model"])
-            model = modelmodule.Model(runner, inputpath, outputpath, runid, logger)
+            model = Model(runner, inputpath, outputpath, runid, logger)
             start = datetime.datetime.now()
 
             logger.fine('='*60)
@@ -67,11 +65,6 @@ class ModelRunner(Runner):
         parser.add_option("--inputdir", action="store", dest="inputdir", 
                           default="input_data",
                           help="Relative path for input data")
-        parser.add_option('-p', "--projectname", action="store", dest="projectname",
-                          help="Name of project to process")
-        parser.add_option("--repetitionsfile", action="store",
-                          dest="repetitionsfile",
-                          help="Filename containing repetition definitions")
         parser.add_option("--rlocation", action="store",
                           dest="rlocation",
                           help="Command to run Rscript.",

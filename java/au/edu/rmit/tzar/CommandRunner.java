@@ -23,7 +23,7 @@ public class CommandRunner implements Runner {
   private final Joiner joiner = Joiner.on(' ');
 
   @Override
-  public boolean runModel(File model, File outputPath, String runId, String flagsString, Parameters parameters,
+  public boolean runModel(File model, File outputPath, String runId, String runnerFlags, Parameters parameters,
       Logger logger) throws TzarException {
     String[] command = new String[]{model.getPath() + "/run_model", "-v", "-o", outputPath.getAbsolutePath()};
     LOG.info("Executing: " + joiner.join(command));
