@@ -22,10 +22,10 @@ import java.util.logging.Logger;
  */
 public class JavaRunner implements Runner {
   @Override
-  public boolean runModel(File model, File outputPath, String runId, String flagsString, Parameters parameters,
+  public boolean runModel(File model, File outputPath, String runId, String runnerFlags, Parameters parameters,
       Logger logger) throws TzarException {
 
-    Flags flags = RunnerUtils.parseFlags(flagsString.split(" "), new Flags());
+    Flags flags = RunnerUtils.parseFlags(runnerFlags.split(" "), new Flags());
     File jarPath = new File(model, flags.jarPath);
 
     try {
@@ -37,7 +37,7 @@ public class JavaRunner implements Runner {
     }
 
     Runner runner = getRunner(jarPath, flags.className);
-    return runner.runModel(model, outputPath, runId, flagsString, parameters, logger);
+    return runner.runModel(model, outputPath, runId, runnerFlags, parameters, logger);
   }
 
   private Runner getRunner(File jarPath, String runnerClassName) {

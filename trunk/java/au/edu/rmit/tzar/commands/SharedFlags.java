@@ -131,44 +131,12 @@ class SharedFlags {
     private CreateRunsFlags() {
     }
 
-    @Parameter(names = "--commandlineflags", description = "Comma-separated list of command line flags to pass to " +
-        "the runner when executing this run")
-    private String commandFlags = "";
-
-    @Parameter(names = "--globalparams", description = "Path to a file containing the a set of params to be " +
-        "overridden by the project spec. This is used for parameters which are shared across multiple projects and " +
-        "is optional. This is ignored if --runspec is set.")
-    private File globalParams = null;
-
     @Parameter(names = {"-n", "--numruns"}, description = "Number of runs to schedule")
     private int numRuns = 1;
 
-    @Parameter(names = "--projectspec", description = "The path to the file containing the project spec. Either this " +
-        "or --runspec must be set.")
+    @Parameter(names = "--projectspec", description = "The path to the file containing the project spec.",
+        required = true)
     private File projectSpec = null;
-
-    @Parameter(names = "--runnerclass", description = "Fully qualified classname of the runner class, or name of a " +
-        "class in the au.edu.rmit.tzar.runners package.", required = true)
-    private String runnerClass;
-
-    @Parameter(names = "--runspec", description = "Path to the file containing a single parameter set, " +
-        "ie for a single " +
-        "run. Either this or projectSpec must be set.")
-    private File runSpec = null;
-
-    // TODO(michaell): use this or remove it
-    @Parameter(names = "--projectpath", description = "Not yet implemented. The relative path to the model in the " +
-        "repository")
-    private File projectPath = null;
-
-    @Parameter(names = "--repetitionsfile", description = "Filename containing repetition definitions.")
-    private File repetitionsPath = null;
-
-    @Parameter(names = "--runset", description = "Name of runset to schedule.")
-    private String runset = "";
-
-    @Parameter(names = "--clustername", description = "Name of cluster to run on.")
-    private String clusterName = "";
 
     @Parameter(names = "--revision", description = "The source control revision of the model code to schedule for " +
         "execution. Must be either an integer, 'runtime_head', or 'current_head'. 'runtime_head' will mean that " +
@@ -177,13 +145,8 @@ class SharedFlags {
         "--svnurl is mandatory if the value of this flag is 'current_head'.")
     private String revision = null;
 
-    public String getCommandFlags() {
-      return commandFlags;
-    }
-
-    public File getGlobalParamsPath() {
-      return globalParams;
-    }
+    @Parameter(names = "--runset", description = "Name of runset to schedule.")
+    private String runset = "";
 
     public int getNumRuns() {
       return numRuns;
@@ -193,33 +156,12 @@ class SharedFlags {
       return projectSpec;
     }
 
-    // TODO(michaell): implement this
-    public File getProjectPath() {
-      return projectPath;
-    }
-
-    public File getRepetitionsPath() {
-      return repetitionsPath;
-    }
-
-    public String getRunnerClass() {
-      return runnerClass;
-    }
-
-    public String getRunset() {
-      return runset;
-    }
-
     public String getRevision() {
       return revision;
     }
 
-    public File getRunSpec() {
-      return runSpec;
-    }
-
-    public String getClusterName() {
-      return clusterName;
+    public String getRunset() {
+      return runset;
     }
   }
 

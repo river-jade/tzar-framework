@@ -1,5 +1,9 @@
 package au.edu.rmit.tzar.api;
 
+import au.edu.rmit.tzar.parser.Repetitions;
+import com.google.common.base.Joiner;
+
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -12,11 +16,18 @@ public class ProjectSpec {
   private final Parameters baseParams;
   private final List<Scenario> scenarios;
   private final String projectName;
+  private final Repetitions repetitions;
+  private String runnerClass;
+  private String runnerFlags;
 
-  public ProjectSpec(String projectName, Parameters baseParams, List<Scenario> scenarios) {
+  public ProjectSpec(String projectName, String runnerClass, String runnerFlags, Parameters baseParams,
+      List<Scenario> scenarios, Repetitions repetitions) {
     this.projectName = projectName;
+    this.runnerClass = runnerClass;
+    this.runnerFlags = runnerFlags;
     this.baseParams = baseParams;
     this.scenarios = scenarios;
+    this.repetitions = repetitions;
   }
 
   public Parameters getBaseParams() {
@@ -25,6 +36,18 @@ public class ProjectSpec {
 
   public String getProjectName() {
     return projectName;
+  }
+
+  public Repetitions getRepetitions() {
+    return repetitions;
+  }
+
+  public String getRunnerClass() {
+    return runnerClass;
+  }
+
+  public String getRunnerFlags() {
+    return runnerFlags;
   }
 
   /**
@@ -44,11 +67,18 @@ public class ProjectSpec {
    * @throws TzarException
    */
   public void validate() throws TzarException {
+    List<String> errors = new ArrayList<String>();
     if (baseParams == null) {
-      throw new TzarException("Base parameters must be set, either programatically, or in the json specification.");
+      errors.add("Base parameters must be set.");
     }
     if (projectName == null) {
-      throw new TzarException("Project name must be set, either programatically, or in the json specification.");
+      errors.add("Project name must be set.");
+    }
+    if (runnerClass == null) {
+      errors.add("Runner class must be set.");
+    }
+    if (!errors.isEmpty()) {
+      throw new TzarException(String.format("Errors parsing project spec: [\n%s\n]", Joiner.on('\n').join(errors)));
     }
   }
 

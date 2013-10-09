@@ -44,8 +44,14 @@
                 <include name="**"/>
             </fileset>
         </copy>
-        <copy todir="${build.dir}">
+        <copy todir="${build.dir}/jython">
             <fileset dir="java/jython">
+                <include name="**"/>
+            </fileset>
+        </copy>
+        <copy todir="${build.dir}/R">
+        <!-- Add the python source -->
+            <fileset dir="java/R">
                 <include name="**"/>
             </fileset>
         </copy>

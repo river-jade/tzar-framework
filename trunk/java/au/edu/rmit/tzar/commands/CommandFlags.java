@@ -105,9 +105,16 @@ public class CommandFlags {
     private ScheduleRunsFlags() {
     }
 
+    @Parameter(names = "--clustername", description = "Name of cluster to run on.")
+    private String clusterName = "";
+
     @Parameter(names = "--svnurl", description = "URL for the SVN repository. Required if 'current_head' is used for " +
         "the revision number.")
     private String svnUrl = null;
+
+    public String getClusterName() {
+      return clusterName;
+    }
 
     public String getSvnUrl() {
       return svnUrl;

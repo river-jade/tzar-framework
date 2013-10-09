@@ -21,6 +21,8 @@ import java.util.Map;
  * Unit tests for the YamlParser class.
  */
 public class YamlParserTest extends TestCase {
+  private static final String RUNNER_CLASS = "TheRunnerClass";
+  private static final String RUNNER_FLAGS = "-flag1 -flag2";
   YamlParser yamlParser;
 
   protected void setUp() throws Exception {
@@ -51,7 +53,8 @@ public class YamlParserTest extends TestCase {
     Parameters overrideParameters2 = Parameters.EMPTY_PARAMETERS;
     scenarios.add(new Scenario("test scenario1", overrideParameters1));
     scenarios.add(new Scenario("test scenario2", overrideParameters2));
-    ProjectSpec projectSpec = new ProjectSpec("test project", baseParameters, scenarios);
+    ProjectSpec projectSpec = new ProjectSpec("test project", RUNNER_CLASS, RUNNER_FLAGS, baseParameters, scenarios,
+        Repetitions.EMPTY_REPETITIONS);
 
     File tempFile = File.createTempFile("yaml_parser_test", null);
     tempFile.delete();

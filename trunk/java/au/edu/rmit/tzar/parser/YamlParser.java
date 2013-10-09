@@ -144,17 +144,25 @@ public class YamlParser {
     private ParametersBean base_params;
     private List<ScenarioBean> scenarios;
     private String project_name;
-    
+    private String runner_class;
+    private String runner_flags;
+    private RepetitionsBean repetitions;
+
     public static ProjectSpecBean fromProjectSpec(ProjectSpec spec) {
       ProjectSpecBean bean = new ProjectSpecBean();
       bean.base_params = ParametersBean.fromParameters(spec.getBaseParams());
       bean.scenarios = ScenarioBean.fromScenarios(spec.getScenarios());
       bean.project_name = spec.getProjectName();
+      bean.runner_class = spec.getRunnerClass();
+      bean.runner_flags = spec.getRunnerFlags();
+      bean.repetitions = RepetitionsBean.fromRepetitions(spec.getRepetitions());
       return bean;
     }
 
     public ProjectSpec toProjectSpec() {
-      return new ProjectSpec(project_name, base_params.toParameters(), ScenarioBean.toScenarios(scenarios));
+      Repetitions reps = repetitions == null ? Repetitions.EMPTY_REPETITIONS : repetitions.toRepetitions();
+      return new ProjectSpec(project_name, runner_class, runner_flags == null ? "" : runner_flags,
+          base_params.toParameters(), ScenarioBean.toScenarios(scenarios), reps);
     }
   }
 
@@ -238,6 +246,18 @@ public class YamlParser {
         }
       });
       return new Repetitions(parametersList, repetitionGenerators);
+    }
+
+    public static RepetitionsBean fromRepetitions(Repetitions repetitions) {
+      RepetitionsBean bean = new RepetitionsBean();
+      bean.repetitions = Lists.transform(repetitions.getStaticRepetitions(),
+          new Function<Parameters, ParametersBean>() {
+            @Override
+            public ParametersBean apply(Parameters parameters) {
+              return parameters == null ? null : ParametersBean.fromParameters(parameters);
+            }
+      });
+      return bean;
     }
   }
 

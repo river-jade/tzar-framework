@@ -24,18 +24,16 @@ class ScheduleRuns implements Command {
   private final RunDao runDao;
   private final int numRuns;
   private final RunFactory runFactory;
-  private final String runnerClass;
 
-  public ScheduleRuns(RunDao runDao, int numRuns, RunFactory runFactory, String runnerClass) {
+  public ScheduleRuns(RunDao runDao, int numRuns, RunFactory runFactory) {
     this.runDao = runDao;
     this.numRuns = numRuns;
     this.runFactory = runFactory;
-    this.runnerClass = runnerClass;
   }
 
   @Override
   public boolean execute() throws TzarException {
-    List<Run> runs = runFactory.createRuns(numRuns, runnerClass);
+    List<Run> runs = runFactory.createRuns(numRuns);
     runDao.insertRuns(runs);
     for (Run run : runs) {
       LOG.log(Level.INFO, "Scheduled run:{0} ", run);

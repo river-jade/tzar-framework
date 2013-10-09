@@ -4,6 +4,7 @@ import au.edu.rmit.tzar.api.TzarException;
 import com.google.common.base.Joiner;
 
 import java.io.*;
+import java.util.Map;
 import java.util.logging.Logger;
 
 /**
@@ -12,11 +13,13 @@ import java.util.logging.Logger;
  */
 public abstract class SystemRunner {
 
-  protected boolean executeCommand(File model, Logger logger, String... command) throws TzarException {
+  protected boolean executeCommand(File model, Logger logger, Map<String, String> environment,
+      String... command) throws TzarException {
     try {
       logger.fine(Joiner.on(" ").join(command));
       ProcessBuilder processBuilder = new ProcessBuilder(command);
 
+      processBuilder.environment().putAll(environment);
       Process process = processBuilder
           .redirectErrorStream(true)
           .directory(model)

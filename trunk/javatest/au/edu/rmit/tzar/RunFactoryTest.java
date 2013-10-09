@@ -39,16 +39,13 @@ public class RunFactoryTest extends TestCase {
    * repetitions (from lowest priority to highest).
    */
   public void testCreateRuns() throws TzarException {
-    Parameters globalParams = Parameters.createParameters(ImmutableMap.of("A", -1, "B", -1, "C", -1, "D", -1),
-        ImmutableMap.<String, String>of(), ImmutableMap.<String, String>of());
-
-    RunFactory runFactory = new RunFactory(REVISION, COMMAND_FLAGS, RUNSET, CLUSTER_NAME, mockProjectSpec,
-        mockRepetitions, globalParams);
+    RunFactory runFactory = new RunFactory(REVISION, RUNSET, CLUSTER_NAME, mockProjectSpec);
 
     when(mockProjectSpec.getBaseParams()).thenReturn(
-        Parameters.createParameters(ImmutableMap.of("A", 0, "B", 0, "C", 0),
+        Parameters.createParameters(ImmutableMap.of("A", 0, "B", 0, "C", 0, "D", -1),
             ImmutableMap.<String, String>of(), ImmutableMap.<String, String>of()));
 
+    when(mockProjectSpec.getRepetitions()).thenReturn(mockRepetitions);
 
     List<Scenario> scenarios = ImmutableList.of(
         new Scenario("scenario1", Parameters.createParameters(ImmutableMap.of("A", 1, "B", 1, "C", 1),
@@ -64,7 +61,7 @@ public class RunFactoryTest extends TestCase {
         ImmutableMap.<String, String>of(), ImmutableMap.<String, String>of()));
     when(mockRepetitions.getParamsList()).thenReturn(repetitionsParams);
 
-    List<Run> runs = runFactory.createRuns(2, RUNNER_CLASS);
+    List<Run> runs = runFactory.createRuns(2);
     assertEquals(8, runs.size()); // 2 scenarios, 2 repetitions,numRuns = 2 => 2*2*2 = 8 runs
 
     @SuppressWarnings("unchecked")

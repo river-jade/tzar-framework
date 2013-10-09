@@ -32,7 +32,7 @@ public class ExecutableRun {
   @VisibleForTesting
   static final String FAILED_SUFFIX = ".failed";
 
-  private static int nextRunId = 1;
+  private static volatile int nextRunId = 1;
 
   // the output path, not including the status suffix (ie failed, inprogress etc).
   private final File baseOutputPath;
@@ -54,7 +54,7 @@ public class ExecutableRun {
    * @return a newly created executable run
    */
   public static ExecutableRun createExecutableRun(Run run, File baseOutputPath, CodeRepository codeRepository,
-      RunnerFactory runnerFactory) {
+      RunnerFactory runnerFactory) throws TzarException {
     String runset = run.getRunset();
     runset = (runset == null || runset.equals("")) ? "default_runset" : run.getRunset();
     baseOutputPath = new File(baseOutputPath, Utils.Path.combineAndReplaceWhitespace("_", run.getProjectName(),
@@ -143,14 +143,17 @@ public class ExecutableRun {
    * @param baseOutputPath the path to look in for prior runs
    * @return an available run id (being 1 greater than the current maximum)
    */
-  private synchronized static int getNextRunId(File baseOutputPath) {
+  private synchronized static int getNextRunId(File baseOutputPath) throws TzarException {
     int max = nextRunId;
     if (!baseOutputPath.exists()) {
       LOG.info("Outputdir doesn't exist. Creating it (and parents)");
       baseOutputPath.mkdirs();
     }
     Pattern pattern = Pattern.compile("(\\d+)(_.*)+(?:\\.failed|\\.inprogress)?");
-    for (File file : baseOutputPath.listFiles()) {
+    File[] files = baseOutputPath.listFiles();
+    if (files == null)
+      throw new TzarException(String.format("Output path: %s is not a directory.", baseOutputPath));
+    for (File file : files) {
       Matcher matcher = pattern.matcher(file.getName());
       if (matcher.matches() && matcher.groupCount() >= 2) {
         try {

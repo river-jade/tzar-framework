@@ -7,16 +7,15 @@ import com.beust.jcommander.ParameterException;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
+import java.nio.file.Path;
 import java.util.Arrays;
 
 /**
  * Static utility methods for use from Runner classes.
  */
 class RunnerUtils {
-  protected static File writeVariablesFile(File outputPath, Parameters parameters) throws TzarException {
+  static File writeVariablesFile(File outputPath, Parameters parameters) throws TzarException {
     Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
     File variablesFile = new File(outputPath, "parameters.json");
@@ -30,7 +29,7 @@ class RunnerUtils {
     return variablesFile;
   }
 
-  protected static <T> T parseFlags(String[] flagString, T flags) throws TzarException {
+  static <T> T parseFlags(String[] flagString, T flags) throws TzarException {
     JCommander jcommander = new JCommander(flags);
     try {
       jcommander.parse(flagString);
@@ -38,5 +37,33 @@ class RunnerUtils {
       throw new TzarException("Error parsing flag string: " + Arrays.toString(flagString), e);
     }
     return flags;
+  }
+
+  static File extractResource(String resourceName, File outputFile) throws TzarException {
+    InputStream resourceStream = RunnerUtils.class.getClassLoader().getResourceAsStream(resourceName);
+    if (resourceStream == null) {
+      throw new TzarException("Couldn't find required resource: " + resourceName);
+    }
+    BufferedReader reader = new BufferedReader(new InputStreamReader(resourceStream));
+
+    try {
+      FileOutputStream outputStream = new FileOutputStream(outputFile);
+      BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outputStream));
+      String line;
+      while((line = reader.readLine()) != null) {
+        writer.write(line);
+        writer.newLine();
+      }
+      writer.close();
+    } catch (IOException e) {
+      throw new TzarException(String.format("Couldn't extract resource %s.", resourceName), e);
+    }
+    return outputFile;
+  }
+
+  static File extractResourceToFile(Path directory, final String packageName, String filename) throws TzarException {
+    File resourceFile = new File(directory.toFile(), filename);
+    extractResource(packageName + filename, resourceFile);
+    return resourceFile;
   }
 }

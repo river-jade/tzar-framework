@@ -16,7 +16,7 @@ public interface Runner {
    * @param model      the path to the model source code or executable
    * @param outputPath local path for the model to write output data to
    * @param runId      a unique identifier for the run to execute
-   * @param flagsString space separated flags for the runner
+   * @param runnerFlags space separated flags for the runner
    * @param parameters
    * @param logger     a java logger for the runner code to use for logging. This logger
    * will log to a file in the output directory. By default, INFO level logs will go to
@@ -25,6 +25,6 @@ public interface Runner {
    * @throws TzarException
    */
   // TODO(michaell): read flags from project spec
-  boolean runModel(File model, File outputPath, String runId, String flagsString, Parameters parameters,
+  boolean runModel(File model, File outputPath, String runId, String runnerFlags, Parameters parameters,
       Logger logger) throws TzarException;
 }

@@ -8,6 +8,8 @@ import os
 import sys
 import traceback
 
+from model import Model
+
 def main(args):
     logger = Logger(logging.getLogger())
     logger.addHandler(logging.StreamHandler(sys.stdout))
@@ -18,24 +20,21 @@ def main(args):
 
         options = parse_flags(parser, args)
 
-        if not options.projectname or not options.modelpath:
+        if not options.modelpath:
             parser.print_help()
             print # needed to flush the IOBuffer
             return 2
 
         modelpath = options.modelpath
         outputpath = options.outputpath
-        projectname = options.projectname
         runid = options.runid
-        inputpath = os.path.join(modelpath, "projects/", projectname, options.inputdir)
+        inputpath = os.path.join(modelpath, options.inputdir)
 
         params = Parameters(json.load(file(options.paramfile)))
 
         sys.path.insert(0, modelpath)
 
-        modelmodule = __import__("projects.%s.model" % options.projectname,
-                      fromlist=["Model"])
-        model = modelmodule.Model(inputpath, outputpath, runid, logger)
+        model = Model(inputpath, outputpath, runid, logger)
         start = datetime.datetime.now()
 
         logger.debug('='*60)
@@ -69,12 +68,7 @@ def parse_flags(parser, flags):
                       help="Path to the model code.")
     parser.add_option("--outputpath", action="store", dest="outputpath",
                       help="Path to write the output data to.")
-    parser.add_option('-p', "--projectname", action="store", dest="projectname",
-                      help="Name of project to process")
     parser.add_option("--paramfile", action="store", dest="paramfile", help="Path to the parameters json file")
-    parser.add_option("--repetitionsfile", action="store",
-                      dest="repetitionsfile",
-                      help="Filename containing repetition definitions")
     parser.add_option("--runid", action="store", dest="runid",
                       help="ID of the run to execute.")
     parser.add_option("--seed", action="store", dest="seed",

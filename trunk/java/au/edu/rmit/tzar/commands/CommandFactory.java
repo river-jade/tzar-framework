@@ -3,6 +3,7 @@ package au.edu.rmit.tzar.commands;
 import au.edu.rmit.tzar.Constants;
 import au.edu.rmit.tzar.RunFactory;
 import au.edu.rmit.tzar.RunnerFactory;
+import au.edu.rmit.tzar.api.ProjectSpec;
 import au.edu.rmit.tzar.api.TzarException;
 import au.edu.rmit.tzar.db.DaoFactory;
 import au.edu.rmit.tzar.db.RunDao;
@@ -39,25 +40,19 @@ class CommandFactory {
   }
 
   public Command newExecLocalRuns() throws IOException, TzarException, ParseException {
-    if (CREATE_RUNS_FLAGS.getProjectSpec() == null ^ CREATE_RUNS_FLAGS.getRunSpec() != null) {
-      throw new ParseException("Must set exactly one of --projectspec or --runspec.");
-    }
-
     String revision = CREATE_RUNS_FLAGS.getRevision();
     RUNNER_FLAGS.getRepositoryType().checkRevisionNumber(revision);
 
     YamlParser parser = new YamlParser();
 
     RunFactory runFactory = new RunFactory(revision,
-        CREATE_RUNS_FLAGS.getCommandFlags(), CREATE_RUNS_FLAGS.getRunset(),
-        CREATE_RUNS_FLAGS.getClusterName(), parser.projectSpecFromYaml(CREATE_RUNS_FLAGS.getProjectSpec()),
-        parser.repetitionsFromYaml(CREATE_RUNS_FLAGS.getRepetitionsPath()),
-        parser.parametersFromYaml(CREATE_RUNS_FLAGS.getGlobalParamsPath()));
+        CREATE_RUNS_FLAGS.getRunset(),"" /* no cluster name for local runs */,
+        parser.projectSpecFromYaml(CREATE_RUNS_FLAGS.getProjectSpec()));
 
     CodeRepository codeRepository = RUNNER_FLAGS.createRepository();
     return new ExecLocalRuns(CREATE_RUNS_FLAGS.getNumRuns(),
         runFactory, RUNNER_FLAGS.getLocalOutputPath(), codeRepository,
-        new RunnerFactory(), CREATE_RUNS_FLAGS.getRunnerClass());
+        new RunnerFactory());
   }
 
   public Command newHelp() {
@@ -97,10 +92,6 @@ class CommandFactory {
   }
 
   public Command newScheduleRuns() throws IOException, TzarException, ParseException {
-    if ((CREATE_RUNS_FLAGS.getProjectSpec() == null) == (CREATE_RUNS_FLAGS.getRunSpec() == null)) {
-      throw new ParseException("Must set exactly one of --projectspec or --runspec.");
-    }
-
     DaoFactory daoFactory = new DaoFactory(getDbUrl());
     String revision = CREATE_RUNS_FLAGS.getRevision();
 
@@ -119,14 +110,12 @@ class CommandFactory {
 
     YamlParser parser = new YamlParser();
 
+    ProjectSpec projectSpec = parser.projectSpecFromYaml(CREATE_RUNS_FLAGS.getProjectSpec());
     RunFactory runFactory = new RunFactory(revision,
-        CREATE_RUNS_FLAGS.getCommandFlags(), CREATE_RUNS_FLAGS.getRunset(),
-        CREATE_RUNS_FLAGS.getClusterName(),
-        parser.projectSpecFromYaml(CREATE_RUNS_FLAGS.getProjectSpec()),
-        parser.repetitionsFromYaml(CREATE_RUNS_FLAGS.getRepetitionsPath()),
-        parser.parametersFromYaml(CREATE_RUNS_FLAGS.getGlobalParamsPath()));
-    return new ScheduleRuns(daoFactory.createRunDao(), CREATE_RUNS_FLAGS.getNumRuns(), runFactory,
-        CREATE_RUNS_FLAGS.getRunnerClass());
+        CREATE_RUNS_FLAGS.getRunset(),
+        SCHEDULE_RUNS_FLAGS.getClusterName(),
+        projectSpec);
+    return new ScheduleRuns(daoFactory.createRunDao(), CREATE_RUNS_FLAGS.getNumRuns(), runFactory);
   }
 
   private String getDbUrl() throws ParseException {

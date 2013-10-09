@@ -15,7 +15,7 @@ public class RandomNullRunner implements Runner {
   private final Random random = new Random();
 
   @Override
-  public boolean runModel(File model, File outputPath, String runId, String flagsString, Parameters parameters,
+  public boolean runModel(File model, File outputPath, String runId, String runnerFlags, Parameters parameters,
       Logger logger) throws TzarException {
     boolean success = random.nextBoolean();
     logger.info("Run " + (success ? "succeeded" : "failed"));

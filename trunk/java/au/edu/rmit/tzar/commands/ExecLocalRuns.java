@@ -30,22 +30,20 @@ class ExecLocalRuns implements Command {
   private final File baseOutputPath;
   private final CodeRepository codeRepository;
   private final RunnerFactory runnerFactory;
-  private final String runnerClass;
 
   public ExecLocalRuns(int numRuns, RunFactory runFactory, File baseOutputPath,
-      CodeRepository codeRepository, RunnerFactory runnerFactory, String runnerClass)
+      CodeRepository codeRepository, RunnerFactory runnerFactory)
       throws TzarException, IOException {
     this.numRuns = numRuns;
     this.baseOutputPath = baseOutputPath;
     this.codeRepository = codeRepository;
     this.runnerFactory = runnerFactory;
     this.runFactory = runFactory;
-    this.runnerClass = runnerClass;
   }
 
   @Override
   public boolean execute() throws InterruptedException, TzarException {
-    List<Run> runs = runFactory.createRuns(numRuns, runnerClass);
+    List<Run> runs = runFactory.createRuns(numRuns);
     List<Integer> failedIds = Lists.newArrayList();
     for (Run run : runs) {
       if (!executeRun(ExecutableRun.createExecutableRun(run, baseOutputPath, codeRepository, runnerFactory))) {
