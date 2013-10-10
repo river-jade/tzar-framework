@@ -134,8 +134,9 @@ class SharedFlags {
     @Parameter(names = {"-n", "--numruns"}, description = "Number of runs to schedule")
     private int numRuns = 1;
 
-    @Parameter(names = "--projectspec", description = "The path to the file containing the project spec.",
-        required = true)
+    @Parameter(names = "--projectspec", description = "The path to the file containing the project spec. If set, " +
+        "this flag overrides the default of projectparams.yaml, located at the root of the model code, either" +
+        "locally or in source control.")
     private File projectSpec = null;
 
     @Parameter(names = "--revision", description = "The source control revision of the model code to schedule for " +
