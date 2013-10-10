@@ -15,6 +15,8 @@ import com.beust.jcommander.JCommander;
 import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Map;
 
@@ -43,13 +45,12 @@ class CommandFactory {
     String revision = CREATE_RUNS_FLAGS.getRevision();
     RUNNER_FLAGS.getRepositoryType().checkRevisionNumber(revision);
 
-    YamlParser parser = new YamlParser();
+    CodeRepository codeRepository = RUNNER_FLAGS.createRepository();
 
     RunFactory runFactory = new RunFactory(revision,
         CREATE_RUNS_FLAGS.getRunset(),"" /* no cluster name for local runs */,
-        parser.projectSpecFromYaml(CREATE_RUNS_FLAGS.getProjectSpec()));
+        getProjectSpec(codeRepository));
 
-    CodeRepository codeRepository = RUNNER_FLAGS.createRepository();
     return new ExecLocalRuns(CREATE_RUNS_FLAGS.getNumRuns(),
         runFactory, RUNNER_FLAGS.getLocalOutputPath(), codeRepository,
         new RunnerFactory());
@@ -95,12 +96,12 @@ class CommandFactory {
     DaoFactory daoFactory = new DaoFactory(getDbUrl());
     String revision = CREATE_RUNS_FLAGS.getRevision();
 
+    String svnUrl = SCHEDULE_RUNS_FLAGS.getSvnUrl();
+    SvnRepository repository = new SvnRepository(svnUrl, null);
     if (SpecialRevisionNumber.CURRENT_HEAD.toString().equalsIgnoreCase(revision)) {
-      String svnUrl = SCHEDULE_RUNS_FLAGS.getSvnUrl();
       if (Strings.isNullOrEmpty(svnUrl)) {
         throw new ParseException("--svnurl must not be empty if --revision=current_head");
       }
-      SvnRepository repository = new SvnRepository(svnUrl, null);
       revision = Long.toString(repository.getHeadRevision());
     } else if (SpecialRevisionNumber.RUNTIME_HEAD.toString().equalsIgnoreCase(revision)) {
       revision = "head";
@@ -108,9 +109,8 @@ class CommandFactory {
 
     RunnerFlags.RepositoryType.SVN.checkRevisionNumber(revision);
 
-    YamlParser parser = new YamlParser();
+    ProjectSpec projectSpec = getProjectSpec(repository);
 
-    ProjectSpec projectSpec = parser.projectSpecFromYaml(CREATE_RUNS_FLAGS.getProjectSpec());
     RunFactory runFactory = new RunFactory(revision,
         CREATE_RUNS_FLAGS.getRunset(),
         SCHEDULE_RUNS_FLAGS.getClusterName(),
@@ -125,6 +125,22 @@ class CommandFactory {
           Constants.DB_ENVIRONMENT_VARIABLE_NAME + " or by the flag --dburl");
     }
     return dbString;
+  }
+
+  private static ProjectSpec getProjectSpec(CodeRepository codeRepository) throws TzarException {
+    YamlParser parser = new YamlParser();
+    File projectSpec;
+    if (CREATE_RUNS_FLAGS.getProjectSpec() == null) {
+      projectSpec = codeRepository.getProjectParams("projectparams.yaml",
+          CREATE_RUNS_FLAGS.getRevision());
+    } else {
+      projectSpec = CREATE_RUNS_FLAGS.getProjectSpec();
+    }
+    try {
+      return parser.projectSpecFromYaml(projectSpec);
+    } catch (FileNotFoundException e) {
+      throw new TzarException("Couldn't parse project spec at: " + projectSpec, e);
+    }
   }
 
   /**

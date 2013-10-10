@@ -10,4 +10,5 @@ import java.io.File;
  */
 public interface CodeRepository {
   File getModel(String revision) throws TzarException;
+  File getProjectParams(String projectParamFilename, String revision) throws TzarException;
 }

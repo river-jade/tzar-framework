@@ -1,5 +1,7 @@
 package au.edu.rmit.tzar.repository;
 
+import au.edu.rmit.tzar.api.TzarException;
+
 import java.io.File;
 
 /**
@@ -16,5 +18,10 @@ public class LocalFileRepository implements CodeRepository {
   @Override
   public File getModel(String revision) {
     return codePath;
+  }
+
+  @Override
+  public File getProjectParams(String projectParamFilename, String revision) throws TzarException {
+    return new File(codePath, projectParamFilename);
   }
 }

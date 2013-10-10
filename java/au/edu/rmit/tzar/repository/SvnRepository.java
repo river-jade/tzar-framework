@@ -2,6 +2,7 @@ package au.edu.rmit.tzar.repository;
 
 import au.edu.rmit.tzar.api.TzarException;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.io.Files;
 import org.tmatesoft.svn.core.SVNDepth;
 import org.tmatesoft.svn.core.SVNException;
 import org.tmatesoft.svn.core.SVNURL;
@@ -87,6 +88,23 @@ public class SvnRepository implements CodeRepository {
     } catch (SVNException e) {
       throw new TzarException("Error retrieving model from SVN", e);
     }
+  }
+
+  @Override
+  public File getProjectParams(String projectParamFilename, String revision) throws TzarException {
+    File tempDir = Files.createTempDir();
+    LOG.info("Retrieving project params at revision: " + revision + ", to local path:" + tempDir);
+
+    try {
+      SVNURL url = SVNURL.parseURIEncoded(svnUrl);
+      SVNRevision svnRevision = parseSvnRevision(revision);
+      updateClient.doExport(url.appendPath(projectParamFilename, false), tempDir, svnRevision, svnRevision, null, true,
+          SVNDepth.EMPTY);
+      return new File(tempDir, projectParamFilename);
+    } catch (SVNException e) {
+      throw new TzarException("Error retrieving projectparams from source control.", e);
+    }
+
   }
 
   public long getHeadRevision() throws TzarException {
