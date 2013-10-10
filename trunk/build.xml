@@ -118,7 +118,7 @@
         </javac>
     </target>
 
-    <target name="test" depends="clean-test, javac-test">
+    <target name="test" depends="clean-test, javac-test" unless="no.test">
         <junit haltonerror="true"
                haltonfailure="false"
                failureproperty="tests.failed"
