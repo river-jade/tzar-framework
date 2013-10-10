@@ -91,7 +91,7 @@ class SharedFlags {
       LOCAL {
         @Override
         public CodeRepository createRepository(RunnerFlags flags) {
-          return new LocalFileRepository(flags.localCodePath);
+          return new LocalFileRepository(flags.localCodePath.getAbsoluteFile());
         }
 
         @Override
