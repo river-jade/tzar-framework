@@ -1,5 +1,0 @@
---runnerclass=JythonRunner 
---projectspec=../example/projectparams.yaml 
---localcodepath=../..
---commandlineflags="-p example" 
--v 
