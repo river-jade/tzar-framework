@@ -27,3 +27,24 @@ scenarios:
       parameters: 
         variables: 
             test.variable.1: 789
+
+repetitions:
+    repetitions:
+      - variables:
+          test.variable.2: 777
+
+      - variables:
+          test.variable.2: 888
+
+    generators:
+      - key: test.variable.3
+        generator_type: linear_step
+        start: 0
+        step_size: 1
+        count: 5
+
+      - key: test.variable.4
+        generator_type: normal_distribution
+        mean: 5
+        std_dev: 1
+        count: 10
