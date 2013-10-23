@@ -28,7 +28,7 @@ scenarios:
 # Note that also the original value of the variable is not used.
 
 repetitions:
-    repetitions:
+    static_repetitions:
       - variables:
           test.variable.2: 777
 
