@@ -72,7 +72,7 @@ public class YamlParserTest extends TestCase {
    */
   public void testRepetitionDeserialisationAndGeneration() throws TzarException {
     String yaml =
-        "repetitions : \n" +
+        "static_repetitions : \n" +
         "  - variables : \n" +
         "      A : 1\n" +
         "  - variables : \n" +
@@ -104,7 +104,7 @@ public class YamlParserTest extends TestCase {
    * @throws TzarException
    */
   public void testRepetitionDeserialisationNoGenerators() throws TzarException {
-    String yaml = "{ repetitions : [ { variables : { A : 1 } }, { variables : " +
+    String yaml = "{ static_repetitions : [ { variables : { A : 1 } }, { variables : " +
         "{ A : 2 } } ] }";
     Repetitions repetitions = yamlParser.repetitionsFromYaml(yaml);
     List<Parameters> paramsList = repetitions.getParamsList();
