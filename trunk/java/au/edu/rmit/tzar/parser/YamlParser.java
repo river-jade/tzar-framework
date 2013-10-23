@@ -226,12 +226,12 @@ public class YamlParser {
   }
 
   private static class RepetitionsBean {
-    private List<ParametersBean> repetitions;
+    private List<ParametersBean> static_repetitions;
     private List<RepetitionGeneratorBean> generators;
     
     public Repetitions toRepetitions() {
-      List<Parameters> parametersList = repetitions == null ? null :
-          Lists.transform(repetitions, new Function<ParametersBean, Parameters>() {
+      List<Parameters> parametersList = static_repetitions == null ? null :
+          Lists.transform(static_repetitions, new Function<ParametersBean, Parameters>() {
         @Override
         public Parameters apply(ParametersBean bean) {
           return bean == null ? Parameters.EMPTY_PARAMETERS : bean.toParameters();
@@ -250,7 +250,7 @@ public class YamlParser {
 
     public static RepetitionsBean fromRepetitions(Repetitions repetitions) {
       RepetitionsBean bean = new RepetitionsBean();
-      bean.repetitions = Lists.transform(repetitions.getStaticRepetitions(),
+      bean.static_repetitions = Lists.transform(repetitions.getStaticRepetitions(),
           new Function<Parameters, ParametersBean>() {
             @Override
             public ParametersBean apply(Parameters parameters) {
