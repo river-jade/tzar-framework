@@ -29,7 +29,7 @@ scenarios:
             test.variable.1: 789
 
 repetitions:
-    repetitions:
+    static_repetitions:
       - variables:
           test.variable.2: 777
 
