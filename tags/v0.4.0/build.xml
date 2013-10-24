@@ -139,6 +139,14 @@
     </target>
 
     <!--**************************
+       Generate javadocs
+    ************************** -->
+    <target name="javadoc">
+        <javadoc sourcepath="${src.dir}" destdir="docs"/>
+    </target>
+
+
+    <!--**************************
        Utility targets
    ************************** -->
     <!-- Check that the jar file is up to date so we don't build unnecessarily -->
