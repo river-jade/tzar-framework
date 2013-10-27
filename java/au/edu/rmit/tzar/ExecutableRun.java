@@ -104,7 +104,7 @@ public class ExecutableRun {
       }
 
       LOG.info(String.format("Running model: %s, run_id: %d, Project name: %s, Scenario name: %s, " +
-          "Flags: %s", model, getRunId(), run.getProjectName(), run.getScenarioName(), run.getFlags()));
+          "Flags: %s", model, getRunId(), run.getProjectName(), run.getScenarioName(), run.getRunnerFlags()));
       // TODO(michaell): Add some more wildcards here?
       Parameters parameters = run.getParameters().replaceWildcards(
           ImmutableMap.of(
@@ -121,7 +121,7 @@ public class ExecutableRun {
         File parametersFile = new File(outputPath, "parameters.yaml");
         yamlParser.parametersToYaml(parameters, parametersFile);
         Runner runner = runnerFactory.getRunner(run.getRunnerClass());
-        success = runner.runModel(model, outputPath, Integer.toString(run.getRunId()), run.getFlags(),
+        success = runner.runModel(model, outputPath, Integer.toString(run.getRunId()), run.getRunnerFlags(),
             parameters, RUNNER_LOGGER);
       } finally {
         if (handler != null) {

@@ -18,11 +18,11 @@ public class RunFactory {
   private final String clusterName;
   private final ProjectSpec projectSpec;
 
-  public RunFactory(String revision, String runset, String clusterName, ProjectSpec projectSpec) {
+  public RunFactory(String revision, String runset, String clusterName, ProjectSpec projectSpec){
     this.revision = revision;
     this.runset = runset;
     this.clusterName = clusterName;
-    this.projectSpec= projectSpec;
+    this.projectSpec = projectSpec;
   }
 
   /**
@@ -64,7 +64,13 @@ public class RunFactory {
   }
 
   private Run createRun(Parameters runParams, String scenarioName) {
-    return new Run(-1, projectSpec.getProjectName(), scenarioName, revision, projectSpec.getRunnerFlags(), runParams,
-        "scheduled", runset, clusterName, projectSpec.getRunnerClass());
+    return new Run.Builder(projectSpec.getProjectName(), scenarioName)
+        .setRevision(revision)
+        .setRunnerFlags(projectSpec.getRunnerFlags())
+        .setParameters(runParams)
+        .setRunset(runset)
+        .setClusterName(clusterName)
+        .setRunnerClass(projectSpec.getRunnerClass())
+        .build();
   }
 }
