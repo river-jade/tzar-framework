@@ -1,0 +1,50 @@
+project_name: Example Project
+runner_class: PythonRunner
+
+base_params:
+    variables: 
+        # Random seed based on run_id. The $$ syntax specifies that this value 
+        # is to be substituted at runtime.
+        random.seed: $$run_id$$
+
+        test.variable.1: 123
+        test.variable.2: 456
+        test.variable.3: xyz
+        test.variable.4: abc
+    
+    input_files: 
+    output_files: 
+        output.filename: test_output_file.txt
+        output.filename2: test_output_file2.txt
+    
+
+scenarios:
+    - name: Example scenario
+      parameters: 
+        variables: 
+
+    - name: Example scenario 2
+      parameters: 
+        variables: 
+            test.variable.1: 789
+
+repetitions:
+    static_repetitions:
+      - variables:
+          test.variable.2: 777
+
+      - variables:
+          test.variable.2: 888
+
+    generators:
+      - key: test.variable.3
+        generator_type: linear_step
+        start: 0
+        step_size: 1
+        count: 5
+
+      - key: test.variable.4
+        generator_type: normal_distribution
+        mean: 5
+        std_dev: 1
+        count: 10
