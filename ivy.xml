@@ -12,7 +12,7 @@
         <artifact name="tzar" type="jar" conf="tzar" ext="jar"/>
     </publications>
     <dependencies>
-        <dependency org="com.beust" name="jcommander" rev="1.32"/>
+        <dependency org="com.beust" name="jcommander" rev="1.27"/>
         <dependency org="com.google.code.gson" name="gson" rev="2.2.2" conf="tzar; api"/>
         <dependency org="com.google.guava" name="guava" rev="r09" conf="tzar; api"/>
         <dependency org="com.jcraft" name="jzlib" rev="1.1.1"/>
