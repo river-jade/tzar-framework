@@ -6,11 +6,11 @@ import au.edu.rmit.tzar.Utils;
 import au.edu.rmit.tzar.api.TzarException;
 import au.edu.rmit.tzar.api.Run;
 import au.edu.rmit.tzar.db.RunDao;
-import au.edu.rmit.tzar.repository.CodeRepository;
 import au.edu.rmit.tzar.resultscopier.ResultsCopier;
 
 import java.io.File;
 import java.util.Date;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -42,8 +42,9 @@ class PollAndRun implements Command {
   private final Semaphore runningTasks;
   private final String clusterName;
   private final File baseOutputPath;
-  private final CodeRepository codeRepository;
+  private final File baseModelPath;
   private final RunnerFactory runnerFactory;
+  private final List<String> repositoryUriPrefixes;
 
   /**
    * Constructor.
@@ -54,20 +55,21 @@ class PollAndRun implements Command {
    * @param clusterName name of the cluster which this node is running on
    * @param concurrentTaskCount max number of runs to execute in parallel
    * @param baseOutputPath base local path for output of the runs
-   * @param codeRepository to load the source code for the run
    * @param runnerFactory to create runners
+   * @param repositoryUriPrefixes list of allowed repository uri prefixes
    */
   public PollAndRun(RunDao runDao, int sleepTimeMillis, ResultsCopier resultsCopier, String runset,
-      String clusterName, int concurrentTaskCount, File baseOutputPath, CodeRepository codeRepository,
-      RunnerFactory runnerFactory) {
+      String clusterName, int concurrentTaskCount, File baseOutputPath, File baseModelPath,
+      RunnerFactory runnerFactory, List<String> repositoryUriPrefixes) {
     this.baseOutputPath = baseOutputPath;
-    this.codeRepository = codeRepository;
+    this.baseModelPath = baseModelPath;
     this.runnerFactory = runnerFactory;
     this.runDao = runDao;
     this.sleepTimeMillis = sleepTimeMillis;
     this.runset = runset;
     this.clusterName = clusterName;
     this.resultsCopier = resultsCopier;
+    this.repositoryUriPrefixes = repositoryUriPrefixes;
     executorService = Executors.newFixedThreadPool(concurrentTaskCount);
     runningTasks = new Semaphore(concurrentTaskCount);
   }
@@ -75,25 +77,26 @@ class PollAndRun implements Command {
   /**
    * Constructor. Reads parameters from POLL_AND_RUN_FLAGS. This object must be initialised before
    * calling this constructor.
-   * 
+   *
    * @param runDao for accessing the database
    * @param resultsCopier to copy the results from this node to permanent storage
    * @param baseOutputPath base local path for output of the runs
-   * @param codeRepository to load the source code for the run
+   * @param baseModelPath base local path for the model code
    * @param runnerFactory to create runners
    */
   public PollAndRun(RunDao runDao, ResultsCopier resultsCopier,
-        File baseOutputPath, CodeRepository codeRepository, RunnerFactory runnerFactory) throws TzarException {
+      File baseOutputPath, File baseModelPath, RunnerFactory runnerFactory) throws TzarException {
     this.baseOutputPath = baseOutputPath;
-    this.codeRepository = codeRepository;
     this.runnerFactory = runnerFactory;
     this.runDao = runDao;
+    this.baseModelPath = baseModelPath;
     this.sleepTimeMillis = POLL_AND_RUN_FLAGS.getSleepTimeMillis();
     this.runset = POLL_AND_RUN_FLAGS.getRunset();
     this.clusterName = POLL_AND_RUN_FLAGS.getClusterName();
     this.resultsCopier = resultsCopier;
     executorService = Executors.newFixedThreadPool(POLL_AND_RUN_FLAGS.getConcurrentTaskCount());
     runningTasks = new Semaphore(POLL_AND_RUN_FLAGS.getConcurrentTaskCount());
+    repositoryUriPrefixes = POLL_AND_RUN_FLAGS.getRepositoryUriPrefixes();
   }
 
 
@@ -165,8 +168,7 @@ class PollAndRun implements Command {
   }
 
   private void executeRun(final Run run) throws TzarException, InterruptedException {
-    ExecutableRun executableRun = ExecutableRun.createExecutableRun(run, baseOutputPath, codeRepository,
-        runnerFactory);
+    ExecutableRun executableRun = ExecutableRun.createExecutableRun(run, baseOutputPath, baseModelPath, runnerFactory);
 
     run.setStartTime(new Date());
     run.setEndTime(null);
@@ -178,7 +180,8 @@ class PollAndRun implements Command {
       return;
     }
 
-    executorService.submit(new DbExecutableRun(executableRun, resultsCopier, runDao, new Callback() {
+    executorService.submit(new DbExecutableRun(executableRun, resultsCopier, runDao, repositoryUriPrefixes,
+        new Callback() {
       @Override
       public void complete() {
         runningTasks.release(); // release the semaphore now that the task is done
@@ -199,13 +202,15 @@ class PollAndRun implements Command {
     private final ResultsCopier resultsCopier;
     private final Run run;
     private final RunDao runDao;
+    private final List<String> repositoryUriPrefixes;
     private final Callback callback;
 
     public DbExecutableRun(ExecutableRun executableRun, ResultsCopier resultsCopier, RunDao runDao,
-        Callback callback) {
+        List<String> repositoryUriPrefixes, Callback callback) {
       this.executableRun = executableRun;
       this.resultsCopier = resultsCopier;
       this.runDao = runDao;
+      this.repositoryUriPrefixes = repositoryUriPrefixes;
       this.callback = callback;
       this.run = executableRun.getRun();
     }
@@ -214,10 +219,12 @@ class PollAndRun implements Command {
     public void run() {
       boolean success = false;
       try {
-        success = executableRun.execute();
-      } catch (TzarException e) {
+        success = checkUriPrefixes(run) && executableRun.execute();
+      } catch (TzarException e) { // note: we eat these exceptions because we don't want to kill the thread.
         LOG.log(Level.SEVERE, "Error occurred executing run: " + run.getRunId(), e);
         System.out.println("\n");
+      } catch (RuntimeException e) {
+        LOG.log(Level.SEVERE, "Runtime exception occurred executing run: " + run.getRunId(), e);
       } finally {
         run.setEndTime(new Date());
         if (success) {
@@ -249,6 +256,23 @@ class PollAndRun implements Command {
         LOG.log(Level.WARNING, "Failed to copy the results for run: " + run.getRunId(), e);
       }
       callback.complete();
+    }
+
+    /**
+     * Make sure that the run source URL begins with one of the allowed prefixes. Otherwise, fail the run.
+     * @param run the run to check.
+     * @return true if the run is ok
+     */
+    private boolean checkUriPrefixes(Run run) {
+      String sourceUri = run.getCodeSource().getSourceUri().toString();
+      for (String prefix : repositoryUriPrefixes) {
+        if (sourceUri.startsWith(prefix)) {
+          return true;
+        }
+      }
+      LOG.warning("The sourceUrl for this run (" + sourceUri + ") did not begin with any of the allowed prefixes (" +
+          repositoryUriPrefixes + "). Failing run as a security measure.");
+      return false;
     }
   }
 }

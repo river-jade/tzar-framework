@@ -2,11 +2,13 @@ package au.edu.rmit.tzar;
 
 import au.edu.rmit.tzar.api.*;
 import au.edu.rmit.tzar.parser.Repetitions;
+import au.edu.rmit.tzar.repository.CodeSource;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import junit.framework.TestCase;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,19 +20,21 @@ import static org.mockito.Mockito.when;
  */
 public class RunFactoryTest extends TestCase {
   private static final String REVISION = "rev1";
-  private static final String COMMAND_FLAGS = "--some_flag";
   private static final String RUNSET = "a_runset";
   private static final String CLUSTER_NAME = "a cluster";
-  private static final String RUNNER_CLASS = "SomeClass";
+  private URI sourceUrl;
 
   private ProjectSpec mockProjectSpec;
   private Repetitions mockRepetitions;
+  private CodeSource codeSource;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
+    sourceUrl = new URI("/path/to/code");
     mockProjectSpec = mock(ProjectSpec.class);
     mockRepetitions = mock(Repetitions.class);
+    codeSource = new CodeSource(sourceUrl, CodeSource.RepositoryType.LOCAL_FILE, REVISION);
   }
 
   /**
@@ -39,7 +43,7 @@ public class RunFactoryTest extends TestCase {
    * repetitions (from lowest priority to highest).
    */
   public void testCreateRuns() throws TzarException {
-    RunFactory runFactory = new RunFactory(REVISION, RUNSET, CLUSTER_NAME, mockProjectSpec);
+    RunFactory runFactory = new RunFactory(codeSource, RUNSET, CLUSTER_NAME, mockProjectSpec);
 
     when(mockProjectSpec.getBaseParams()).thenReturn(
         Parameters.createParameters(ImmutableMap.of("A", 0, "B", 0, "C", 0, "D", -1),

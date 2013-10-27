@@ -26,7 +26,8 @@ public class RetryingResultsCopier implements ResultsCopier {
     TzarException e = null;
     for (int i = 0; i < retryCount; i++) {
       if (e != null) {
-        LOG.log(Level.WARNING, "Error copying results for run: " + run + ". Retry: " + i, e);
+        LOG.log(Level.WARNING, "Error copying results for run: " + run + ". Error: " + e.getMessage() +
+            " Retry: " + i);
       }
 
       e = copyResultsInternal(run, sourcePath, success);

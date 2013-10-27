@@ -1,25 +1,25 @@
 package au.edu.rmit.tzar;
 
 import au.edu.rmit.tzar.api.*;
+import au.edu.rmit.tzar.repository.CodeSource;
 import com.google.common.collect.Lists;
 
 import java.util.List;
 import java.util.logging.Logger;
 
 /**
- * Factory to create Run objects. Parses an (optional) global parameters file, a project spec file and an (optional)
- * repetitions file.
+ * Factory to create Run objects. Generates runs for a given project specification.
  */
 public class RunFactory {
   private static Logger LOG = Logger.getLogger(RunFactory.class.getName());
 
-  private final String revision;
+  private final CodeSource codeSource;
   private final String runset;
   private final String clusterName;
   private final ProjectSpec projectSpec;
 
-  public RunFactory(String revision, String runset, String clusterName, ProjectSpec projectSpec){
-    this.revision = revision;
+  public RunFactory(CodeSource codeSource, String runset, String clusterName, ProjectSpec projectSpec) {
+    this.codeSource = codeSource;
     this.runset = runset;
     this.clusterName = clusterName;
     this.projectSpec = projectSpec;
@@ -64,13 +64,11 @@ public class RunFactory {
   }
 
   private Run createRun(Parameters runParams, String scenarioName) {
-    return new Run.Builder(projectSpec.getProjectName(), scenarioName)
-        .setRevision(revision)
+    return new Run(projectSpec.getProjectName(), scenarioName, codeSource)
         .setRunnerFlags(projectSpec.getRunnerFlags())
         .setParameters(runParams)
         .setRunset(runset)
         .setClusterName(clusterName)
-        .setRunnerClass(projectSpec.getRunnerClass())
-        .build();
+        .setRunnerClass(projectSpec.getRunnerClass());
   }
 }

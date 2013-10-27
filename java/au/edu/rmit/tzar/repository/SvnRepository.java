@@ -12,6 +12,7 @@ import org.tmatesoft.svn.core.io.SVNRepositoryFactory;
 import org.tmatesoft.svn.core.wc.*;
 
 import java.io.File;
+import java.net.URI;
 import java.util.logging.Logger;
 
 /**
@@ -22,68 +23,61 @@ public class SvnRepository implements CodeRepository {
 
   private final SVNUpdateClient updateClient;
   private final SVNWCClient wcClient;
-  private final String svnUrl;
+  private final URI sourceUri;
   private final File modelsPath;
+
+  // TODO(river): these are a hack, and will break under concurrent thread use. Find a nicer /
+  // threadsafe way to do this.
+  private static SVNRevision lastRevision;
+  private static URI lastSourceUri;
 
   /**
    * Constructor.
    *
-   * @param svnUrl         url to the subversion repository
+   * @param sourceUri      uri to the project location in the subversion repository
    * @param baseModelsPath path to the local directory in which to put the
    */
-  public SvnRepository(String svnUrl, File baseModelsPath) {
-    this(svnUrl, baseModelsPath, SVNClientManager.newInstance().getUpdateClient(),
+  public SvnRepository(URI sourceUri, File baseModelsPath) {
+    this(sourceUri, baseModelsPath, SVNClientManager.newInstance().getUpdateClient(),
         SVNClientManager.newInstance().getWCClient());
   }
 
   /**
    * Constructor.
    *
-   * @param svnUrl         url to the subversion repository
+   * @param sourceUri      uri to the project location in the subversion repository
    * @param baseModelsPath path to the local directory in which to put the
    *                       svn client (will be created if it doesn't exist)
    * @param updateClient   SVNUpdateClient object (for updating the local svn client)
    * @param wcClient       SVNWCClient object (for cleaning up the local svn client)
    */
-  SvnRepository(String svnUrl, File baseModelsPath, SVNUpdateClient updateClient, SVNWCClient wcClient) {
-    this.svnUrl = svnUrl;
-    modelsPath = createModelPath(baseModelsPath, svnUrl);
+  SvnRepository(URI sourceUri, File baseModelsPath, SVNUpdateClient updateClient, SVNWCClient wcClient) {
+    this.sourceUri = sourceUri;
+    modelsPath = createModelPath(baseModelsPath, sourceUri);
     this.updateClient = updateClient;
     this.wcClient = wcClient;
     DAVRepositoryFactory.setup();
   }
 
-  public static SVNRevision parseSvnRevision(String revision) throws TzarException {
-    if ("head".equalsIgnoreCase(revision)) {
-      return SVNRevision.HEAD;
-    }
-    try {
-      return SVNRevision.create(Long.parseLong(revision));
-    } catch (NumberFormatException e) {
-      throw new TzarException("Unrecognised revision: '" + revision + "'. Must be 'head' or an integer.");
-    }
-  }
-
-  /**
-   * Checks out from subversion repository into a local directory at the provided revision
-   * number.
-   *
-   * @param revision the version of the model / framework to load
-   * @return the path to the cached model / framework code
-   * @throws TzarException if an error occurs contacting the svn repository
-   */
   @Override
-  public File getModel(String revision) throws TzarException {
+  public File retrieveModel(String revision) throws TzarException {
     LOG.info("Retrieving code revision: " + revision + ", to " + modelsPath);
     try {
-      SVNURL url = SVNURL.parseURIEncoded(svnUrl);
+      SVNURL url = getUrl();
       SVNRevision svnRevision = parseSvnRevision(revision);
+
+      if (svnRevision.equals(lastRevision) && sourceUri.equals(lastSourceUri)) {
+        return modelsPath;
+      }
+
       // we do a cleanup here because otherwise, if an update is aborted part way through (by sigkill for instance),
       // the local repository is left in a bad state, and future updates all fail.
       if (modelsPath.exists()) {
         wcClient.doCleanup(modelsPath);
       }
       updateClient.doCheckout(url, modelsPath, svnRevision, svnRevision, SVNDepth.INFINITY, true);
+      lastRevision = svnRevision;
+      lastSourceUri = sourceUri;
       return modelsPath;
     } catch (SVNException e) {
       throw new TzarException("Error retrieving model from SVN", e);
@@ -91,12 +85,12 @@ public class SvnRepository implements CodeRepository {
   }
 
   @Override
-  public File getProjectParams(String projectParamFilename, String revision) throws TzarException {
+  public File retrieveProjectParams(String projectParamFilename, String revision) throws TzarException {
     File tempDir = Files.createTempDir();
     LOG.info("Retrieving project params at revision: " + revision + ", to local path:" + tempDir);
 
     try {
-      SVNURL url = SVNURL.parseURIEncoded(svnUrl);
+      SVNURL url = getUrl();
       SVNRevision svnRevision = parseSvnRevision(revision);
       updateClient.doExport(url.appendPath(projectParamFilename, false), tempDir, svnRevision, svnRevision, null, true,
           SVNDepth.EMPTY);
@@ -107,18 +101,31 @@ public class SvnRepository implements CodeRepository {
 
   }
 
-  public long getHeadRevision() throws TzarException {
+  private SVNRevision parseSvnRevision(String revision) throws TzarException {
     try {
-      SVNRepository repository = SVNRepositoryFactory.create(SVNURL.parseURIEncoded(svnUrl));
+      return SVNRevision.create(Long.parseLong(revision));
+    } catch (NumberFormatException ex) {
+      throw new TzarException("Revision:" + revision + " was not a number.", ex);
+    }
+  }
+
+  @Override
+  public String getHeadRevision() throws TzarException {
+    try {
+      SVNRepository repository = SVNRepositoryFactory.create(getUrl());
       repository.setAuthenticationManager(SVNWCUtil.createDefaultAuthenticationManager());
-      return repository.getLatestRevision();
+      return Long.toString(repository.getLatestRevision());
     } catch (SVNException e) {
       throw new TzarException("Couldn't retrieve the latest revision from SVN.", e);
     }
   }
 
+  private SVNURL getUrl() throws SVNException {
+    return SVNURL.parseURIEncoded(sourceUri.toString());
+  }
+
   @VisibleForTesting
-  static File createModelPath(File baseModelsPath, String svnUrl) {
-    return new File(baseModelsPath, svnUrl.replaceAll("[/ :]", "_"));
+  static File createModelPath(File baseModelsPath, URI sourceUri) {
+    return new File(baseModelsPath, sourceUri.toString().replaceAll("[/ :]+", "_"));
   }
 }

@@ -1,5 +1,7 @@
 package au.edu.rmit.tzar.api;
 
+import au.edu.rmit.tzar.repository.CodeSource;
+
 import java.io.File;
 import java.util.Date;
 
@@ -7,50 +9,40 @@ import java.util.Date;
  * Represents a particular run of the framework.
  */
 public class Run {
-  private volatile int runId;
-
   private final String projectName;
   private final String scenarioName;
-
-  private final String revision;
-  private final String runnerFlags;
-
+  private final CodeSource codeSource;
+  private volatile int runId = -1;
+  private volatile String runnerFlags;
   private volatile String hostname;
-
   private volatile Date startTime;
   private volatile Date endTime;
-  private final Parameters parameters;
-
-  private volatile String state;
-  private final String runset;
-  private final String clusterName;
-
+  private volatile Parameters parameters = Parameters.EMPTY_PARAMETERS;
+  private volatile String state = "scheduled";
+  private volatile String runset = "default_runset";
+  private volatile String clusterName;
   private volatile File remoteOutputPath;
   private volatile String outputHost;
   private volatile String runnerClass;
 
-  /**
-   * Constructor.
-   */
-  private Run(Builder builder) {
-    this.runnerClass = builder.runnerClass;
-    this.runId = builder.id;
-    this.projectName = builder.projectName;
-    this.scenarioName = builder.scenarioName;
-    this.revision = builder.revision;
-    this.runnerFlags = builder.runnerFlags;
-    this.parameters = builder.parameters;
-    this.state = builder.state;
-    this.runset = builder.runset;
-    this.clusterName = builder.clusterName;
+   /**
+    * Constructor.
+    * @param projectName  the name of the project which defines this run
+    * @param scenarioName the name of the scenario which defines this run or null if this run is without scenario
+    */
+  public Run(String projectName, String scenarioName, CodeSource codeSource) {
+    this.projectName = projectName;
+    this.scenarioName = scenarioName;
+    this.codeSource = codeSource;
   }
 
   public String getHostname() {
     return hostname;
   }
 
-  public void setHostname(String hostname) {
+  public Run setHostname(String hostname) {
     this.hostname = hostname;
+    return this;
   }
 
   public String getName() {
@@ -61,36 +53,49 @@ public class Run {
     return startTime;
   }
 
-  public void setStartTime(Date startTime) {
+  public Run setStartTime(Date startTime) {
     this.startTime = startTime;
+    return this;
   }
 
   public Date getEndTime() {
     return endTime;
   }
 
-  public void setEndTime(Date endTime) {
+  public Run setEndTime(Date endTime) {
     this.endTime = endTime;
+    return this;
   }
 
-  public String getRevision() {
-    return revision;
+  public CodeSource getCodeSource() {
+    return codeSource;
   }
 
   public String getRunnerFlags() {
     return runnerFlags;
   }
 
+  public Run setRunnerFlags(String runnerFlags) {
+    this.runnerFlags = runnerFlags;
+    return this;
+  }
+
   public Parameters getParameters() {
     return parameters;
+  }
+
+  public Run setParameters(Parameters parameters) {
+    this.parameters = parameters;
+    return this;
   }
 
   public String getOutputHost() {
     return outputHost;
   }
 
-  public void setOutputHost(String outputHost) {
+  public Run setOutputHost(String outputHost) {
     this.outputHost = outputHost;
+    return this;
   }
 
   /**
@@ -105,8 +110,9 @@ public class Run {
    * Sets the path where the results of this run are stored on the machine specified by getOutputHost().
    * @return
    */
-  public void setRemoteOutputPath(File outputPath) {
+  public Run setRemoteOutputPath(File outputPath) {
     this.remoteOutputPath = outputPath;
+    return this;
   }
 
   /**
@@ -116,8 +122,9 @@ public class Run {
     return runId;
   }
 
-  public void setRunId(int runId) {
+  public Run setRunId(int runId) {
     this.runId = runId;
+    return this;
   }
 
   public String getProjectName() {
@@ -132,20 +139,36 @@ public class Run {
     return runset;
   }
 
+  public Run setRunset(String runset) {
+    this.runset = runset;
+    return this;
+  }
+
   public String getClusterName() {
     return clusterName;
+  }
+
+  public Run setClusterName(String clusterName) {
+    this.clusterName = clusterName;
+    return this;
   }
 
   public String getRunnerClass() {
     return runnerClass;
   }
 
+  public Run setRunnerClass(String runnerClass) {
+    this.runnerClass = runnerClass;
+    return this;
+  }
+
   public String getState() {
     return state;
   }
 
-  public void setState(String state) {
+  public Run setState(String state) {
     this.state = state;
+    return this;
   }
 
   @Override
@@ -154,7 +177,7 @@ public class Run {
         "runId=" + runId +
         ", projectName='" + projectName + '\'' +
         ", scenarioName='" + scenarioName + '\'' +
-        ", revision='" + revision + '\'' +
+        ", codeSource='" + codeSource + '\'' +
         ", runnerFlags='" + runnerFlags + '\'' +
         ", state='" + state + '\'' +
         ", runset='" + runset + '\'' +
@@ -177,7 +200,7 @@ public class Run {
     if (outputHost != null ? !outputHost.equals(run.outputHost) : run.outputHost != null) return false;
     if (remoteOutputPath != null ? !remoteOutputPath.equals(run.remoteOutputPath) : run.remoteOutputPath != null) return false;
     if (parameters != null ? !parameters.equals(run.parameters) : run.parameters != null) return false;
-    if (revision != null ? !revision.equals(run.revision) : run.revision != null) return false;
+    if (codeSource != null ? !codeSource.equals(run.codeSource) : run.codeSource!= null) return false;
     if (projectName != null ? !projectName.equals(run.projectName) : run.projectName != null) return false;
     if (scenarioName != null ? !scenarioName.equals(run.scenarioName) : run.scenarioName != null) return false;
     if (runset != null ? !runset.equals(run.runset) : run.runset != null) return false;
@@ -194,7 +217,7 @@ public class Run {
     int result = runId;
     result = 31 * result + (projectName != null ? projectName.hashCode() : 0);
     result = 31 * result + (scenarioName != null ? scenarioName.hashCode() : 0);
-    result = 31 * result + (revision != null ? revision.hashCode() : 0);
+    result = 31 * result + (codeSource != null ? codeSource.hashCode() : 0);
     result = 31 * result + (runnerFlags != null ? runnerFlags.hashCode() : 0);
     result = 31 * result + (hostname != null ? hostname.hashCode() : 0);
     result = 31 * result + (startTime != null ? startTime.hashCode() : 0);
@@ -207,96 +230,5 @@ public class Run {
     result = 31 * result + (outputHost != null ? outputHost.hashCode() : 0);
     result = 31 * result + (runnerClass != null ? runnerClass.hashCode() : 0);
     return result;
-  }
-
-  public static class Builder {
-    private final String projectName;
-    private final String scenarioName;
-    private int id = -1;
-    private String revision;
-    private String runnerFlags;
-    private Parameters parameters = Parameters.EMPTY_PARAMETERS;
-    private String state = "scheduled";
-    private String runset;
-    private String clusterName;
-    private String runnerClass;
-
-    /**
-     *
-     * @param projectName  the name of the project which defines this run
-     * @param scenarioName the name of the scenario which defines this run or null if this run is without scenario
-     */
-    public Builder(String projectName, String scenarioName) {
-      this.projectName = projectName;
-      this.scenarioName = scenarioName;
-    }
-
-    /*
-     * @param id        the unique id for this run or null if the id is not yet known
-     */
-    public Builder setId(int id) {
-      this.id = id;
-      return this;
-    }
-
-    /**
-     * @param revision     the revision number of the model code to download and execute
-     */
-    public Builder setRevision(String revision) {
-      this.revision = revision;
-      return this;
-    }
-
-    /**
-     * @param runnerFlags  the flags to pass to the runner to be executed
-     */
-    public Builder setRunnerFlags(String runnerFlags) {
-      this.runnerFlags = runnerFlags;
-      return this;
-    }
-
-    /**
-     * @param parameters   parameters for the run
-     */
-    public Builder setParameters(Parameters parameters) {
-      this.parameters = parameters;
-      return this;
-    }
-
-    /**
-     * @param state        execution state of the run
-     */
-    public Builder setState(String state) {
-      this.state = state;
-      return this;
-    }
-
-    /**
-     * @param runset       name of a runset for this run
-     */
-    public Builder setRunset(String runset) {
-      this.runset = runset;
-      return this;
-    }
-
-    /**
-     * @param clusterName  name of the cluster to run upon
-     */
-    public Builder setClusterName(String clusterName) {
-      this.clusterName = clusterName;
-      return this;
-    }
-
-    /**
-     * @param runnerClass  class to use to execute the run
-     */
-    public Builder setRunnerClass(String runnerClass) {
-      this.runnerClass = runnerClass;
-      return this;
-    }
-
-    public Run build() {
-      return new Run(this);
-    }
   }
 }
