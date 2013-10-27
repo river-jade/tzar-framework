@@ -32,8 +32,16 @@ public class CommandFlags {
     private PollAndRunFlags() {
     }
 
-    @Parameter(names = "--concurrenttaskcount", description = "Number of tasks to run in parallel. In order to set " +
-        "this to above one, the Runner used must support multiple parallel instances.")
+    @Parameter(names = "--repository-prefixes", description = "Comma separated list of allowed prefixes " +
+        "for repository URIs. If a run whose repository URI does not begin with one of the allowed prefixes is " +
+        "retrieved from the database, it will abort and be marked as failed. This flag exists for security reasons. " +
+        "Without it, write-access to the database would allow arbitrary code execution on cluster nodes.",
+        required=true)
+    private List<String> repositoryUriPrefixes;
+
+// TODO(river): reinstate this parameter when concurrent execution works properly
+//    @Parameter(names = "--concurrenttaskcount", description = "Number of tasks to run in parallel. In order to set " +
+//        "this to above one, the Runner used must support multiple parallel instances.")
     private int concurrentTaskCount = 1;
 
     @Parameter(names = "--pemfile", description = "Path to ssh private key for connecting to the remote output data " +
@@ -73,6 +81,10 @@ public class CommandFlags {
       return pemFile;
     }
 
+    public List<String> getRepositoryUriPrefixes() {
+      return repositoryUriPrefixes;
+    }
+
     public String getRunset() {
       return runset;
     }
@@ -108,16 +120,8 @@ public class CommandFlags {
     @Parameter(names = "--clustername", description = "Name of cluster to run on.")
     private String clusterName = "";
 
-    @Parameter(names = "--svnurl", description = "URL for the SVN repository. Required if 'current_head' is used for " +
-        "the revision number.")
-    private String svnUrl = null;
-
     public String getClusterName() {
       return clusterName;
-    }
-
-    public String getSvnUrl() {
-      return svnUrl;
     }
   }
 

@@ -5,11 +5,13 @@ import au.edu.rmit.tzar.api.TzarException;
 import au.edu.rmit.tzar.api.Run;
 import au.edu.rmit.tzar.api.Runner;
 import au.edu.rmit.tzar.repository.CodeRepository;
+import au.edu.rmit.tzar.repository.CodeSource;
 import com.google.common.io.Files;
 import junit.framework.TestCase;
 import org.python.google.common.collect.Maps;
 
 import java.io.File;
+import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -35,8 +37,9 @@ public class ExecutableRunTest extends TestCase {
   private static final String RUNNER_CLASS = "MockRunner";
   private static final String SCENARIO_NAME = "a scenario";
   private static final String RUNSET = "runset_1";
+  private static final String SOURCE_URL = "file:///path/to/code";
 
-  private Run run = mock(Run.class);
+  private Run run;
   private CodeRepository codeRepository = mock(CodeRepository.class);
   private RunnerFactory runnerFactory = mock(RunnerFactory.class);
   private ExecutableRun executableRun;
@@ -48,14 +51,14 @@ public class ExecutableRunTest extends TestCase {
     OUTPUT_DIR = new File(BASE_OUTPUT_PATH, Utils.Path.combineAndReplaceWhitespace("_", PROJECT_NAME, RUNSET,
         RUN_ID + "_" + SCENARIO_NAME)).toString();
 
-    when(run.getRunId()).thenReturn(RUN_ID);
-    when(run.getProjectName()).thenReturn(PROJECT_NAME);
-    when(run.getScenarioName()).thenReturn(SCENARIO_NAME);
-    when(run.getRunset()).thenReturn(RUNSET);
-    when(run.getRunnerClass()).thenReturn(RUNNER_CLASS);
-    when(run.getRevision()).thenReturn(REVISION);
-    executableRun = ExecutableRun.createExecutableRun(run, BASE_OUTPUT_PATH, codeRepository,
-        runnerFactory);
+    Parameters parameters = Parameters.createParameters(VARIABLES, INPUT_FILES, OUTPUT_FILES);
+    run = new Run(PROJECT_NAME, SCENARIO_NAME,
+        new CodeSource(new URI(SOURCE_URL), CodeSource.RepositoryType.LOCAL_FILE, REVISION))
+        .setRunnerClass(RUNNER_CLASS)
+        .setRunset(RUNSET)
+        .setRunId(RUN_ID)
+        .setParameters(parameters);
+    executableRun = ExecutableRun.createExecutableRun(run, BASE_OUTPUT_PATH, MODEL, runnerFactory);
   }
 
   public void testCreateExecutableRun() {
@@ -76,9 +79,7 @@ public class ExecutableRunTest extends TestCase {
   }
 
   public void testExecute(boolean success) throws TzarException {
-    when(codeRepository.getModel(REVISION)).thenReturn(MODEL);
-    Parameters parameters = Parameters.createParameters(VARIABLES, INPUT_FILES, OUTPUT_FILES);
-    when(run.getParameters()).thenReturn(parameters);
+    when(codeRepository.retrieveModel(REVISION)).thenReturn(MODEL);
     when(runnerFactory.getRunner(RUNNER_CLASS)).thenReturn(new MockRunner(success));
 
     assertEquals(success, executableRun.execute());

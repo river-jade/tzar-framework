@@ -7,17 +7,15 @@ import au.edu.rmit.tzar.api.ProjectSpec;
 import au.edu.rmit.tzar.api.TzarException;
 import au.edu.rmit.tzar.db.DaoFactory;
 import au.edu.rmit.tzar.db.RunDao;
-import au.edu.rmit.tzar.parser.YamlParser;
-import au.edu.rmit.tzar.repository.CodeRepository;
-import au.edu.rmit.tzar.repository.SvnRepository;
+import au.edu.rmit.tzar.repository.CodeSource;
 import au.edu.rmit.tzar.resultscopier.*;
 import com.beust.jcommander.JCommander;
-import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
+import com.google.common.io.Files;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.URI;
 import java.util.Map;
 
 import static au.edu.rmit.tzar.commands.CommandFlags.*;
@@ -43,17 +41,19 @@ class CommandFactory {
 
   public Command newExecLocalRuns() throws IOException, TzarException, ParseException {
     String revision = CREATE_RUNS_FLAGS.getRevision();
-    RUNNER_FLAGS.getRepositoryType().checkRevisionNumber(revision);
+    CodeSource.RepositoryType repositoryType = CREATE_RUNS_FLAGS.getRepositoryType();
+    URI projectUri = CREATE_RUNS_FLAGS.getProjectUri();
+    File baseModelPath = RUNNER_FLAGS.getBaseModelPath();
 
-    CodeRepository codeRepository = RUNNER_FLAGS.createRepository();
+    CodeSource modelSource = createCodeSource(revision, repositoryType, projectUri, baseModelPath);
 
-    RunFactory runFactory = new RunFactory(revision,
+    RunFactory runFactory = new RunFactory(modelSource,
         CREATE_RUNS_FLAGS.getRunset(),"" /* no cluster name for local runs */,
-        getProjectSpec(codeRepository));
+        modelSource.getProjectSpec(baseModelPath));
 
     return new ExecLocalRuns(CREATE_RUNS_FLAGS.getNumRuns(),
-        runFactory, RUNNER_FLAGS.getLocalOutputPath(), codeRepository,
-        new RunnerFactory());
+        runFactory, RUNNER_FLAGS.getLocalOutputPath(),
+        baseModelPath, new RunnerFactory());
   }
 
   public Command newHelp() {
@@ -68,8 +68,6 @@ class CommandFactory {
   }
 
   public Command newPollAndRun() throws IOException, TzarException, ParseException {
-    CodeRepository codeRepository = RUNNER_FLAGS.createRepository();
-
     ResultsCopier resultsCopier;
     if (POLL_AND_RUN_FLAGS.getScpOutputHost() != null) {
       SshClientFactory sshClientFactory = new SshClientFactoryKeyAuth(POLL_AND_RUN_FLAGS);
@@ -82,7 +80,7 @@ class CommandFactory {
     RunDao runDao = daoFactory.createRunDao();
     resultsCopier = new CopierFactory().createAsyncCopier(resultsCopier, true, true, runDao);
 
-    return new PollAndRun(runDao, resultsCopier, RUNNER_FLAGS.getLocalOutputPath(), codeRepository,
+    return new PollAndRun(runDao, resultsCopier, RUNNER_FLAGS.getLocalOutputPath(), RUNNER_FLAGS.getBaseModelPath(),
         new RunnerFactory());
   }
 
@@ -94,28 +92,36 @@ class CommandFactory {
 
   public Command newScheduleRuns() throws IOException, TzarException, ParseException {
     DaoFactory daoFactory = new DaoFactory(getDbUrl());
-    String revision = CREATE_RUNS_FLAGS.getRevision();
 
-    String svnUrl = SCHEDULE_RUNS_FLAGS.getSvnUrl();
-    SvnRepository repository = new SvnRepository(svnUrl, null);
-    if (SpecialRevisionNumber.CURRENT_HEAD.toString().equalsIgnoreCase(revision)) {
-      if (Strings.isNullOrEmpty(svnUrl)) {
-        throw new ParseException("--svnurl must not be empty if --revision=current_head");
-      }
-      revision = Long.toString(repository.getHeadRevision());
-    } else if (SpecialRevisionNumber.RUNTIME_HEAD.toString().equalsIgnoreCase(revision)) {
-      revision = "head";
+
+    CodeSource.RepositoryType repositoryType = CREATE_RUNS_FLAGS.getRepositoryType();
+    if (repositoryType == CodeSource.RepositoryType.LOCAL_FILE) {
+      throw new ParseException("Repository type: LOCAL_FILE is not valid when scheduling remote runs. " +
+          "Please choose a different repository type.");
     }
 
-    RunnerFlags.RepositoryType.SVN.checkRevisionNumber(revision);
+    CodeSource codeSource = createCodeSource(CREATE_RUNS_FLAGS.getRevision(), repositoryType,
+        CREATE_RUNS_FLAGS.getProjectUri(), Files.createTempDir());
+    ProjectSpec projectSpec = codeSource.getProjectSpec(Files.createTempDir());
 
-    ProjectSpec projectSpec = getProjectSpec(repository);
-
-    RunFactory runFactory = new RunFactory(revision,
+    RunFactory runFactory = new RunFactory(codeSource,
         CREATE_RUNS_FLAGS.getRunset(),
         SCHEDULE_RUNS_FLAGS.getClusterName(),
         projectSpec);
     return new ScheduleRuns(daoFactory.createRunDao(), CREATE_RUNS_FLAGS.getNumRuns(), runFactory);
+  }
+
+  private static CodeSource createCodeSource(String revision, CodeSource.RepositoryType repositoryType,
+      URI sourceUri, File baseModelPath) throws TzarException {
+    if (revision.equals("head")) {
+      revision = repositoryType.createRepository(sourceUri, baseModelPath).getHeadRevision();
+    } else {
+      if (!repositoryType.isValidRevision(revision)) {
+        throw new ParseException(revision + " is not a valid revision for repository type: " + repositoryType);
+      }
+    }
+
+    return new CodeSource(sourceUri, repositoryType, revision);
   }
 
   private String getDbUrl() throws ParseException {
@@ -125,22 +131,6 @@ class CommandFactory {
           Constants.DB_ENVIRONMENT_VARIABLE_NAME + " or by the flag --dburl");
     }
     return dbString;
-  }
-
-  private static ProjectSpec getProjectSpec(CodeRepository codeRepository) throws TzarException {
-    YamlParser parser = new YamlParser();
-    File projectSpec;
-    if (CREATE_RUNS_FLAGS.getProjectSpec() == null) {
-      projectSpec = codeRepository.getProjectParams("projectparams.yaml",
-          CREATE_RUNS_FLAGS.getRevision());
-    } else {
-      projectSpec = CREATE_RUNS_FLAGS.getProjectSpec();
-    }
-    try {
-      return parser.projectSpecFromYaml(projectSpec);
-    } catch (FileNotFoundException e) {
-      throw new TzarException("Couldn't parse project spec at: " + projectSpec, e);
-    }
   }
 
   /**

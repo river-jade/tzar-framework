@@ -5,7 +5,6 @@ import au.edu.rmit.tzar.RunFactory;
 import au.edu.rmit.tzar.RunnerFactory;
 import au.edu.rmit.tzar.api.TzarException;
 import au.edu.rmit.tzar.api.Run;
-import au.edu.rmit.tzar.repository.CodeRepository;
 import com.google.common.collect.Lists;
 
 import java.io.File;
@@ -28,15 +27,14 @@ class ExecLocalRuns implements Command {
   private final RunFactory runFactory;
   private final int numRuns;
   private final File baseOutputPath;
-  private final CodeRepository codeRepository;
+  private final File baseModelPath;
   private final RunnerFactory runnerFactory;
 
-  public ExecLocalRuns(int numRuns, RunFactory runFactory, File baseOutputPath,
-      CodeRepository codeRepository, RunnerFactory runnerFactory)
-      throws TzarException, IOException {
+  public ExecLocalRuns(int numRuns, RunFactory runFactory, File baseOutputPath, File baseModelPath,
+      RunnerFactory runnerFactory) throws TzarException, IOException {
     this.numRuns = numRuns;
     this.baseOutputPath = baseOutputPath;
-    this.codeRepository = codeRepository;
+    this.baseModelPath = baseModelPath;
     this.runnerFactory = runnerFactory;
     this.runFactory = runFactory;
   }
@@ -46,7 +44,7 @@ class ExecLocalRuns implements Command {
     List<Run> runs = runFactory.createRuns(numRuns);
     List<Integer> failedIds = Lists.newArrayList();
     for (Run run : runs) {
-      if (!executeRun(ExecutableRun.createExecutableRun(run, baseOutputPath, codeRepository, runnerFactory))) {
+      if (!executeRun(ExecutableRun.createExecutableRun(run, baseOutputPath, baseModelPath, runnerFactory))) {
         failedIds.add(run.getRunId());
       }
     }

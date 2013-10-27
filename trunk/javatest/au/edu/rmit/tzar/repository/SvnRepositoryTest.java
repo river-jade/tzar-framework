@@ -11,6 +11,8 @@ import org.tmatesoft.svn.core.wc.SVNUpdateClient;
 import org.tmatesoft.svn.core.wc.SVNWCClient;
 
 import java.io.File;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 import static org.mockito.Mockito.verify;
 
@@ -27,18 +29,18 @@ public class SvnRepositoryTest extends TestCase {
   public void setUp() throws Exception {
     mockClient = Mockito.mock(SVNUpdateClient.class);
     SVNWCClient mockWCClient = Mockito.mock(SVNWCClient.class);
-    repository = new SvnRepository(TEST_URL, BASE_MODEL_PATH, mockClient, mockWCClient);
+    repository = new SvnRepository(new URI(TEST_URL), BASE_MODEL_PATH, mockClient, mockWCClient);
   }
 
   /**
    * Simulates retrieving the model from sourceforge.
    */
-  public void testGetModel() throws SVNException, TzarException {
+  public void testGetModel() throws SVNException, TzarException, URISyntaxException {
     String revision = "1000";
 
-    File expectedPath = SvnRepository.createModelPath(BASE_MODEL_PATH, TEST_URL);
+    File expectedPath = SvnRepository.createModelPath(BASE_MODEL_PATH, new URI(TEST_URL));
 
-    File modelPath = repository.getModel(revision);
+    File modelPath = repository.retrieveModel(revision);
 
     SVNRevision svnRevision = SVNRevision.create(Long.parseLong(revision));
     verify(mockClient).doCheckout(SVNURL.parseURIEncoded(TEST_URL), expectedPath, svnRevision,
@@ -48,7 +50,7 @@ public class SvnRepositoryTest extends TestCase {
 
   public void testGetModelBadRevision() {
     try {
-      repository.getModel("foo");
+      repository.retrieveModel("foo");
       fail("Expected TzarException to be thrown.");
     } catch (TzarException e) {
     }

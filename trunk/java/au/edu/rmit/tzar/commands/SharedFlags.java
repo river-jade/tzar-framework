@@ -1,16 +1,15 @@
 package au.edu.rmit.tzar.commands;
 
 import au.edu.rmit.tzar.Constants;
-import au.edu.rmit.tzar.api.TzarException;
 import au.edu.rmit.tzar.db.Utils;
-import au.edu.rmit.tzar.repository.CodeRepository;
-import au.edu.rmit.tzar.repository.LocalFileRepository;
-import au.edu.rmit.tzar.repository.SvnRepository;
+import au.edu.rmit.tzar.repository.CodeSource;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.beust.jcommander.converters.FileConverter;
 
 import java.io.File;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,83 +33,18 @@ class SharedFlags {
     private RunnerFlags() {
     }
 
-    @Parameter(names = "--localcodepath", description = "Path for local code repository to use " +
-        "instead of SVN.", converter = FileConverter.class)
-    private File localCodePath = null;
-
-    @Parameter(names = "--svnurl", description = "URL for the SVN repository.")
-    private String svnUrl = null;
-
     @Parameter(names = "--tzarbasedir", description = "Base directory to store tzar files, including temporary " +
         "output files, and downloaded source code.",
         converter = FileConverter.class)
-    private File tzarBaseDirectory = new File(System.getProperty("user.home"), "tzar");
+    private File tzarBaseDirectory = Constants.DEFAULT_TZAR_BASE_DIR;
 
-    public CodeRepository createRepository() {
-      return getRepositoryType().createRepository(this);
-    }
-
-    public RepositoryType getRepositoryType() {
-      if (localCodePath == null ^ svnUrl != null) {
-        throw new ParseException("Exactly one of localcodepath or svnurl must be provided");
-      } else if (localCodePath != null) {
-        return RepositoryType.LOCAL;
-      } else { // (svnUrl != null)
-        return RepositoryType.SVN;
-      }
-    }
-
-    public File getBaseModelsPath() {
-      return new File(tzarBaseDirectory, "modelcode");
+    public File getBaseModelPath() {
+      return new File(tzarBaseDirectory, Constants.DEFAULT_MODEL_CODE_DIR);
     }
 
     public File getLocalOutputPath() {
-      return new File(tzarBaseDirectory, "outputdata");
+      return new File(tzarBaseDirectory, Constants.DEFAULT_OUTPUT_DATA_DIR);
     }
-
-    public enum RepositoryType {
-      SVN {
-        @Override
-        public void checkRevisionNumber(String revision) {
-          if (revision == null || revision.length() == 0) {
-            throw new ParseException("You must specify a revision using --revision when using SVN repository.");
-          }
-          try {
-            // check that revision number is valid
-            SvnRepository.parseSvnRevision(revision);
-          } catch (TzarException e) {
-            throw new ParseException(e);
-          }
-        }
-
-        @Override
-        CodeRepository createRepository(RunnerFlags flags) {
-          return new SvnRepository(flags.svnUrl, flags.getBaseModelsPath());
-        }
-      },
-      LOCAL {
-        @Override
-        public CodeRepository createRepository(RunnerFlags flags) {
-          return new LocalFileRepository(flags.localCodePath.getAbsoluteFile());
-        }
-
-        @Override
-        public void checkRevisionNumber(String revision) {
-          if (revision != null && revision.length() != 0) {
-            throw new ParseException("--revision may only be used for svn repositories");
-          }
-        }
-      };
-
-      abstract CodeRepository createRepository(RunnerFlags flags);
-
-      public abstract void checkRevisionNumber(String revision);
-    }
-  }
-
-  public enum SpecialRevisionNumber {
-    CURRENT_HEAD,
-    RUNTIME_HEAD;
   }
 
   @Parameters(separators = "= ")
@@ -134,17 +68,23 @@ class SharedFlags {
     @Parameter(names = {"-n", "--numruns"}, description = "Number of runs to schedule")
     private int numRuns = 1;
 
-    @Parameter(names = "--projectspec", description = "The path to the file containing the project spec. If set, " +
-        "this flag overrides the default of projectparams.yaml, located at the root of the model code, either" +
-        "locally or in source control.")
-    private File projectSpec = null;
+    @Parameter(names = "--projectpath", description = "URI path to the repository where the project spec and model " +
+        "code can be found. The structure of this value will depend on the type set in --repotype. If --repotype is " +
+        "\"local_file\", then this should be a local file path to the folder containing projectparams.yaml and the " +
+        "model code. If it's \"svn\" for example, then it should be a URL pointing to a directory in a subversion " +
+        "repository that contains the projectparams.yaml and the model code.", required=true)
+    private String projectPath = null;
 
     @Parameter(names = "--revision", description = "The source control revision of the model code to schedule for " +
-        "execution. Must be either an integer, 'runtime_head', or 'current_head'. 'runtime_head' will mean that " +
-        "clients will always download the latest version of the code, 'current_head' will set the revision to be " +
-        "the head revision at the time the job is scheduled. This flag is mandatory if --svnurl is set. Conversely, " +
-        "--svnurl is mandatory if the value of this flag is 'current_head'.")
-    private String revision = null;
+        "execution. Must be either an appropriate value for the repository, or 'head' to use the latest version (at " +
+        "time of running this command. Default: head")
+    private String revision = "head";
+
+
+    @Parameter(names = "--repotype", description = "The type of repository that the project spec and model code " +
+        "should be retrieved from. Currently accepted values are: 'LOCAL_FILE', 'SVN'. If not provided, Tzar will " +
+        "attempt to guess based on the projectpath flag.")
+    private CodeSource.RepositoryType repositoryType;
 
     @Parameter(names = "--runset", description = "Name of runset to schedule.")
     private String runset = "";
@@ -153,16 +93,42 @@ class SharedFlags {
       return numRuns;
     }
 
-    public File getProjectSpec() {
-      return projectSpec;
+    public String getRunset() {
+      return runset;
     }
 
     public String getRevision() {
       return revision;
     }
 
-    public String getRunset() {
-      return runset;
+    public URI getProjectUri() {
+      try {
+        URI uri = new URI(projectPath);
+        if (uri.getScheme() == null) { // no scheme (eg http, ftp). assuming it's a file path
+          String absolutePath = new File(projectPath).getAbsolutePath();
+          return new URI("file", uri.getHost(), absolutePath, uri.getFragment());
+        } else {
+          return uri;
+        }
+      } catch (URISyntaxException e) {
+        throw new ParseException("Couldn't parse project path: " + projectPath + ". Must be a valid URI, or a file " +
+            "path. Error: " + e.getMessage());
+      }
+    }
+
+    public CodeSource.RepositoryType getRepositoryType() {
+      if (repositoryType == null) {
+        String scheme = getProjectUri().getScheme();
+        if ("http".equals(scheme)) {
+          return CodeSource.RepositoryType.SVN;
+        } else if ("file".equals(scheme) || scheme == null) {
+          return CodeSource.RepositoryType.LOCAL_FILE;
+        } else {
+          throw new ParseException("No repository type given, and couldn't guess type based on " +
+              "provided projectpath. Try specifying the repotype explicitly.");
+        }
+      }
+      return repositoryType;
     }
   }
 

@@ -5,7 +5,6 @@ import au.edu.rmit.tzar.api.TzarException;
 import au.edu.rmit.tzar.api.Run;
 import au.edu.rmit.tzar.api.Runner;
 import au.edu.rmit.tzar.parser.YamlParser;
-import au.edu.rmit.tzar.repository.CodeRepository;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Files;
@@ -36,11 +35,11 @@ public class ExecutableRun {
 
   // the output path, not including the status suffix (ie failed, inprogress etc).
   private final File baseOutputPath;
+  private final File baseModelPath;
   // the output path. ie the relative path on the local machine where results will be written.
   private volatile File outputPath;
 
   private final Run run;
-  private final CodeRepository codeRepository;
   private final RunnerFactory runnerFactory;
   private final YamlParser yamlParser = new YamlParser();
 
@@ -49,24 +48,26 @@ public class ExecutableRun {
    *
    * @param run            run to execute
    * @param baseOutputPath local path for output for this run.
-   * @param codeRepository the repository from which to download the model code
+   * @param baseModelPath
    * @param runnerFactory  factory to instantiate runner objects
    * @return a newly created executable run
    */
-  public static ExecutableRun createExecutableRun(Run run, File baseOutputPath, CodeRepository codeRepository,
+  public static ExecutableRun createExecutableRun(Run run, File baseOutputPath, File baseModelPath,
       RunnerFactory runnerFactory) throws TzarException {
-    String runset = run.getRunset();
-    runset = (runset == null || runset.equals("")) ? "default_runset" : run.getRunset();
-    baseOutputPath = new File(baseOutputPath, Utils.Path.combineAndReplaceWhitespace("_", run.getProjectName(),
-        runset));
 
+    baseOutputPath = new File(baseOutputPath, Utils.Path.combineAndReplaceWhitespace("_", run.getProjectName(),
+        run.getRunset()));
+
+    // TODO(river): this is a bit dodgy. if some bug cause the run id not to be set, then we would give
+    // the run a bogus id, and potentially overwrite an existing run in the db. not quite sure how to resolve it
+    // though.
     if (run.getRunId() == -1) {
       run.setRunId(getNextRunId(baseOutputPath));
     }
     // replace whitespace and punctuation in run name with '_' to make a valid path.
     String dirName = Utils.Path.combineAndReplaceWhitespace("_", run.getRunId() + "_" + run.getScenarioName());
     LOG.log(Level.FINER, "Creating run: {0}", run);
-    return new ExecutableRun(run, new File(baseOutputPath, dirName), codeRepository, runnerFactory);
+    return new ExecutableRun(run, new File(baseOutputPath, dirName), runnerFactory, baseModelPath);
   }
 
   /**
@@ -74,14 +75,14 @@ public class ExecutableRun {
    *
    * @param run            run to execute
    * @param baseOutputPath     local path for output for this run.
-   * @param codeRepository the repository from which to download the model code
    * @param runnerFactory  factory to create runner instances
+   * @param baseModelPath
    */
-  private ExecutableRun(Run run, File baseOutputPath, CodeRepository codeRepository, RunnerFactory runnerFactory) {
+  private ExecutableRun(Run run, File baseOutputPath, RunnerFactory runnerFactory, File baseModelPath) {
     this.run = run;
-    this.codeRepository = codeRepository;
     this.runnerFactory = runnerFactory;
     this.baseOutputPath = baseOutputPath;
+    this.baseModelPath = baseModelPath;
     this.outputPath = new File(baseOutputPath + INPROGRESS_SUFFIX);
   }
 
@@ -92,7 +93,7 @@ public class ExecutableRun {
    * @throws TzarException if an error occurs executing the run
    */
   public boolean execute() throws TzarException {
-    File model = codeRepository.getModel(run.getRevision());
+    File model = run.getCodeSource().getCode(baseModelPath);
     try {
       if (outputPath.exists()) {
         LOG.warning("Temp output path: " + outputPath + " already exists. Deleting.");

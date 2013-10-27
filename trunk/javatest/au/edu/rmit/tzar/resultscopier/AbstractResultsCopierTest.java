@@ -2,7 +2,6 @@ package au.edu.rmit.tzar.resultscopier;
 
 import au.edu.rmit.tzar.ExecutableRun;
 import au.edu.rmit.tzar.RunnerFactory;
-import au.edu.rmit.tzar.api.Parameters;
 import au.edu.rmit.tzar.api.Run;
 import com.google.common.io.Files;
 import junit.framework.TestCase;
@@ -26,11 +25,12 @@ public abstract class AbstractResultsCopierTest extends TestCase {
   public void setUp() throws Exception {
     super.setUp();
     File tempSourceDir = Files.createTempDir();
+    File tempOutputDir = Files.createTempDir();
 
-    run = new Run.Builder("a project", "a scenario")
-        .build();
+    run = new Run("a project", "a scenario", null);
 
-    ExecutableRun executableRun = ExecutableRun.createExecutableRun(run, tempSourceDir, null, new RunnerFactory());
+    ExecutableRun executableRun = ExecutableRun.createExecutableRun(run, tempOutputDir, tempSourceDir,
+        new RunnerFactory());
     localOutputPath = executableRun.getOutputPath();
     localOutputPath.mkdir();
     baseDestPath = Files.createTempDir();
