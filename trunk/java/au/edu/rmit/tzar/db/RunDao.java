@@ -173,7 +173,7 @@ public class RunDao {
         insertRun.setString(3, run.getRevision());
         insertRun.setString(4, run.getProjectName());
         insertRun.setString(5, run.getScenarioName());
-        insertRun.setString(6, run.getFlags());
+        insertRun.setString(6, run.getRunnerFlags());
         insertRun.setString(7, run.getRunset());
         insertRun.setString(8, run.getClusterName());
         insertRun.setString(9, run.getRunnerClass());
@@ -295,10 +295,16 @@ public class RunDao {
   private Run runFromResultSet(ResultSet resultSet, boolean withParameters) throws SQLException, TzarException {
     int runId = resultSet.getInt("run_id");
     Parameters parameters = withParameters ? loadParameters(runId) : Parameters.EMPTY_PARAMETERS;
-    Run run = new Run(runId, resultSet.getString("project_name"), resultSet.getString("scenario_name"),
-        resultSet.getString("code_version"), resultSet.getString("command_flags"), parameters,
-        resultSet.getString("state"), resultSet.getString("runset"), resultSet.getString("cluster_name"),
-        resultSet.getString("runner_class"));
+    Run run = new Run.Builder(resultSet.getString("project_name"), resultSet.getString("scenario_name"))
+        .setId(runId)
+        .setRevision(resultSet.getString("code_version"))
+        .setRunnerFlags(resultSet.getString("command_flags"))
+        .setParameters(parameters)
+        .setState(resultSet.getString("state"))
+        .setRunset(resultSet.getString("runset"))
+        .setClusterName(resultSet.getString("cluster_name"))
+        .setRunnerClass(resultSet.getString("runner_class"))
+        .build();
     String outputPath = resultSet.getString("output_path");
     if (outputPath != null) {
       run.setRemoteOutputPath(new File(outputPath));

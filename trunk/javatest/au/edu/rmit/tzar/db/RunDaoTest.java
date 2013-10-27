@@ -64,8 +64,16 @@ public class RunDaoTest extends TestCase {
 
   public void testGetNextRun() throws Exception {
     when(resultSet.next()).thenReturn(true);
-    assertEquals(new Run(RUN_ID, PROJECT_NAME, SCENARIO_NAME, CODE_VERSION, COMMAND_FLAGS, Parameters.EMPTY_PARAMETERS,
-        "scheduled", RUNSET, CLUSTER_NAME, RUNNER_CLASS), runDao.getNextRun(null, CLUSTER_NAME));
+    Run run = new Run.Builder(PROJECT_NAME, SCENARIO_NAME)
+        .setId(RUN_ID)
+        .setRevision(CODE_VERSION)
+        .setRunnerFlags(COMMAND_FLAGS)
+        .setParameters(Parameters.EMPTY_PARAMETERS)
+        .setRunset(RUNSET)
+        .setClusterName(CLUSTER_NAME)
+        .setRunnerClass(RUNNER_CLASS)
+        .build();
+    assertEquals(run, runDao.getNextRun(null, CLUSTER_NAME));
   }
 
   public void testGetNextRunNoMatch() throws Exception {
@@ -75,11 +83,31 @@ public class RunDaoTest extends TestCase {
 
   public void testInsertRuns() throws TzarException, SQLException {
     List<Run> runs = Lists.newArrayList();
-    runs.add(new Run(RUN_ID, PROJECT_NAME, SCENARIO_NAME, CODE_VERSION, COMMAND_FLAGS,
-        Parameters.EMPTY_PARAMETERS, "state", RUNSET, CLUSTER_NAME, RUNNER_CLASS));
-    runs.add(new Run(RUN_ID, PROJECT_NAME, SCENARIO_NAME + "1", CODE_VERSION + 1, COMMAND_FLAGS,
-        Parameters.EMPTY_PARAMETERS, "state", RUNSET, CLUSTER_NAME, RUNNER_CLASS));
 
+    Run run = new Run.Builder(PROJECT_NAME, SCENARIO_NAME)
+        .setId(RUN_ID)
+        .setRevision(CODE_VERSION)
+        .setRunnerFlags(COMMAND_FLAGS)
+        .setParameters(Parameters.EMPTY_PARAMETERS)
+        .setRunset(RUNSET)
+        .setState("state")
+        .setClusterName(CLUSTER_NAME)
+        .setRunnerClass(RUNNER_CLASS)
+        .build();
+
+    runs.add(run);
+
+    run = new Run.Builder(PROJECT_NAME, SCENARIO_NAME + 1)
+        .setId(RUN_ID)
+        .setRevision(CODE_VERSION + 1)
+        .setRunnerFlags(COMMAND_FLAGS)
+        .setParameters(Parameters.EMPTY_PARAMETERS)
+        .setRunset(RUNSET)
+        .setState("state")
+        .setClusterName(CLUSTER_NAME)
+        .setRunnerClass(RUNNER_CLASS)
+        .build();
+    runs.add(run);
 
     ResultSet generatedKeys = mock(ResultSet.class);
 
