@@ -14,7 +14,7 @@ public class LocalFileRepositoryTest extends TestCase {
    * Tests that retrieveModel returns the provided path, independent of the provided revision number.
    */
   public void testGetModel() throws URISyntaxException {
-    URI codePathStr = new URI("file", "", "/some/path");
+    URI codePathStr = new URI("file", null, "/some/path", null);
     File codePath = new File(codePathStr);
     LocalFileRepository repository = new LocalFileRepository(codePathStr);
     assertEquals(codePath, repository.retrieveModel("-1"));
