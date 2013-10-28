@@ -172,7 +172,7 @@ class PollAndRun implements Command {
 
     run.setStartTime(new Date());
     run.setEndTime(null);
-    run.setState("in_progress");
+    run.setState(Run.State.IN_PROGRESS);
     run.setHostname(Utils.getHostname());
     if (!runDao.markRunInProgress(run)) {
       // another node must have grabbed the job.
@@ -229,10 +229,10 @@ class PollAndRun implements Command {
         run.setEndTime(new Date());
         if (success) {
           LOG.info("Run " + run.getRunId() + " succeeded.");
-          run.setState("completed");
+          run.setState(Run.State.COMPLETED);
         } else {
           LOG.warning("Run " + run.getRunId() + " failed.");
-          run.setState("failed");
+          run.setState(Run.State.FAILED);
         }
 
         try {

@@ -1,5 +1,6 @@
 package au.edu.rmit.tzar.api;
 
+import au.edu.rmit.tzar.Constants;
 import au.edu.rmit.tzar.repository.CodeSource;
 
 import java.io.File;
@@ -18,9 +19,9 @@ public class Run {
   private volatile Date startTime;
   private volatile Date endTime;
   private volatile Parameters parameters = Parameters.EMPTY_PARAMETERS;
-  private volatile String state = "scheduled";
-  private volatile String runset = "default_runset";
-  private volatile String clusterName;
+  private volatile State state = State.SCHEDULED;
+  private volatile String runset = Constants.DEFAULT_RUNSET;
+  private volatile String clusterName = Constants.DEFAULT_CLUSTER_NAME;
   private volatile File remoteOutputPath;
   private volatile String outputHost;
   private volatile String runnerClass;
@@ -162,11 +163,11 @@ public class Run {
     return this;
   }
 
-  public String getState() {
+  public State getState() {
     return state;
   }
 
-  public Run setState(String state) {
+  public Run setState(State state) {
     this.state = state;
     return this;
   }
@@ -230,5 +231,14 @@ public class Run {
     result = 31 * result + (outputHost != null ? outputHost.hashCode() : 0);
     result = 31 * result + (runnerClass != null ? runnerClass.hashCode() : 0);
     return result;
+  }
+
+  public enum State {
+    FAILED,
+    COMPLETED,
+    COPIED,
+    COPY_FAILED,
+    IN_PROGRESS,
+    SCHEDULED,
   }
 }

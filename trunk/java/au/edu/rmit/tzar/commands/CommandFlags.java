@@ -1,6 +1,7 @@
 package au.edu.rmit.tzar.commands;
 
 
+import au.edu.rmit.tzar.Constants;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.beust.jcommander.converters.FileConverter;
@@ -67,7 +68,7 @@ public class CommandFlags {
     private int sleepTimeMillis = 10000;
 
     @Parameter(names = "--clustername", description = "Name of the cluster on which this node is running.")
-    private String clusterName = "";
+    private String clusterName = Constants.DEFAULT_CLUSTER_NAME;
 
     public String getClusterName() {
       return clusterName;
