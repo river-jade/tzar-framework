@@ -12,4 +12,6 @@ public class Constants {
 
   public static final String DEFAULT_MODEL_CODE_DIR = "modelcode";
   public static final String DEFAULT_OUTPUT_DATA_DIR = "outputdata";
+  public static final String DEFAULT_CLUSTER_NAME = "default";
+  public static final String DEFAULT_RUNSET = "default_runset";
 }

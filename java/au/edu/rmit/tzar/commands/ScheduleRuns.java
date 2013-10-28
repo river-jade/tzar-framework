@@ -4,6 +4,7 @@ import au.edu.rmit.tzar.RunFactory;
 import au.edu.rmit.tzar.api.TzarException;
 import au.edu.rmit.tzar.api.Run;
 import au.edu.rmit.tzar.db.RunDao;
+import com.google.common.collect.ImmutableList;
 
 import java.util.List;
 import java.util.logging.Level;
@@ -33,6 +34,16 @@ class ScheduleRuns implements Command {
 
   @Override
   public boolean execute() throws TzarException {
+    String runset = CREATE_RUNS_FLAGS.getRunset();
+    List<Run> runsetRuns = runDao.getRuns(ImmutableList.<String>of(), null, runset,
+        ImmutableList.<Integer>of());
+    if (!runsetRuns.isEmpty() && System.console() != null) {
+      String response = System.console().readLine("Runset \"%s\" already exists. " +
+          "Do you wish to add runs to this runset? y/[n]: ", runset);
+      if (!"y".equals(response.toLowerCase())) {
+        return false;
+      }
+    }
     List<Run> runs = runFactory.createRuns(numRuns);
     runDao.insertRuns(runs);
     for (Run run : runs) {

@@ -96,7 +96,6 @@ public class RunDaoTest extends TestCase {
         .setRunnerFlags(COMMAND_FLAGS)
         .setParameters(Parameters.EMPTY_PARAMETERS)
         .setRunset(RUNSET)
-        .setState("state")
         .setClusterName(CLUSTER_NAME)
         .setRunnerClass(RUNNER_CLASS);
 
@@ -108,7 +107,7 @@ public class RunDaoTest extends TestCase {
         .setRunnerFlags(COMMAND_FLAGS)
         .setParameters(Parameters.EMPTY_PARAMETERS)
         .setRunset(RUNSET)
-        .setState("state")
+        .setState(Run.State.IN_PROGRESS)
         .setClusterName(CLUSTER_NAME)
         .setRunnerClass(RUNNER_CLASS);
     runs.add(run);
@@ -139,7 +138,7 @@ public class RunDaoTest extends TestCase {
     inOrder.verify(insertRun).setString(10, CLUSTER_NAME);
     inOrder.verify(insertRun).setString(11, RUNNER_CLASS);
     inOrder.verify(insertRun).setInt(1, FIRST_RUN_ID + 1);
-    inOrder.verify(insertRun).setString(2, "scheduled");
+    inOrder.verify(insertRun).setString(2, "in_progress");
     inOrder.verify(insertRun).setString(3, MODEL_URL);
     inOrder.verify(insertRun).setString(4, CodeSource.RepositoryType.LOCAL_FILE.name());
     inOrder.verify(insertRun).setString(5, CODE_VERSION + 1);

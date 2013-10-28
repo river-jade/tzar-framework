@@ -120,7 +120,7 @@ public class RunDao {
 
       updateRun.setTimestamp(1, getTimestamp(run.getStartTime()), Calendar.getInstance(TimeZone.getTimeZone("UTC")));
       updateRun.setTimestamp(2, getTimestamp(run.getEndTime()), Calendar.getInstance(TimeZone.getTimeZone("UTC")));
-      updateRun.setString(3, run.getState());
+      updateRun.setString(3, run.getState().name().toLowerCase());
       updateRun.setString(4, run.getHostname());
       File outputPath = run.getRemoteOutputPath();
       updateRun.setString(5, outputPath == null ? null : outputPath.getPath());
@@ -167,7 +167,7 @@ public class RunDao {
         CodeSource codeSource = run.getCodeSource();
         run.setRunId(nextRunId);
         insertRun.setInt(1, nextRunId);
-        insertRun.setString(2, "scheduled");
+        insertRun.setString(2, run.getState().name().toLowerCase());
         insertRun.setString(3, codeSource.getSourceUri().toString());
         insertRun.setString(4, codeSource.getRepositoryType().toString());
         insertRun.setString(5, codeSource.getRevision());
@@ -311,7 +311,7 @@ public class RunDao {
         .setRunId(runId)
         .setRunnerFlags(resultSet.getString("runner_flags"))
         .setParameters(parameters)
-        .setState(resultSet.getString("state"))
+        .setState(Run.State.valueOf(resultSet.getString("state").toUpperCase()))
         .setRunset(resultSet.getString("runset"))
         .setClusterName(resultSet.getString("cluster_name"))
         .setRunnerClass(resultSet.getString("runner_class"));

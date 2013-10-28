@@ -87,7 +87,7 @@ class SharedFlags {
     private CodeSource.RepositoryType repositoryType;
 
     @Parameter(names = "--runset", description = "Name of runset to schedule.")
-    private String runset = "";
+    private String runset = Constants.DEFAULT_RUNSET;
 
     public int getNumRuns() {
       return numRuns;

@@ -25,7 +25,7 @@ public class DbUpdatingResultsCopier implements ResultsCopier {
 
   @Override
   public void copyResults(Run run, File sourcePath, boolean success) {
-    if (!("completed".equals(run.getState()) || "failed".equals(run.getState()))) {
+    if (!(Run.State.COMPLETED == run.getState()) || Run.State.FAILED == run.getState()) {
       LOG.log(Level.SEVERE, "Expected run to have status: 'completed' or 'failed'. Was '{0}'. " +
           "Skipping copy for run: {1}", new Object[]{run.getState(), run});
     }
@@ -33,7 +33,7 @@ public class DbUpdatingResultsCopier implements ResultsCopier {
     try {
       resultsCopier.copyResults(run, sourcePath, success);
       if (success) {
-        run.setState("copied");
+        run.setState(Run.State.COPIED);
       }
       run.setRemoteOutputPath(new File(resultsCopier.getBaseDestPath(), sourcePath.getName()));
       try {
@@ -54,7 +54,7 @@ public class DbUpdatingResultsCopier implements ResultsCopier {
       return;
     }
 
-    run.setState("copy_failed");
+    run.setState(Run.State.COPY_FAILED);
     try {
       runDao.persistRun(run);
     } catch (TzarException e) {
