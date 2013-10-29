@@ -2,6 +2,8 @@ package au.edu.rmit.tzar.resultscopier;
 
 import au.edu.rmit.tzar.db.RunDao;
 
+import java.io.File;
+
 /**
  * Creates Results copiers with certain characteristics.
  */
@@ -17,14 +19,16 @@ public class CopierFactory {
    * to update the database when the copy is done.
    * @param retry if we should retry failed copies
    * @param runDao used to update the database is updatesDb is true, otherwise can be null
+   * @param baseOutputPath the output path for the copier. used to update the database if updatesDb is true.
    * @return a new running AsyncResultsCopier
    */
-  public AsyncResultsCopier createAsyncCopier(ResultsCopier copier, boolean updatesDb, boolean retry, RunDao runDao) {
+  public AsyncResultsCopier createAsyncCopier(ResultsCopier copier, boolean updatesDb, boolean retry, RunDao runDao,
+      File baseOutputPath) {
     if (retry) {
       copier = new RetryingResultsCopier(copier, RETRY_COUNT);
     }
     if (updatesDb) {
-      copier = new DbUpdatingResultsCopier(copier, runDao);
+      copier = new DbUpdatingResultsCopier(copier, runDao, baseOutputPath);
     }
     AsyncResultsCopier asyncResultsCopier = new AsyncResultsCopier(copier);
     new Thread(asyncResultsCopier).start();

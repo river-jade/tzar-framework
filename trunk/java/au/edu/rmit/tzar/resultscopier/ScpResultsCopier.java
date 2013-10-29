@@ -78,9 +78,4 @@ public class ScpResultsCopier implements ResultsCopier {
       }
     });
   }
-
-  @Override
-  public File getBaseDestPath() {
-    return baseDestPath;
-  }
 }

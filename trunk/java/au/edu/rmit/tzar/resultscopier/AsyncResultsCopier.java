@@ -31,11 +31,6 @@ public class AsyncResultsCopier implements ResultsCopier, Runnable {
   }
 
   @Override
-  public File getBaseDestPath() {
-    return delegate.getBaseDestPath();
-  }
-
-  @Override
   public void run() {
     while (true) {
       CopyJob copyJob;

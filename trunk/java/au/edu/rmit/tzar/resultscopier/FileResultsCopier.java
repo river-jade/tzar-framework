@@ -51,10 +51,4 @@ public class FileResultsCopier implements ResultsCopier {
     run.setOutputHost(Utils.getHostname());
     run.setRemoteOutputPath(dest);
   }
-
-  @Override
-  public File getBaseDestPath() {
-    return baseDestPath;
-  }
-
 }

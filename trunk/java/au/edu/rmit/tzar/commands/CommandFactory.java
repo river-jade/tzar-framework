@@ -17,6 +17,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import static au.edu.rmit.tzar.commands.CommandFlags.*;
 import static au.edu.rmit.tzar.commands.SharedFlags.*;
@@ -26,6 +27,7 @@ import static au.edu.rmit.tzar.commands.SharedFlags.*;
  * flag parsing logic from the commands themselves.
  */
 class CommandFactory {
+  private static final Logger LOG = Logger.getLogger(CommandFactory.class.getName());
   private final JCommander jCommander;
 
   public CommandFactory(JCommander jCommander) {
@@ -51,9 +53,9 @@ class CommandFactory {
         CREATE_RUNS_FLAGS.getRunset(),"" /* no cluster name for local runs */,
         modelSource.getProjectSpec(baseModelPath));
 
-    return new ExecLocalRuns(CREATE_RUNS_FLAGS.getNumRuns(),
-        runFactory, RUNNER_FLAGS.getLocalOutputPath(),
-        baseModelPath, new RunnerFactory());
+    File baseOutputPath = new File(RUNNER_FLAGS.getTzarBaseDirectory(), Constants.LOCAL_OUTPUT_DATA_DIR);
+    return new ExecLocalRuns(CREATE_RUNS_FLAGS.getNumRuns(), runFactory, baseOutputPath, baseModelPath,
+        new RunnerFactory());
   }
 
   public Command newHelp() {
@@ -69,18 +71,26 @@ class CommandFactory {
 
   public Command newPollAndRun() throws IOException, TzarException, ParseException {
     ResultsCopier resultsCopier;
-    if (POLL_AND_RUN_FLAGS.getScpOutputHost() != null) {
-      SshClientFactory sshClientFactory = new SshClientFactoryKeyAuth(POLL_AND_RUN_FLAGS);
-      resultsCopier = new ScpResultsCopier(sshClientFactory, POLL_AND_RUN_FLAGS.getScpOutputPath());
+
+    File baseRemoteOutputPath = POLL_AND_RUN_FLAGS.getFinalOutputPath();
+    if (baseRemoteOutputPath == null) { // no path specified. don't copy output
+      LOG.warning("No final output path specified. Results will be left on this node. Is that intentional?");
+      resultsCopier = new NoopCopier();
     } else {
-      resultsCopier = new FileResultsCopier(RUNNER_FLAGS.getLocalOutputPath());
+      if (POLL_AND_RUN_FLAGS.getScpOutputHost() != null) {
+        SshClientFactory sshClientFactory = new SshClientFactoryKeyAuth(POLL_AND_RUN_FLAGS);
+        resultsCopier = new ScpResultsCopier(sshClientFactory, baseRemoteOutputPath);
+      } else { // path specified but no host, so use file copier
+        resultsCopier = new FileResultsCopier(baseRemoteOutputPath);
+      }
     }
 
     DaoFactory daoFactory = new DaoFactory(getDbUrl());
     RunDao runDao = daoFactory.createRunDao();
-    resultsCopier = new CopierFactory().createAsyncCopier(resultsCopier, true, true, runDao);
+    resultsCopier = new CopierFactory().createAsyncCopier(resultsCopier, true, true, runDao, baseRemoteOutputPath);
 
-    return new PollAndRun(runDao, resultsCopier, RUNNER_FLAGS.getLocalOutputPath(), RUNNER_FLAGS.getBaseModelPath(),
+    File baseLocalOutputPath = new File(RUNNER_FLAGS.getTzarBaseDirectory(), Constants.POLL_AND_RUN_OUTPUT_DIR);
+    return new PollAndRun(runDao, resultsCopier, baseLocalOutputPath, RUNNER_FLAGS.getBaseModelPath(),
         new RunnerFactory());
   }
 

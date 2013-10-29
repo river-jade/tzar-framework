@@ -21,9 +21,4 @@ public interface ResultsCopier {
    * @throws TzarException if the files could not be copied
    */
   void copyResults(Run run, File sourcePath, boolean success) throws TzarException;
-
-  /**
-   * Gets the base destination path for this copier.
-   */
-  File getBaseDestPath();
 }
