@@ -23,6 +23,9 @@ public class Main {
 
   public static void main(String[] args) throws IOException {
     JCommander jCommander = new JCommander();
+    // TODO(river): uncomment this line when we upgrade to newer jcommander. Currently
+    // blocked on jcommander help formatting bug: https://github.com/cbeust/jcommander/issues/165
+    //jCommander.setAllowAbbreviatedOptions();
     for (CommandFactory.Commands command : CommandFactory.Commands.values()) {
       jCommander.addCommand(command.getName(), ObjectArrays.concat(command.getFlags(), SharedFlags.COMMON_FLAGS));
     }

@@ -22,7 +22,7 @@ public class Utils {
 
   public static String getHostname() {
     try {
-      // This is the obvious way to retrieve the hostname. Unfortunately, if the /etc/hosts file
+      // This is the canonical way to retrieve the hostname. Unfortunately, if the /etc/hosts file
       // isn't correctly populated (which is the case on the Nectar nodes we've been using, this
       // will throw an UnknownHostException. As such we use a hacky workaround.
       return InetAddress.getLocalHost().getHostName();
@@ -37,6 +37,27 @@ public class Utils {
       } catch (SocketException e1) {
       }
       LOG.warning("Couldn't find the hostname.");
+      return "UNKNOWN";
+    }
+  }
+
+  public static String getHostIp() {
+    try {
+      // This is the canonical way to retrieve the host ip. Unfortunately, if the /etc/hosts file
+      // isn't correctly populated (which is the case on the Nectar nodes we've been using, this
+      // will throw an UnknownHostException. As such we use a hacky workaround.
+      return InetAddress.getLocalHost().getHostAddress();
+    } catch (UnknownHostException e) {
+      try {
+        for (NetworkInterface iface : Collections.list(NetworkInterface.getNetworkInterfaces())) {
+          for (InetAddress ia : Collections.list(iface.getInetAddresses())) {
+            if (!ia.isLoopbackAddress() && (!ia.isLinkLocalAddress()) && (ia instanceof Inet4Address))
+              return ia.getHostAddress();
+          }
+        }
+      } catch (SocketException e1) {
+      }
+      LOG.warning("Couldn't find the host ip address.");
       return "UNKNOWN";
     }
   }

@@ -71,7 +71,8 @@ CREATE TABLE runs (
     runset text,
     cluster_name text,
     runner_class text,
-    run_submission_time timestamp without time zone
+    run_submission_time timestamp without time zone,
+    host_ip text;
 );
 
 
