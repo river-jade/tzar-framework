@@ -51,7 +51,7 @@ class PollAndRun implements Command {
    * @param runDao for accessing the database
    * @param sleepTimeMillis milliseconds to wait between polls
    * @param resultsCopier to copy the results from this node to permanent storage
-   * @param runset name of the runset to poll
+   * @param runset name of the runset to poll, or null to poll all runsets
    * @param clusterName name of the cluster which this node is running on
    * @param concurrentTaskCount max number of runs to execute in parallel
    * @param baseOutputPath base local path for output of the runs
@@ -174,6 +174,7 @@ class PollAndRun implements Command {
     run.setEndTime(null);
     run.setState(Run.State.IN_PROGRESS);
     run.setHostname(Utils.getHostname());
+    run.setHostIp(Utils.getHostIp());
     if (!runDao.markRunInProgress(run)) {
       // another node must have grabbed the job.
       runningTasks.release();

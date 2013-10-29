@@ -9,11 +9,14 @@ import junit.framework.TestCase;
 import org.mockito.InOrder;
 import org.postgresql.jdbc4.Jdbc4Connection;
 
+import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.GregorianCalendar;
 import java.util.List;
 
 import static org.mockito.Mockito.*;
@@ -37,6 +40,7 @@ public class RunDaoTest extends TestCase {
 
   private Jdbc4Connection mockConnection;
   private PreparedStatement insertRun;
+  private PreparedStatement updateRun;
   private ResultSet resultSet;
   private RunDao runDao;
   private CodeSource codeSource;
@@ -44,6 +48,7 @@ public class RunDaoTest extends TestCase {
   public void setUp() throws Exception {
     mockConnection = mock(Jdbc4Connection.class);
     insertRun = mock(PreparedStatement.class);
+    updateRun = mock(PreparedStatement.class);
     PreparedStatement nextRunStatement = mock(PreparedStatement.class);
     resultSet = mock(ResultSet.class);
     ParametersDao mockParametersDao = mock(ParametersDao.class);
@@ -66,6 +71,7 @@ public class RunDaoTest extends TestCase {
     when(mockConnection.prepareStatement(RunDao.NEXT_RUN_SQL, ResultSet.TYPE_FORWARD_ONLY,
         ResultSet.CONCUR_READ_ONLY)).thenReturn(nextRunStatement);
     when(mockConnection.prepareStatement(RunDao.INSERT_RUN_SQL)).thenReturn(insertRun);
+    when(mockConnection.prepareStatement(RunDao.UPDATE_RUN_SQL)).thenReturn(updateRun);
     when(nextRunStatement.executeQuery()).thenReturn(resultSet);
     when(mockParametersDao.loadFromDatabase(RUN_ID)).thenReturn(Parameters.EMPTY_PARAMETERS);
     runDao = new RunDao(mockConnectionFactory, mockParametersDao);
@@ -148,5 +154,37 @@ public class RunDaoTest extends TestCase {
     inOrder.verify(insertRun).setString(9, RUNSET);
     inOrder.verify(insertRun).setString(10, CLUSTER_NAME);
     inOrder.verify(insertRun).setString(11, RUNNER_CLASS);
+  }
+
+  public void testUpdateRun() throws TzarException, SQLException {
+    Date START_TIME = new GregorianCalendar(2012, 12, 25, 12, 15).getTime();
+    Date END_TIME = new GregorianCalendar(2012, 12, 31, 11, 59).getTime();
+    String HOSTNAME = "foo.bar.com";
+    String HOST_IP = "123.213.111.222";
+    File OUTPUT_PATH = new File("/bar/baz/spiffy");
+    String OUTPUT_HOST = "output.bar.com";
+    Run.State STATE = Run.State.COPIED;
+    Run run = new Run(PROJECT_NAME, SCENARIO_NAME, codeSource)
+        .setRunId(RUN_ID)
+        .setStartTime(START_TIME)
+        .setEndTime(END_TIME)
+        .setState(STATE)
+        .setHostname(HOSTNAME)
+        .setHostIp(HOST_IP)
+        .setRemoteOutputPath(OUTPUT_PATH)
+        .setOutputHost(OUTPUT_HOST);
+
+    InOrder inOrder = inOrder(updateRun, mockConnection);
+    runDao.persistRun(run);
+    inOrder.verify(updateRun).setTimestamp(1, new java.sql.Timestamp(START_TIME.getTime()), RunDao.UTC);
+    inOrder.verify(updateRun).setTimestamp(2, new java.sql.Timestamp(END_TIME.getTime()), RunDao.UTC);
+    inOrder.verify(updateRun).setString(3, STATE.name().toLowerCase());
+    inOrder.verify(updateRun).setString(4, HOSTNAME);
+    inOrder.verify(updateRun).setString(5, HOST_IP);
+    inOrder.verify(updateRun).setString(6, OUTPUT_PATH.getAbsolutePath());
+    inOrder.verify(updateRun).setString(7, OUTPUT_HOST);
+    inOrder.verify(updateRun).setInt(8, RUN_ID);
+    inOrder.verify(updateRun).executeUpdate();
+    inOrder.verify(mockConnection).commit();
   }
 }

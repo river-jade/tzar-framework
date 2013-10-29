@@ -22,6 +22,8 @@ import java.util.logging.Logger;
 public class RunDao {
   private static final Logger LOG = Logger.getLogger(RunDao.class.getName());
 
+  public static final Calendar UTC = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+
   @VisibleForTesting
   static final String INSERT_RUN_SQL = "INSERT INTO runs (run_id, state, model_url, model_repo_type, model_revision, " +
       "project_name, scenario_name, runner_flags, runset, cluster_name, runner_class) " +
@@ -32,7 +34,7 @@ public class RunDao {
       "WHERE state='scheduled' AND runset LIKE ? AND cluster_name = ? ORDER BY run_id ASC LIMIT 1";
   @VisibleForTesting
   static final String UPDATE_RUN_SQL = "UPDATE runs SET run_start_time = ?, run_end_time = ?, state = ?, " +
-      "hostname = ?, output_path = ?, output_host = ? where run_id = ?";
+      "hostname = ?, host_ip = ?, output_path = ?, output_host = ? where run_id = ?";
   // select for update locks the row in question for modification, so that we can guarantee
   // than another node does not write to the row before we do
   @VisibleForTesting
@@ -118,14 +120,15 @@ public class RunDao {
     try {
       PreparedStatement updateRun = connection.prepareStatement(UPDATE_RUN_SQL);
 
-      updateRun.setTimestamp(1, getTimestamp(run.getStartTime()), Calendar.getInstance(TimeZone.getTimeZone("UTC")));
-      updateRun.setTimestamp(2, getTimestamp(run.getEndTime()), Calendar.getInstance(TimeZone.getTimeZone("UTC")));
+      updateRun.setTimestamp(1, getTimestamp(run.getStartTime()), UTC);
+      updateRun.setTimestamp(2, getTimestamp(run.getEndTime()), UTC);
       updateRun.setString(3, run.getState().name().toLowerCase());
       updateRun.setString(4, run.getHostname());
+      updateRun.setString(5, run.getHostIp());
       File outputPath = run.getRemoteOutputPath();
-      updateRun.setString(5, outputPath == null ? null : outputPath.getPath());
-      updateRun.setString(6, run.getOutputHost());
-      updateRun.setInt(7, run.getRunId()); // this is for the where clause, we don't update this field.
+      updateRun.setString(6, outputPath == null ? null : outputPath.getPath());
+      updateRun.setString(7, run.getOutputHost());
+      updateRun.setInt(8, run.getRunId()); // this is for the where clause, we don't update this field.
       updateRun.executeUpdate();
       connection.commit();
       exceptionOccurred = false;
