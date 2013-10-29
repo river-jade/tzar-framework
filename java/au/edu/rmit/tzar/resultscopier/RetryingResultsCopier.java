@@ -46,10 +46,5 @@ public class RetryingResultsCopier implements ResultsCopier {
       return e;
     }
   }
-
-  @Override
-  public File getBaseDestPath() {
-    return delegate.getBaseDestPath();
-  }
 }
 

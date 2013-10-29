@@ -11,7 +11,8 @@ public class Constants {
   public static final File DEFAULT_TZAR_BASE_DIR = new File(System.getProperty("user.home"), "tzar");
 
   public static final String DEFAULT_MODEL_CODE_DIR = "modelcode";
-  public static final String DEFAULT_OUTPUT_DATA_DIR = "outputdata";
+  public static final String LOCAL_OUTPUT_DATA_DIR = "outputdata";
+  public static final String POLL_AND_RUN_OUTPUT_DIR = "pollandrun_outputdata";
   public static final String DEFAULT_CLUSTER_NAME = "default";
   public static final String DEFAULT_RUNSET = "default_runset";
 }

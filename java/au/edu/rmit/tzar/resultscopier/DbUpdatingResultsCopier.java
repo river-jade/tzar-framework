@@ -17,10 +17,12 @@ public class DbUpdatingResultsCopier implements ResultsCopier {
 
   private final ResultsCopier resultsCopier;
   private final RunDao runDao;
+  private final File baseOutputPath;
 
-  public DbUpdatingResultsCopier(ResultsCopier resultsCopier, RunDao runDao) {
+  public DbUpdatingResultsCopier(ResultsCopier resultsCopier, RunDao runDao, File baseOutputPath) {
     this.resultsCopier = resultsCopier;
     this.runDao = runDao;
+    this.baseOutputPath = baseOutputPath;
   }
 
   @Override
@@ -35,7 +37,7 @@ public class DbUpdatingResultsCopier implements ResultsCopier {
       if (success) {
         run.setState(Run.State.COPIED);
       }
-      run.setRemoteOutputPath(new File(resultsCopier.getBaseDestPath(), sourcePath.getName()));
+      run.setRemoteOutputPath(new File(baseOutputPath, sourcePath.getName()));
       try {
         runDao.persistRun(run);
       } catch (TzarException e) {
@@ -60,10 +62,5 @@ public class DbUpdatingResultsCopier implements ResultsCopier {
     } catch (TzarException e) {
       LOG.log(Level.SEVERE, "Failure updating status to 'copy_failed' for run: " + run, e);
     }
-  }
-
-  @Override
-  public File getBaseDestPath() {
-    return resultsCopier.getBaseDestPath();
   }
 }

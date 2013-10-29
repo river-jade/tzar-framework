@@ -42,8 +42,8 @@ class SharedFlags {
       return new File(tzarBaseDirectory, Constants.DEFAULT_MODEL_CODE_DIR);
     }
 
-    public File getLocalOutputPath() {
-      return new File(tzarBaseDirectory, Constants.DEFAULT_OUTPUT_DATA_DIR);
+    public File getTzarBaseDirectory() {
+      return tzarBaseDirectory;
     }
   }
 

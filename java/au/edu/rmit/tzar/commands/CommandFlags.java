@@ -55,10 +55,11 @@ public class CommandFlags {
     @Parameter(names = "--scpoutputhost", description = "Hostname for run output data and logs.")
     private final String scpOutputHost = null;
 
-    @Parameter(names = "--scpoutputpath", description = "Remote path for run output data and logs. This will be " +
-        "used for final location of output files if --scpoutputhost is set.",
+    @Parameter(names = "--finaloutputpath", description = "Remote path for run output data and logs. If " +
+        "--scpoutputhost is set, this will be the path on the remote machine that files are copied to. Otherwise, " +
+        "files will be copied to this path on the local machine (intended for use with mounted network drives).",
         converter = FileConverter.class)
-    private final File scpOutputPath = new File("tzar/outputdata");
+    private final File finalOutputPath = null;
 
     @Parameter(names = "--scpoutputuser", description = "Username for the run output ssh host. If not specified, " +
         "uses the current user")
@@ -98,8 +99,8 @@ public class CommandFlags {
       return scpOutputHost;
     }
 
-    public File getScpOutputPath() {
-      return scpOutputPath;
+    public File getFinalOutputPath() {
+      return finalOutputPath;
     }
 
     public String getScpOutputUser() {
@@ -119,7 +120,7 @@ public class CommandFlags {
     }
 
     @Parameter(names = "--clustername", description = "Name of cluster to run on.")
-    private String clusterName = "";
+    private String clusterName = Constants.DEFAULT_CLUSTER_NAME;
 
     public String getClusterName() {
       return clusterName;
