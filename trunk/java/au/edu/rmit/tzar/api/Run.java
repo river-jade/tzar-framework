@@ -16,6 +16,7 @@ public class Run {
   private volatile int runId = -1;
   private volatile String runnerFlags;
   private volatile String hostname;
+  private volatile String hostIp;
   private volatile Date startTime;
   private volatile Date endTime;
   private volatile Parameters parameters = Parameters.EMPTY_PARAMETERS;
@@ -70,6 +71,15 @@ public class Run {
 
   public CodeSource getCodeSource() {
     return codeSource;
+  }
+
+  public String getHostIp() {
+    return hostIp;
+  }
+
+  public Run setHostIp(String hostIp) {
+    this.hostIp = hostIp;
+    return this;
   }
 
   public String getRunnerFlags() {
@@ -198,6 +208,7 @@ public class Run {
     if (endTime != null ? !endTime.equals(run.endTime) : run.endTime != null) return false;
     if (runnerFlags != null ? !runnerFlags.equals(run.runnerFlags) : run.runnerFlags != null) return false;
     if (hostname != null ? !hostname.equals(run.hostname) : run.hostname != null) return false;
+    if (hostIp != null ? !hostIp.equals(run.hostIp) : run.hostIp != null) return false;
     if (outputHost != null ? !outputHost.equals(run.outputHost) : run.outputHost != null) return false;
     if (remoteOutputPath != null ? !remoteOutputPath.equals(run.remoteOutputPath) : run.remoteOutputPath != null) return false;
     if (parameters != null ? !parameters.equals(run.parameters) : run.parameters != null) return false;
@@ -221,6 +232,7 @@ public class Run {
     result = 31 * result + (codeSource != null ? codeSource.hashCode() : 0);
     result = 31 * result + (runnerFlags != null ? runnerFlags.hashCode() : 0);
     result = 31 * result + (hostname != null ? hostname.hashCode() : 0);
+    result = 31 * result + (hostIp != null ? hostIp.hashCode() : 0);
     result = 31 * result + (startTime != null ? startTime.hashCode() : 0);
     result = 31 * result + (endTime != null ? endTime.hashCode() : 0);
     result = 31 * result + (parameters != null ? parameters.hashCode() : 0);
