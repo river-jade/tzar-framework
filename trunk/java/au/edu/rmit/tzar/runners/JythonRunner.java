@@ -3,6 +3,7 @@ package au.edu.rmit.tzar.runners;
 import au.edu.rmit.tzar.api.Parameters;
 import au.edu.rmit.tzar.api.TzarException;
 import au.edu.rmit.tzar.api.Runner;
+import com.google.common.io.Files;
 import org.python.core.Py;
 import org.python.core.PyException;
 import org.python.core.PyString;
@@ -11,8 +12,6 @@ import org.python.util.PythonInterpreter;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.logging.Logger;
 
 /**
@@ -50,8 +49,8 @@ public class JythonRunner implements Runner {
     interpreter.setOut(System.out);
     interpreter.setErr(System.err);
 
-    Path tempDirectory = Files.createTempDirectory(null);
-    sys.path.append(new PyString(tempDirectory.toAbsolutePath().toString()));
+    File tempDirectory = Files.createTempDir();
+    sys.path.append(new PyString(tempDirectory.getAbsolutePath()));
     File modelRunner = RunnerUtils.extractResourceToFile(tempDirectory, "jython/", "modelrunner.py");
     RunnerUtils.extractResourceToFile(tempDirectory, "jython/", "basemodel.py");
     RunnerUtils.extractResourceToFile(tempDirectory, "jython/", "rrunner.py");

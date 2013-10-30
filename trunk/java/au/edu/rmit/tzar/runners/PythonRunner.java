@@ -5,10 +5,9 @@ import au.edu.rmit.tzar.api.TzarException;
 import au.edu.rmit.tzar.api.Runner;
 import com.beust.jcommander.Parameter;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.io.Files;
 
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -28,21 +27,17 @@ public class PythonRunner extends SystemRunner implements Runner {
 
     File variablesFile = RunnerUtils.writeVariablesFile(outputPath, parameters);
 
-    try {
-      Path tempDirectory = Files.createTempDirectory(null);
-      File pythonRunner = RunnerUtils.extractResourceToFile(tempDirectory, "python/", "pythonrunner.py");
-      RunnerUtils.extractResourceToFile(tempDirectory, "python/", "basemodel.py");
+    File tempDirectory = Files.createTempDir();
+    File pythonRunner = RunnerUtils.extractResourceToFile(tempDirectory, "python/", "pythonrunner.py");
+    RunnerUtils.extractResourceToFile(tempDirectory, "python/", "basemodel.py");
 
-      Map<String, String> env = ImmutableMap.of("PYTHONPATH", model.getAbsolutePath());
-      return executeCommand(model, logger, env, flags.pythonLocation.getPath(),
-          pythonRunner.getPath(),
-          "--paramfile=" + variablesFile.getPath(),
-          "--modelpath=" + model,
-          "--outputpath=" + outputPath,
-          "--runid=" + runId);
-    } catch (IOException e) {
-      throw new TzarException("Couldn't create temporary file");
-    }
+    Map<String, String> env = ImmutableMap.of("PYTHONPATH", model.getAbsolutePath());
+    return executeCommand(model, logger, env, flags.pythonLocation.getPath(),
+        pythonRunner.getPath(),
+        "--paramfile=" + variablesFile.getPath(),
+        "--modelpath=" + model,
+        "--outputpath=" + outputPath,
+        "--runid=" + runId);
   }
 
   @com.beust.jcommander.Parameters(separators = "= ")
