@@ -68,12 +68,12 @@ class SharedFlags {
     @Parameter(names = {"-n", "--numruns"}, description = "Number of runs to schedule")
     private int numRuns = 1;
 
-    @Parameter(names = "--projectpath", description = "URI path to the repository where the project spec and model " +
+    @Parameter(description = "URI path to the repository where the project spec and model " +
         "code can be found. The structure of this value will depend on the type set in --repotype. If --repotype is " +
         "\"local_file\", then this should be a local file path to the folder containing projectparams.yaml and the " +
         "model code. If it's \"svn\" for example, then it should be a URL pointing to a directory in a subversion " +
         "repository that contains the projectparams.yaml and the model code.", required=true)
-    private String projectPath = null;
+    private List<String> projectPath = null;
 
     @Parameter(names = "--revision", description = "The source control revision of the model code to schedule for " +
         "execution. Must be either an appropriate value for the repository, or 'head' to use the latest version (at " +
@@ -103,9 +103,9 @@ class SharedFlags {
 
     public URI getProjectUri() {
       try {
-        URI uri = new URI(projectPath);
+        URI uri = new URI(projectPath.get(0));
         if (uri.getScheme() == null) { // no scheme (eg http, ftp). assuming it's a file path
-          String absolutePath = new File(projectPath).getAbsolutePath();
+          String absolutePath = new File(projectPath.get(0)).getAbsolutePath();
           return new URI("file", uri.getHost(), absolutePath, uri.getFragment());
         } else {
           return uri;
