@@ -86,6 +86,7 @@ public class RunDao {
 
   public boolean markRunInProgress(Run run) throws TzarException {
     Connection connection = connectionFactory.createConnection();
+    boolean exceptionOccurred = true;
     try {
       connection.setAutoCommit(false);
       PreparedStatement selectRun = connection.prepareStatement(SELECT_RUN_SQL);
@@ -100,37 +101,7 @@ public class RunDao {
             " that another node has grabbed the run.");
         return false;
       }
-    } catch (SQLException e) {
-      LOG.log(Level.WARNING, "SQLException caused by:", e.getNextException());
-      throw new TzarException(e);
-    }
-
-    persistRun(run, connection);
-    return true;
-  }
-
-  public synchronized void persistRun(Run run) throws TzarException {
-    Connection connection = connectionFactory.createConnection();
-    persistRun(run, connection);
-  }
-
-  private void persistRun(Run run, Connection connection) throws TzarException {
-    boolean exceptionOccurred = true;
-
-    try {
-      PreparedStatement updateRun = connection.prepareStatement(UPDATE_RUN_SQL);
-
-      updateRun.setTimestamp(1, getTimestamp(run.getStartTime()), UTC);
-      updateRun.setTimestamp(2, getTimestamp(run.getEndTime()), UTC);
-      updateRun.setString(3, run.getState().name().toLowerCase());
-      updateRun.setString(4, run.getHostname());
-      updateRun.setString(5, run.getHostIp());
-      File outputPath = run.getRemoteOutputPath();
-      updateRun.setString(6, outputPath == null ? null : outputPath.getPath());
-      updateRun.setString(7, run.getOutputHost());
-      updateRun.setInt(8, run.getRunId()); // this is for the where clause, we don't update this field.
-      updateRun.executeUpdate();
-      connection.commit();
+      persistRun(run, connection);
       exceptionOccurred = false;
     } catch (SQLException e) {
       LOG.log(Level.WARNING, "SQLException thrown. Rolling back transaction.", e);
@@ -140,6 +111,39 @@ public class RunDao {
     } finally {
       Utils.close(connection, exceptionOccurred);
     }
+    return true;
+  }
+
+  public synchronized void persistRun(Run run) throws TzarException {
+    Connection connection = connectionFactory.createConnection();
+    boolean exceptionOccurred = true;
+    try {
+      persistRun(run, connection);
+      exceptionOccurred = false;
+    } catch (SQLException e) {
+      LOG.log(Level.WARNING, "SQLException thrown. Rolling back transaction.", e);
+      LOG.log(Level.WARNING, "SQLException caused by:", e.getNextException());
+      Utils.rollback(connection);
+      throw new TzarException(e);
+    } finally {
+      Utils.close(connection, exceptionOccurred);
+    }
+  }
+
+  private void persistRun(Run run, Connection connection) throws SQLException {
+    PreparedStatement updateRun = connection.prepareStatement(UPDATE_RUN_SQL);
+
+    updateRun.setTimestamp(1, getTimestamp(run.getStartTime()), UTC);
+    updateRun.setTimestamp(2, getTimestamp(run.getEndTime()), UTC);
+    updateRun.setString(3, run.getState().name().toLowerCase());
+    updateRun.setString(4, run.getHostname());
+    updateRun.setString(5, run.getHostIp());
+    File outputPath = run.getRemoteOutputPath();
+    updateRun.setString(6, outputPath == null ? null : outputPath.getPath());
+    updateRun.setString(7, run.getOutputHost());
+    updateRun.setInt(8, run.getRunId()); // this is for the where clause, we don't update this field.
+    updateRun.executeUpdate();
+    connection.commit();
   }
 
   /**
