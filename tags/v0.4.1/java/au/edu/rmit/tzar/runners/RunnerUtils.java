@@ -8,7 +8,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import java.io.*;
-import java.nio.file.Path;
 import java.util.Arrays;
 
 /**
@@ -61,8 +60,8 @@ class RunnerUtils {
     return outputFile;
   }
 
-  static File extractResourceToFile(Path directory, final String packageName, String filename) throws TzarException {
-    File resourceFile = new File(directory.toFile(), filename);
+  static File extractResourceToFile(File directory, final String packageName, String filename) throws TzarException {
+    File resourceFile = new File(directory, filename);
     extractResource(packageName + filename, resourceFile);
     return resourceFile;
   }
