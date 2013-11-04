@@ -9,6 +9,7 @@ import au.edu.rmit.tzar.db.DaoFactory;
 import au.edu.rmit.tzar.db.RunDao;
 import au.edu.rmit.tzar.repository.CodeSource;
 import au.edu.rmit.tzar.resultscopier.*;
+import au.edu.rmit.tzar.server.WebServer;
 import com.beust.jcommander.JCommander;
 import com.google.common.collect.Maps;
 import com.google.common.io.Files;
@@ -17,6 +18,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Map;
+import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
 import static au.edu.rmit.tzar.commands.CommandFlags.*;
@@ -70,9 +72,12 @@ class CommandFactory {
   }
 
   public Command newPollAndRun() throws IOException, TzarException, ParseException {
-    ResultsCopier resultsCopier;
+    File tzarBaseDirectory = RUNNER_FLAGS.getTzarBaseDirectory();
+
+    Executors.newSingleThreadExecutor().submit(new WebServer(Constants.WEBSERVER_PORT, tzarBaseDirectory));
 
     File baseRemoteOutputPath = POLL_AND_RUN_FLAGS.getFinalOutputPath();
+    ResultsCopier resultsCopier;
     if (baseRemoteOutputPath == null) { // no path specified. don't copy output
       LOG.warning("No final output path specified. Results will be left on this node. Is that intentional?");
       resultsCopier = new NoopCopier();
@@ -89,7 +94,7 @@ class CommandFactory {
     RunDao runDao = daoFactory.createRunDao();
     resultsCopier = new CopierFactory().createAsyncCopier(resultsCopier, true, true, runDao, baseRemoteOutputPath);
 
-    File baseLocalOutputPath = new File(RUNNER_FLAGS.getTzarBaseDirectory(), Constants.POLL_AND_RUN_OUTPUT_DIR);
+    File baseLocalOutputPath = new File(tzarBaseDirectory, Constants.POLL_AND_RUN_OUTPUT_DIR);
     return new PollAndRun(runDao, resultsCopier, baseLocalOutputPath, RUNNER_FLAGS.getBaseModelPath(),
         new RunnerFactory());
   }
