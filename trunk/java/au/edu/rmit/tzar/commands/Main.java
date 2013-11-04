@@ -3,6 +3,7 @@ package au.edu.rmit.tzar.commands;
 import au.edu.rmit.tzar.ColorConsoleHandler;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
+import com.google.common.base.Joiner;
 import com.google.common.collect.ObjectArrays;
 
 import java.io.BufferedReader;
@@ -22,6 +23,7 @@ public class Main {
   private static Logger LOG = Logger.getLogger(Main.class.getName());
 
   public static void main(String[] args) throws IOException {
+    LOG.fine("Starting Tzar with command line args: " + Joiner.on(' ').join(args));
     JCommander jCommander = new JCommander();
     // TODO(river): uncomment this line when we upgrade to newer jcommander. Currently
     // blocked on jcommander help formatting bug: https://github.com/cbeust/jcommander/issues/165
@@ -68,7 +70,7 @@ public class Main {
         BufferedReader in = new BufferedReader(
             new InputStreamReader(Main.class.getResourceAsStream("/version.properties")));
         String line;
-        while((line = in.readLine()) != null)
+        while ((line = in.readLine()) != null)
           System.out.println(line);
         return;
       }
