@@ -16,7 +16,7 @@ class ConnectionFactory {
   private final BoneCP connectionPool;
 
   public ConnectionFactory(String dbString) throws TzarException {
-    LOG.info("Creating connection to DB: " + dbString);
+    LOG.info("Creating connection to DB: " + dbString.replaceAll("password=.*?(&|$)", "password=xxxxxx"));
     try {
       Class.forName("org.postgresql.Driver"); 	// load the DB driver
     } catch (ClassNotFoundException e) {

@@ -15,4 +15,5 @@ public class Constants {
   public static final String POLL_AND_RUN_OUTPUT_DIR = "pollandrun_outputdata";
   public static final String DEFAULT_CLUSTER_NAME = "default";
   public static final String DEFAULT_RUNSET = "default_runset";
+  public static final int WEBSERVER_PORT = 8080;
 }
