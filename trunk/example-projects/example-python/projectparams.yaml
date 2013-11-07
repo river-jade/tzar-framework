@@ -41,10 +41,10 @@ repetitions:
         generator_type: linear_step
         start: 0
         step_size: 1
-        count: 5
+        count: 3
 
       - key: test.variable.4
         generator_type: normal_distribution
         mean: 5
         std_dev: 1
-        count: 10
+        count: 3
