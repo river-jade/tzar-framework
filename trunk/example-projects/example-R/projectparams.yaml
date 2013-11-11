@@ -21,15 +21,14 @@ base_params:
         test.output.filename2: test_output_file2.txt
     
 
-# scenarios:
-#     - name: Example scenario
-#     parameters:
-#        variables:
-#
-#    - name: Example scenario 2
-#      parameters:
-#        variables:
-#            test.variable.1: 789
+scenarios:
+    - name: Example scenario
+      parameters:
+          variables:
+    - name: Example scenario 2
+      parameters:
+          variables:
+              test.variable.1: 789
 
 # Note that this file does all repetitions on scen 1, then on scen 2 etc...
 # Note that also the original value of the variable is not used.
