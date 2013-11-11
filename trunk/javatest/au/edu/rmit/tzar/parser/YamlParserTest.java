@@ -1,17 +1,15 @@
 package au.edu.rmit.tzar.parser;
 
-import au.edu.rmit.tzar.api.Parameters;
-import au.edu.rmit.tzar.api.ProjectSpec;
-import au.edu.rmit.tzar.api.TzarException;
-import au.edu.rmit.tzar.api.Scenario;
+import au.edu.rmit.tzar.api.*;
+import au.edu.rmit.tzar.repository.CodeSourceImpl;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import junit.framework.TestCase;
 
 import java.io.File;
-import java.io.IOException;
 import java.math.BigDecimal;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -29,7 +27,15 @@ public class YamlParserTest extends TestCase {
     yamlParser = new YamlParser();
   }
 
-  public void testWriteThenReadProjectSpec() throws IOException, TzarException {
+  public void testWriteThenReadProjectSpec() throws Exception {
+    Map<String, CodeSourceImpl> libraries = Maps.newLinkedHashMap();
+    libraries.put("library1", new CodeSourceImpl(new URI("/source/code/1"), CodeSourceImpl.RepositoryType.LOCAL_FILE,
+        "123"));
+    libraries.put("library2", new CodeSourceImpl(new URI("/source/code/2"), CodeSourceImpl.RepositoryType.LOCAL_FILE,
+        "124"));
+    libraries.put("library3", new CodeSourceImpl(new URI("/source/code/3"), CodeSourceImpl.RepositoryType.LOCAL_FILE,
+        "125"));
+
     Map<String, Object> variables = Maps.newLinkedHashMap();
     variables.put("test1", 3);
     variables.put("test2", true);
@@ -53,14 +59,14 @@ public class YamlParserTest extends TestCase {
     Parameters overrideParameters2 = Parameters.EMPTY_PARAMETERS;
     scenarios.add(new Scenario("test scenario1", overrideParameters1));
     scenarios.add(new Scenario("test scenario2", overrideParameters2));
-    ProjectSpec projectSpec = new ProjectSpec("test project", RUNNER_CLASS, RUNNER_FLAGS, baseParameters, scenarios,
-        Repetitions.EMPTY_REPETITIONS);
+    ProjectSpecImpl projectSpec = new ProjectSpecImpl("test project", RUNNER_CLASS, RUNNER_FLAGS, baseParameters,
+        scenarios, Repetitions.EMPTY_REPETITIONS, libraries);
 
     File tempFile = File.createTempFile("yaml_parser_test", null);
     tempFile.delete();
     yamlParser.projectSpecToYaml(projectSpec, tempFile);
     ProjectSpec projectSpecCopy = yamlParser.projectSpecFromYaml(tempFile);
-    assertEquals(projectSpecCopy, projectSpec);
+    assertEquals(projectSpec, projectSpecCopy);
   }
 
   /**

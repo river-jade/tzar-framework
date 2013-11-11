@@ -1,28 +1,35 @@
 project_name: Example Project
 runner_class: RRunner
 
+libraries:
+    -  name: R-libraries
+       repo_type: svn
+       uri: http://rdv-framework.googlecode.com/svn/trunk/R
+       revision: 318
+
 base_params:
     variables: 
         test.variable.1: 123
         test.variable.2: 456
         test.variable.3: xyz
         test.variable.4: abc
-    
+        path.to.example.script: $$library_path(R-libraries)$$/example.R
+
     input_files: 
     output_files: 
-        PAR.testing.output.filename: test_output_file.txt
-        PAR.testing.output.filename2: test_output_file2.txt
+        test.output.filename: test_output_file.txt
+        test.output.filename2: test_output_file2.txt
     
 
-scenarios:
-    - name: Example scenario
-      parameters: 
-        variables: 
-
-    - name: Example scenario 2
-      parameters: 
-        variables: 
-            test.variable.1: 789
+# scenarios:
+#     - name: Example scenario
+#     parameters:
+#        variables:
+#
+#    - name: Example scenario 2
+#      parameters:
+#        variables:
+#            test.variable.1: 789
 
 # Note that this file does all repetitions on scen 1, then on scen 2 etc...
 # Note that also the original value of the variable is not used.

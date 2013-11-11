@@ -1,6 +1,8 @@
 package au.edu.rmit.tzar.parser;
 
 import au.edu.rmit.tzar.api.Parameters;
+import au.edu.rmit.tzar.api.RepetitionGenerator;
+import au.edu.rmit.tzar.api.Repetitions;
 import au.edu.rmit.tzar.api.TzarException;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;

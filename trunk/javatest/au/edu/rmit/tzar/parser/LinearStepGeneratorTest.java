@@ -1,5 +1,6 @@
 package au.edu.rmit.tzar.parser;
 
+import au.edu.rmit.tzar.api.RepetitionGenerator;
 import junit.framework.TestCase;
 
 import java.math.BigDecimal;
