@@ -25,7 +25,11 @@ inputFiles <- lapply(tzar$inputFiles, function(x) { paste(inputpath, x, sep='') 
 outputFiles <- lapply(tzar$outputFiles, function(x) { paste(outputpath, x, sep='') } )
 variables <- tzar$variables
 
+# Write a version of the parameters to a file that can be sourced directly in R 
+dump( c('variables','inputFiles','outputFiles'), paste( outputpath, '/parameters.R', sep='') )
+
 source(args$rscript)
+
 
 # for debugging: prints out the parameters
 # str(tzar)
