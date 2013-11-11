@@ -1,20 +1,20 @@
 package au.edu.rmit.tzar.api;
 
 import au.edu.rmit.tzar.Constants;
-import au.edu.rmit.tzar.repository.CodeSource;
+import au.edu.rmit.tzar.repository.CodeSourceImpl;
+import com.google.common.base.Objects;
 
 import java.io.File;
 import java.util.Date;
+import java.util.Map;
 
 /**
  * Represents a particular run of the framework.
  */
 public class Run {
-  private final String projectName;
+  private final ProjectInfo projectInfo;
   private final String scenarioName;
-  private final CodeSource codeSource;
   private volatile int runId = -1;
-  private volatile String runnerFlags;
   private volatile String hostname;
   private volatile String hostIp;
   private volatile Date startTime;
@@ -25,17 +25,15 @@ public class Run {
   private volatile String clusterName = Constants.DEFAULT_CLUSTER_NAME;
   private volatile File remoteOutputPath;
   private volatile String outputHost;
-  private volatile String runnerClass;
 
-   /**
+  /**
     * Constructor.
-    * @param projectName  the name of the project which defines this run
+    * @param projectInfo object containing info that is common to all runs in the project
     * @param scenarioName the name of the scenario which defines this run or null if this run is without scenario
     */
-  public Run(String projectName, String scenarioName, CodeSource codeSource) {
-    this.projectName = projectName;
+  public Run(ProjectInfo projectInfo, String scenarioName) {
+    this.projectInfo = projectInfo;
     this.scenarioName = scenarioName;
-    this.codeSource = codeSource;
   }
 
   public String getHostname() {
@@ -48,7 +46,7 @@ public class Run {
   }
 
   public String getName() {
-    return projectName + (scenarioName == null ? "" : "_" + scenarioName);
+    return projectInfo.projectName + (scenarioName == null ? "" : "_" + scenarioName);
   }
 
   public Date getStartTime() {
@@ -69,8 +67,8 @@ public class Run {
     return this;
   }
 
-  public CodeSource getCodeSource() {
-    return codeSource;
+  public CodeSourceImpl getCodeSource() {
+    return projectInfo.codeSource;
   }
 
   public String getHostIp() {
@@ -82,13 +80,8 @@ public class Run {
     return this;
   }
 
-  public String getRunnerFlags() {
-    return runnerFlags;
-  }
-
-  public Run setRunnerFlags(String runnerFlags) {
-    this.runnerFlags = runnerFlags;
-    return this;
+  public Map<String, ? extends CodeSource> getLibraries() {
+    return projectInfo.libraries;
   }
 
   public Parameters getParameters() {
@@ -139,7 +132,7 @@ public class Run {
   }
 
   public String getProjectName() {
-    return projectName;
+    return projectInfo.projectName;
   }
 
   public String getScenarioName() {
@@ -165,12 +158,11 @@ public class Run {
   }
 
   public String getRunnerClass() {
-    return runnerClass;
+    return projectInfo.runnerClass;
   }
 
-  public Run setRunnerClass(String runnerClass) {
-    this.runnerClass = runnerClass;
-    return this;
+  public String getRunnerFlags() {
+    return projectInfo.runnerFlags;
   }
 
   public State getState() {
@@ -186,63 +178,38 @@ public class Run {
   public String toString() {
     return "Run{" +
         "runId=" + runId +
-        ", projectName='" + projectName + '\'' +
+        ", projectInfo='" + projectInfo + '\'' +
         ", scenarioName='" + scenarioName + '\'' +
-        ", codeSource='" + codeSource + '\'' +
-        ", runnerFlags='" + runnerFlags + '\'' +
         ", state='" + state + '\'' +
         ", runset='" + runset + '\'' +
         ", clustername='" + clusterName + '\'' +
-        ", runnerclass='" + runnerClass + '\'' +
         '}';
   }
 
   @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
-
-    Run run = (Run) o;
-
-    if (runId != run.runId) return false;
-    if (endTime != null ? !endTime.equals(run.endTime) : run.endTime != null) return false;
-    if (runnerFlags != null ? !runnerFlags.equals(run.runnerFlags) : run.runnerFlags != null) return false;
-    if (hostname != null ? !hostname.equals(run.hostname) : run.hostname != null) return false;
-    if (hostIp != null ? !hostIp.equals(run.hostIp) : run.hostIp != null) return false;
-    if (outputHost != null ? !outputHost.equals(run.outputHost) : run.outputHost != null) return false;
-    if (remoteOutputPath != null ? !remoteOutputPath.equals(run.remoteOutputPath) : run.remoteOutputPath != null) return false;
-    if (parameters != null ? !parameters.equals(run.parameters) : run.parameters != null) return false;
-    if (codeSource != null ? !codeSource.equals(run.codeSource) : run.codeSource!= null) return false;
-    if (projectName != null ? !projectName.equals(run.projectName) : run.projectName != null) return false;
-    if (scenarioName != null ? !scenarioName.equals(run.scenarioName) : run.scenarioName != null) return false;
-    if (runset != null ? !runset.equals(run.runset) : run.runset != null) return false;
-    if (clusterName != null ? !clusterName.equals(run.clusterName) : run.clusterName != null) return false;
-    if (startTime != null ? !startTime.equals(run.startTime) : run.startTime != null) return false;
-    if (state != null ? !state.equals(run.state) : run.state != null) return false;
-    if (runnerClass != null ? !runnerClass.equals(run.runnerClass) : run.runnerClass != null) return false;
-
-    return true;
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (obj == null || getClass() != obj.getClass()) {
+      return false;
+    }
+    final Run other = (Run) obj;
+    return Objects.equal(this.projectInfo, other.projectInfo) &&
+        Objects.equal(this.scenarioName, other.scenarioName) &&
+        Objects.equal(this.runId, other.runId) && Objects.equal(this.hostname, other.hostname) &&
+        Objects.equal(this.hostIp, other.hostIp) && Objects.equal(this.startTime, other.startTime) &&
+        Objects.equal(this.endTime, other.endTime) && Objects.equal(this.parameters, other.parameters) &&
+        Objects.equal(this.state, other.state) && Objects.equal(this.runset, other.runset) &&
+        Objects.equal(this.clusterName, other.clusterName) &&
+        Objects.equal(this.remoteOutputPath, other.remoteOutputPath) &&
+        Objects.equal(this.outputHost, other.outputHost);
   }
 
   @Override
   public int hashCode() {
-    int result = runId;
-    result = 31 * result + (projectName != null ? projectName.hashCode() : 0);
-    result = 31 * result + (scenarioName != null ? scenarioName.hashCode() : 0);
-    result = 31 * result + (codeSource != null ? codeSource.hashCode() : 0);
-    result = 31 * result + (runnerFlags != null ? runnerFlags.hashCode() : 0);
-    result = 31 * result + (hostname != null ? hostname.hashCode() : 0);
-    result = 31 * result + (hostIp != null ? hostIp.hashCode() : 0);
-    result = 31 * result + (startTime != null ? startTime.hashCode() : 0);
-    result = 31 * result + (endTime != null ? endTime.hashCode() : 0);
-    result = 31 * result + (parameters != null ? parameters.hashCode() : 0);
-    result = 31 * result + (state != null ? state.hashCode() : 0);
-    result = 31 * result + (runset != null ? runset.hashCode() : 0);
-    result = 31 * result + (clusterName != null ? clusterName.hashCode() : 0);
-    result = 31 * result + (remoteOutputPath != null ? remoteOutputPath.hashCode() : 0);
-    result = 31 * result + (outputHost != null ? outputHost.hashCode() : 0);
-    result = 31 * result + (runnerClass != null ? runnerClass.hashCode() : 0);
-    return result;
+    return Objects.hashCode(projectInfo, scenarioName, runId, hostname, hostIp, startTime, endTime, parameters,
+        state, runset, clusterName, remoteOutputPath, outputHost);
   }
 
   public enum State {
@@ -252,5 +219,51 @@ public class Run {
     COPY_FAILED,
     IN_PROGRESS,
     SCHEDULED,
+  }
+
+  public static class ProjectInfo {
+    private final String projectName;
+    private final CodeSourceImpl codeSource;
+    private final Map<String, ? extends CodeSource> libraries;
+    private final String runnerClass;
+    private final String runnerFlags;
+
+    public ProjectInfo(String projectName, CodeSourceImpl codeSource, Map<String, ? extends CodeSource> libraries,
+        String runnerClass, String runnerFlags) {
+      this.projectName = projectName;
+      this.codeSource = codeSource;
+      this.libraries = libraries;
+      this.runnerClass = runnerClass;
+      this.runnerFlags = runnerFlags;
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hashCode(projectName, codeSource, libraries, runnerClass, runnerFlags);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (this == obj) {
+        return true;
+      }
+      if (obj == null || getClass() != obj.getClass()) {
+        return false;
+      }
+      final ProjectInfo other = (ProjectInfo) obj;
+      return Objects.equal(this.projectName, other.projectName) && Objects.equal(this.codeSource,
+          other.codeSource) && Objects.equal(this.libraries, other.libraries) && Objects.equal(this.runnerClass, other.runnerClass) && Objects.equal(this.runnerFlags, other.runnerFlags);
+    }
+
+    @Override
+    public String toString() {
+      return Objects.toStringHelper(this)
+          .add("projectName", projectName)
+          .add("codeSource", codeSource)
+          .add("libraries", libraries)
+          .add("runnerClass", runnerClass)
+          .add("runnerFlags", runnerFlags)
+          .toString();
+    }
   }
 }

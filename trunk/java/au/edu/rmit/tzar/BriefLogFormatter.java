@@ -18,19 +18,19 @@ public class BriefLogFormatter extends Formatter {
   private static final DateFormat format = new SimpleDateFormat("h:mm:ss");
   private static final String lineSep = System.getProperty("line.separator");
 
+  private boolean verbose = false;
+
   /**
    * A Custom format implementation that is designed for brevity.
    */
   public String format(LogRecord record) {
-    String loggerName = record.getLoggerName();
-    if (loggerName == null) {
-      loggerName = "root";
-    }
-    StringBuilder output = new StringBuilder()
-        .append("[")
+    StringBuilder output = new StringBuilder();
+    if (verbose) {
+        output.append("[")
         .append(record.getLevel()).append('|')
         .append(format.format(new Date(record.getMillis())))
         .append("]: ");
+    }
     if (record.getParameters() == null || record.getParameters().length == 0) {
       output.append(record.getMessage());
     } else {
@@ -55,4 +55,7 @@ public class BriefLogFormatter extends Formatter {
     }
   }
 
+  public void setVerbose(boolean verbose) {
+    this.verbose = verbose;
+  }
 }

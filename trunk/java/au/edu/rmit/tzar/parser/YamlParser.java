@@ -1,12 +1,12 @@
 package au.edu.rmit.tzar.parser;
 
-import au.edu.rmit.tzar.api.Parameters;
-import au.edu.rmit.tzar.api.ProjectSpec;
-import au.edu.rmit.tzar.api.TzarException;
-import au.edu.rmit.tzar.api.Scenario;
+import au.edu.rmit.tzar.Utils;
+import au.edu.rmit.tzar.api.*;
+import au.edu.rmit.tzar.repository.CodeSourceImpl;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
@@ -18,6 +18,7 @@ import org.yaml.snakeyaml.nodes.Tag;
 
 import java.io.*;
 import java.math.BigDecimal;
+import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Map;
 
@@ -63,7 +64,7 @@ public class YamlParser {
    */
   public ProjectSpec projectSpecFromYaml(File file) throws FileNotFoundException, TzarException {
     Yaml yaml = new Yaml(new ProjectSpecConstructor());
-    ProjectSpec projectSpec = objectFromYaml(file, ProjectSpecBean.class, yaml).toProjectSpec();
+    ProjectSpecImpl projectSpec = objectFromYaml(file, ProjectSpecBean.class, yaml).toProjectSpec();
     projectSpec.validate();
     return projectSpec;
   }
@@ -75,7 +76,7 @@ public class YamlParser {
    * @param file the file to write to
    * @throws java.io.IOException if the file already exists, or there is a problem writing to the file
    */
-  public void projectSpecToYaml(ProjectSpec spec, File file) throws IOException {
+  public void projectSpecToYaml(ProjectSpecImpl spec, File file) throws IOException {
     objectToYaml(ProjectSpecBean.fromProjectSpec(spec), file);
   }
 
@@ -146,23 +147,30 @@ public class YamlParser {
     private String project_name;
     private String runner_class;
     private String runner_flags;
+    private List<LibraryBean> libraries;
     private RepetitionsBean repetitions;
 
-    public static ProjectSpecBean fromProjectSpec(ProjectSpec spec) {
+    public static ProjectSpecBean fromProjectSpec(ProjectSpecImpl spec) {
       ProjectSpecBean bean = new ProjectSpecBean();
       bean.base_params = ParametersBean.fromParameters(spec.getBaseParams());
       bean.scenarios = ScenarioBean.fromScenarios(spec.getScenarios());
       bean.project_name = spec.getProjectName();
       bean.runner_class = spec.getRunnerClass();
       bean.runner_flags = spec.getRunnerFlags();
+      bean.libraries = LibraryBean.fromLibraries(spec.getLibraries());
       bean.repetitions = RepetitionsBean.fromRepetitions(spec.getRepetitions());
       return bean;
     }
 
-    public ProjectSpec toProjectSpec() {
+    public ProjectSpecImpl toProjectSpec() throws TzarException {
       Repetitions reps = repetitions == null ? Repetitions.EMPTY_REPETITIONS : repetitions.toRepetitions();
-      return new ProjectSpec(project_name, runner_class, runner_flags == null ? "" : runner_flags,
-          base_params.toParameters(), ScenarioBean.toScenarios(scenarios), reps);
+      Map<String, CodeSourceImpl> libs = libraries == null ? ImmutableMap.<String, CodeSourceImpl>of() :
+          LibraryBean.toLibraries(libraries);
+      if (scenarios == null || scenarios.isEmpty()) {
+        throw new TzarException("Invalid project specification. Must have at least one scenario defined.");
+      }
+      return new ProjectSpecImpl(project_name, runner_class, runner_flags == null ? "" : runner_flags,
+          base_params.toParameters(), ScenarioBean.toScenarios(scenarios), reps, libs);
     }
   }
 
@@ -196,12 +204,11 @@ public class YamlParser {
     private ParametersBean parameters;
     
     public static List<ScenarioBean> fromScenarios(List<Scenario> scenarios) {
-      return Lists.transform(scenarios, new Function<Scenario, ScenarioBean>() {
-        @Override
-        public ScenarioBean apply(Scenario scenario) {
-          return ScenarioBean.fromScenario(scenario);
-        }
-      });
+      List<ScenarioBean> beans = Lists.newArrayList();
+      for (Scenario scenario : scenarios) {
+        beans.add(ScenarioBean.fromScenario(scenario));
+      }
+      return beans;
     }
 
     public static ScenarioBean fromScenario(Scenario scenario) {
@@ -211,17 +218,58 @@ public class YamlParser {
       return bean;
     }
 
-    public static List<Scenario> toScenarios(List<ScenarioBean> scenarios) {
-      return Lists.transform(scenarios, new Function<ScenarioBean, Scenario>() {
-        @Override
-        public Scenario apply(ScenarioBean bean) {
-          return bean.toScenario();
-        }
-      });
+    public static List<Scenario> toScenarios(List<ScenarioBean> beans) {
+      List<Scenario> scenarios = Lists.newArrayList();
+      for (ScenarioBean bean : beans) {
+        scenarios.add(bean.toScenario());
+      }
+      return scenarios;
     }
 
     private Scenario toScenario() {
       return new Scenario(name, parameters.toParameters());
+    }
+  }
+
+  private static class LibraryBean {
+    private String name;
+    private String repo_type;
+    private String uri;
+    private String revision;
+    
+    public static List<LibraryBean> fromLibraries(Map<String, CodeSourceImpl> libraries) {
+      List<LibraryBean> beans = Lists.newArrayList();
+      for (Map.Entry<String, CodeSourceImpl> library : libraries.entrySet()) {
+        beans.add(LibraryBean.fromLibrary(library));
+      }
+      return beans;
+    }
+
+    public static LibraryBean fromLibrary(Map.Entry<String, CodeSourceImpl> library) {
+      LibraryBean bean = new LibraryBean();
+      bean.name = library.getKey();
+      CodeSourceImpl source = library.getValue();
+      bean.repo_type = source.getRepositoryType().name().toLowerCase();
+      bean.revision = source.getRevision();
+      bean.uri = source.getSourceUri().toString();
+      return bean;
+    }
+
+    public static Map<String, CodeSourceImpl> toLibraries(List<LibraryBean> libraryBeans) {
+      Map<String, CodeSourceImpl> libraries = Maps.newHashMap();
+      for (LibraryBean bean : libraryBeans) {
+        libraries.put(bean.name, bean.toCodeSource());
+      }
+      return libraries;
+    }
+
+    private CodeSourceImpl toCodeSource() {
+      try {
+        return new CodeSourceImpl(Utils.makeAbsoluteUri(uri),
+            CodeSourceImpl.RepositoryType.valueOf(repo_type.toUpperCase()), revision);
+      } catch (URISyntaxException e) {
+        throw new YAMLException("Library code source URL (" + uri + ") was not a valid URI: " + e.getMessage());
+      }
     }
   }
 

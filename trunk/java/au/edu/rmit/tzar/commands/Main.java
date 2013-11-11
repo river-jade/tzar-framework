@@ -1,5 +1,6 @@
 package au.edu.rmit.tzar.commands;
 
+import au.edu.rmit.tzar.BriefLogFormatter;
 import au.edu.rmit.tzar.ColorConsoleHandler;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
@@ -91,7 +92,8 @@ public class Main {
         System.err.println(e.getMessage());
         System.exit(2);
       } catch (Exception e) {
-        LOG.log(Level.SEVERE, "An unrecoverable error occurred.", e);
+        LOG.log(Level.WARNING, e.getMessage());
+        LOG.log(Level.FINE, "An unrecoverable error occurred.", e);
         System.exit(3);
       }
     }
@@ -114,6 +116,8 @@ public class Main {
     for (Handler handler : handlers) {
       if (handler instanceof ColorConsoleHandler) {
         handler.setLevel(level);
+        ((BriefLogFormatter)handler.getFormatter()).setVerbose(SharedFlags.COMMON_FLAGS.getLogLevel() == SharedFlags
+            .CommonFlags.LogLevel.VERBOSE);
       }
     }
   }

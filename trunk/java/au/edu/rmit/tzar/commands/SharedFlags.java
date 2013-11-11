@@ -1,8 +1,8 @@
 package au.edu.rmit.tzar.commands;
 
 import au.edu.rmit.tzar.Constants;
-import au.edu.rmit.tzar.db.Utils;
-import au.edu.rmit.tzar.repository.CodeSource;
+import au.edu.rmit.tzar.Utils;
+import au.edu.rmit.tzar.repository.CodeSourceImpl;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.beust.jcommander.converters.FileConverter;
@@ -84,7 +84,7 @@ class SharedFlags {
     @Parameter(names = "--repotype", description = "The type of repository that the project spec and model code " +
         "should be retrieved from. Currently accepted values are: 'LOCAL_FILE', 'SVN'. If not provided, Tzar will " +
         "attempt to guess based on the projectpath flag.")
-    private CodeSource.RepositoryType repositoryType;
+    private CodeSourceImpl.RepositoryType repositoryType;
 
     @Parameter(names = "--runset", description = "Name of runset to schedule.")
     private String runset = Constants.DEFAULT_RUNSET;
@@ -103,26 +103,20 @@ class SharedFlags {
 
     public URI getProjectUri() {
       try {
-        URI uri = new URI(projectPath.get(0));
-        if (uri.getScheme() == null) { // no scheme (eg http, ftp). assuming it's a file path
-          String absolutePath = new File(projectPath.get(0)).getAbsolutePath();
-          return new URI("file", uri.getHost(), absolutePath, uri.getFragment());
-        } else {
-          return uri;
-        }
+        return Utils.makeAbsoluteUri(projectPath.get(0));
       } catch (URISyntaxException e) {
         throw new ParseException("Couldn't parse project path: " + projectPath + ". Must be a valid URI, or a file " +
             "path. Error: " + e.getMessage());
       }
     }
 
-    public CodeSource.RepositoryType getRepositoryType() {
+    public CodeSourceImpl.RepositoryType getRepositoryType() {
       if (repositoryType == null) {
         String scheme = getProjectUri().getScheme();
         if ("http".equals(scheme)) {
-          return CodeSource.RepositoryType.SVN;
+          return CodeSourceImpl.RepositoryType.SVN;
         } else if ("file".equals(scheme) || scheme == null) {
-          return CodeSource.RepositoryType.LOCAL_FILE;
+          return CodeSourceImpl.RepositoryType.LOCAL_FILE;
         } else {
           throw new ParseException("No repository type given, and couldn't guess type based on " +
               "provided projectpath. Try specifying the repotype explicitly.");
@@ -184,8 +178,8 @@ class SharedFlags {
       return !noTruncateOutput;
     }
 
-    public Utils.OutputType getOutputType() {
-      return outputType ? Utils.OutputType.CSV : Utils.OutputType.PRETTY;
+    public au.edu.rmit.tzar.db.Utils.OutputType getOutputType() {
+      return outputType ? au.edu.rmit.tzar.db.Utils.OutputType.CSV : au.edu.rmit.tzar.db.Utils.OutputType.PRETTY;
     }
   }
 

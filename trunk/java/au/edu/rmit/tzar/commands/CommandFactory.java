@@ -7,7 +7,7 @@ import au.edu.rmit.tzar.api.ProjectSpec;
 import au.edu.rmit.tzar.api.TzarException;
 import au.edu.rmit.tzar.db.DaoFactory;
 import au.edu.rmit.tzar.db.RunDao;
-import au.edu.rmit.tzar.repository.CodeSource;
+import au.edu.rmit.tzar.repository.CodeSourceImpl;
 import au.edu.rmit.tzar.resultscopier.*;
 import au.edu.rmit.tzar.server.WebServer;
 import com.beust.jcommander.JCommander;
@@ -45,11 +45,11 @@ class CommandFactory {
 
   public Command newExecLocalRuns() throws IOException, TzarException, ParseException {
     String revision = CREATE_RUNS_FLAGS.getRevision();
-    CodeSource.RepositoryType repositoryType = CREATE_RUNS_FLAGS.getRepositoryType();
+    CodeSourceImpl.RepositoryType repositoryType = CREATE_RUNS_FLAGS.getRepositoryType();
     URI projectUri = CREATE_RUNS_FLAGS.getProjectUri();
     File baseModelPath = RUNNER_FLAGS.getBaseModelPath();
 
-    CodeSource modelSource = createCodeSource(revision, repositoryType, projectUri, baseModelPath);
+    CodeSourceImpl modelSource = createCodeSource(revision, repositoryType, projectUri, baseModelPath);
 
     RunFactory runFactory = new RunFactory(modelSource,
         CREATE_RUNS_FLAGS.getRunset(),"" /* no cluster name for local runs */,
@@ -109,13 +109,13 @@ class CommandFactory {
     DaoFactory daoFactory = new DaoFactory(getDbUrl());
 
 
-    CodeSource.RepositoryType repositoryType = CREATE_RUNS_FLAGS.getRepositoryType();
-    if (repositoryType == CodeSource.RepositoryType.LOCAL_FILE) {
+    CodeSourceImpl.RepositoryType repositoryType = CREATE_RUNS_FLAGS.getRepositoryType();
+    if (repositoryType == CodeSourceImpl.RepositoryType.LOCAL_FILE) {
       throw new ParseException("Repository type: LOCAL_FILE is not valid when scheduling remote runs. " +
           "Please choose a different repository type.");
     }
 
-    CodeSource codeSource = createCodeSource(CREATE_RUNS_FLAGS.getRevision(), repositoryType,
+    CodeSourceImpl codeSource = createCodeSource(CREATE_RUNS_FLAGS.getRevision(), repositoryType,
         CREATE_RUNS_FLAGS.getProjectUri(), Files.createTempDir());
     ProjectSpec projectSpec = codeSource.getProjectSpec(Files.createTempDir());
 
@@ -126,7 +126,7 @@ class CommandFactory {
     return new ScheduleRuns(daoFactory.createRunDao(), CREATE_RUNS_FLAGS.getNumRuns(), runFactory);
   }
 
-  private static CodeSource createCodeSource(String revision, CodeSource.RepositoryType repositoryType,
+  private static CodeSourceImpl createCodeSource(String revision, CodeSourceImpl.RepositoryType repositoryType,
       URI sourceUri, File baseModelPath) throws TzarException {
     if (revision.equals("head")) {
       revision = repositoryType.createRepository(sourceUri, baseModelPath).getHeadRevision();
@@ -136,7 +136,7 @@ class CommandFactory {
       }
     }
 
-    return new CodeSource(sourceUri, repositoryType, revision);
+    return new CodeSourceImpl(sourceUri, repositoryType, revision);
   }
 
   private String getDbUrl() throws ParseException {

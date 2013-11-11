@@ -1,16 +1,12 @@
 package au.edu.rmit.tzar;
 
-import au.edu.rmit.tzar.api.Parameters;
-import au.edu.rmit.tzar.api.TzarException;
-import au.edu.rmit.tzar.api.Run;
-import au.edu.rmit.tzar.api.Runner;
+import au.edu.rmit.tzar.api.*;
 import au.edu.rmit.tzar.parser.YamlParser;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.io.Files;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Map;
 import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -25,11 +21,6 @@ public class ExecutableRun {
   private static final Logger LOG = Logger.getLogger(ExecutableRun.class.getName());
   // this is the Logger that will be used by runner to write to the console and logfiles
   private static final Logger RUNNER_LOGGER = Logger.getLogger("au.edu.rmit.tzar.ModelRunnerLogger");
-
-  @VisibleForTesting
-  static final String INPROGRESS_SUFFIX = ".inprogress";
-  @VisibleForTesting
-  static final String FAILED_SUFFIX = ".failed";
 
   private static volatile int nextRunId = 1;
 
@@ -83,7 +74,7 @@ public class ExecutableRun {
     this.runnerFactory = runnerFactory;
     this.baseOutputPath = baseOutputPath;
     this.baseModelPath = baseModelPath;
-    this.outputPath = new File(baseOutputPath + INPROGRESS_SUFFIX);
+    this.outputPath = new File(baseOutputPath + Constants.INPROGRESS_SUFFIX);
   }
 
   /**
@@ -97,7 +88,7 @@ public class ExecutableRun {
     try {
       if (outputPath.exists()) {
         LOG.warning("Temp output path: " + outputPath + " already exists. Deleting.");
-        Files.deleteRecursively(outputPath);
+        Utils.deleteRecursively(outputPath);
       }
       LOG.info("Creating temporary outputdir: " + outputPath);
       if (!outputPath.mkdirs()) {
@@ -106,13 +97,18 @@ public class ExecutableRun {
 
       LOG.info(String.format("Running model: %s, run_id: %d, Project name: %s, Scenario name: %s, " +
           "Flags: %s", model, getRunId(), run.getProjectName(), run.getScenarioName(), run.getRunnerFlags()));
-      // TODO(michaell): Add some more wildcards here?
-      Parameters parameters = run.getParameters().replaceWildcards(
-          ImmutableMap.of(
-              "run_id", Integer.toString(getRunId()),
-              "source_root", model.getAbsolutePath(),
-              "output_path", outputPath.getAbsolutePath()
-          ));
+
+      ImmutableMap.Builder<String, String> builder = ImmutableMap.<String, String>builder()
+          .put("run_id", Integer.toString(getRunId()))
+          .put("source_root", model.getAbsolutePath())
+          .put("output_path", outputPath.getAbsolutePath());
+      for (Map.Entry<String, ? extends CodeSource> entry : run.getLibraries().entrySet()) {
+        builder.put(String.format("library_path(%s)", entry.getKey()),
+            entry.getValue().getCode(baseModelPath).toString());
+      }
+
+      Map<String, String> wildcards = builder.build();
+      Parameters parameters = run.getParameters().replaceWildcards(wildcards);
 
       FileHandler handler = null;
       boolean success = false;
@@ -197,11 +193,11 @@ public class ExecutableRun {
   }
 
   private void renameOutputDir(boolean success) throws TzarException {
-    File destPath = success ? baseOutputPath : new File(baseOutputPath + FAILED_SUFFIX);
+    File destPath = success ? baseOutputPath : new File(baseOutputPath + Constants.FAILED_SUFFIX);
     if (destPath.exists()) {
       try {
         LOG.warning("Path: " + destPath + " already exists. Deleting.");
-        Files.deleteRecursively(destPath);
+        Utils.deleteRecursively(destPath);
       } catch (IOException e) {
         throw new TzarException("Unable to delete existing path: " + destPath, e);
       }

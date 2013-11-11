@@ -164,6 +164,39 @@ public class Utils {
     }
   }
 
+  /**
+   * Delete a file or directory recursively. Note that this method is not threadsafe.
+   * If another process modifies the tree to be deleted, this method could fail.
+   * There is no way to do this in a threadsafe /and/ OS independent way.
+   * @param root the root of the tree to be deleted, /not/ the file system root!
+   * @throws IOException
+   */
+  public static void deleteRecursively(File root) throws IOException {
+    for (File file : Files.fileTreeTraverser().postOrderTraversal(root)) {
+      if (!file.delete()) {
+        throw new IOException("Couldn't delete file: " + file);
+      }
+    }
+  }
+
+  /**
+   * Creates a URI from a string. If the provided string has no scheme (eg http, ftp), we
+   * assume it's a file path and set the scheme to "file".
+   *
+   * @param uriString the string to convert to a URI
+   * @return a newly created URI object
+   * @throws URISyntaxException if the passed string cannot be parsed as a URI.
+   */
+  public static URI makeAbsoluteUri(String uriString) throws URISyntaxException {
+    URI uri = new URI(uriString);
+    if (uri.getScheme() == null) { // no scheme (eg http, ftp). assuming it's a file path
+      String absolutePath = new File(uriString).getAbsolutePath();
+      return new URI("file", uri.getHost(), absolutePath, uri.getFragment());
+    } else {
+      return uri;
+    }
+  }
+
   public interface RenamingStrategy {
     /**
      * Given a run and a (relative) file source path, returns a (relative)

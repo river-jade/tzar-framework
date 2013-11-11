@@ -41,4 +41,12 @@ public class Scenario {
     result = 31 * result + (parameters != null ? parameters.hashCode() : 0);
     return result;
   }
+
+  @Override
+  public String toString() {
+    return "Scenario{" +
+        "name='" + name + '\'' +
+        ", parameters=" + parameters +
+        '}';
+  }
 }

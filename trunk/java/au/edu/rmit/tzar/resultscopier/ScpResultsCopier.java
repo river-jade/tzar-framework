@@ -1,10 +1,9 @@
 package au.edu.rmit.tzar.resultscopier;
 
 import au.edu.rmit.tzar.Utils;
-import au.edu.rmit.tzar.api.TzarException;
 import au.edu.rmit.tzar.api.Run;
+import au.edu.rmit.tzar.api.TzarException;
 import com.google.common.io.Closeables;
-import com.google.common.io.Files;
 import net.schmizz.sshj.SSHClient;
 import net.schmizz.sshj.xfer.FileSystemFile;
 import net.schmizz.sshj.xfer.scp.SCPFileTransfer;
@@ -60,7 +59,8 @@ public class ScpResultsCopier implements ResultsCopier {
                 baseDestPath.getPath().replace(File.separatorChar, '/'));
             run.setRemoteOutputPath(baseDestPath);
             run.setOutputHost(hostname);
-            Files.deleteRecursively(sourcePath.getCanonicalFile());
+
+            Utils.deleteRecursively(sourcePath.getCanonicalFile());
             LOG.log(Level.INFO, "Copied results for run: {0,number,#} from: {1} to {2}:{3}",
                 new Object[]{run.getRunId(), sourcePath, hostname, baseDestPath});
             thrown = false;
