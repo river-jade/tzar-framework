@@ -5,8 +5,6 @@ import au.edu.rmit.tzar.api.Runner;
 import au.edu.rmit.tzar.api.TzarException;
 
 import java.io.File;
-import java.lang.Override;
-import java.lang.String;
 import java.util.logging.Logger;
 
 /**
@@ -15,11 +13,12 @@ import java.util.logging.Logger;
  */
 public class RunnerImpl implements Runner {
   @Override
-  public boolean runModel(File file, File file2, String s, String s2, Parameters parameters, Logger logger)
-      throws TzarException {
+  public boolean runModel(File model, File outputPath, String runId, String runnerFlags, Parameters parameters,
+      Logger logger) throws TzarException {
     logger.info("Entering RunnerImpl runner.");
     logger.info("Here are the parameters: " + parameters.toString());
     logger.info("Exiting RunnerImpl runner.");
     return true;
+
   }
 }
