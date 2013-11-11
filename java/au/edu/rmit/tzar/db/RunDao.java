@@ -1,9 +1,9 @@
 package au.edu.rmit.tzar.db;
 
 import au.edu.rmit.tzar.api.Parameters;
-import au.edu.rmit.tzar.api.TzarException;
 import au.edu.rmit.tzar.api.Run;
-import au.edu.rmit.tzar.repository.CodeSource;
+import au.edu.rmit.tzar.api.TzarException;
+import au.edu.rmit.tzar.repository.CodeSourceImpl;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 
@@ -11,8 +11,10 @@ import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.sql.*;
-import java.util.*;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
+import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -171,7 +173,7 @@ public class RunDao {
       PreparedStatement insertParams = connection.prepareStatement(ParametersDao.INSERT_PARAM_SQL);
 
       for (Run run : runs) {
-        CodeSource codeSource = run.getCodeSource();
+        CodeSourceImpl codeSource = run.getCodeSource();
         run.setRunId(nextRunId);
         insertRun.setInt(1, nextRunId);
         insertRun.setString(2, run.getState().name().toLowerCase());
@@ -310,18 +312,19 @@ public class RunDao {
       throw new TzarException("model_url in database for run: " + runId + " was not a valid URI. Value was: " +
           modelUrlString + ". Error was: " + e.getMessage());
     }
-    CodeSource codeSource = new CodeSource(modelUri,
-        CodeSource.RepositoryType.valueOf(resultSet.getString("model_repo_type").toUpperCase()),
+    CodeSourceImpl codeSource = new CodeSourceImpl(modelUri,
+        CodeSourceImpl.RepositoryType.valueOf(resultSet.getString("model_repo_type").toUpperCase()),
         resultSet.getString("model_revision"));
 
-    Run run = new Run(resultSet.getString("project_name"), resultSet.getString("scenario_name"), codeSource)
+    // FIXME: load and save libraries to / from db.
+    Run.ProjectInfo projectInfo = new Run.ProjectInfo(resultSet.getString("project_name"), codeSource,
+        null, resultSet.getString("runner_class"), resultSet.getString("runner_flags"));
+    Run run = new Run(projectInfo, resultSet.getString("scenario_name"))
         .setRunId(runId)
-        .setRunnerFlags(resultSet.getString("runner_flags"))
         .setParameters(parameters)
         .setState(Run.State.valueOf(resultSet.getString("state").toUpperCase()))
         .setRunset(resultSet.getString("runset"))
-        .setClusterName(resultSet.getString("cluster_name"))
-        .setRunnerClass(resultSet.getString("runner_class"));
+        .setClusterName(resultSet.getString("cluster_name"));
     String outputPath = resultSet.getString("output_path");
     if (outputPath != null) {
       run.setRemoteOutputPath(new File(outputPath));

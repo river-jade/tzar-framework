@@ -1,6 +1,6 @@
 package au.edu.rmit.tzar.parser;
 
-import com.google.gson.annotations.SerializedName;
+import au.edu.rmit.tzar.api.RepetitionGenerator;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;

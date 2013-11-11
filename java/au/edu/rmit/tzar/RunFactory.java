@@ -1,7 +1,7 @@
 package au.edu.rmit.tzar;
 
 import au.edu.rmit.tzar.api.*;
-import au.edu.rmit.tzar.repository.CodeSource;
+import au.edu.rmit.tzar.repository.CodeSourceImpl;
 import com.google.common.collect.Lists;
 
 import java.util.List;
@@ -13,12 +13,12 @@ import java.util.logging.Logger;
 public class RunFactory {
   private static Logger LOG = Logger.getLogger(RunFactory.class.getName());
 
-  private final CodeSource codeSource;
+  private final CodeSourceImpl codeSource;
   private final String runset;
   private final String clusterName;
   private final ProjectSpec projectSpec;
 
-  public RunFactory(CodeSource codeSource, String runset, String clusterName, ProjectSpec projectSpec) {
+  public RunFactory(CodeSourceImpl codeSource, String runset, String clusterName, ProjectSpec projectSpec) {
     this.codeSource = codeSource;
     this.runset = runset;
     this.clusterName = clusterName;
@@ -50,25 +50,21 @@ public class RunFactory {
     List<Run> runs = Lists.newArrayList();
 
     for (Parameters repetitionParams : projectSpec.getRepetitions().getParamsList()) {
-      if (projectSpec.getScenarios() != null && projectSpec.getScenarios().size() > 0) {
-        for (Scenario scenario : projectSpec.getScenarios()) {
-          Parameters params = projectSpec.getBaseParams().mergeParameters(scenario.getParameters());
-          params = params.mergeParameters(repetitionParams);
-          runs.add(createRun(params, scenario.getName()));
-        }
-      } else {
-        runs.add(createRun(projectSpec.getBaseParams().mergeParameters(repetitionParams), null));
+      for (Scenario scenario : projectSpec.getScenarios()) {
+        Parameters params = projectSpec.getBaseParams().mergeParameters(scenario.getParameters());
+        params = params.mergeParameters(repetitionParams);
+        runs.add(createRun(params, scenario.getName()));
       }
     }
     return runs;
   }
 
   private Run createRun(Parameters runParams, String scenarioName) {
-    return new Run(projectSpec.getProjectName(), scenarioName, codeSource)
-        .setRunnerFlags(projectSpec.getRunnerFlags())
+    Run.ProjectInfo projectInfo = new Run.ProjectInfo(projectSpec.getProjectName(), codeSource,
+        projectSpec.getLibraries(), projectSpec.getRunnerClass(), projectSpec.getRunnerFlags());
+    return new Run(projectInfo, scenarioName)
         .setParameters(runParams)
         .setRunset(runset)
-        .setClusterName(clusterName)
-        .setRunnerClass(projectSpec.getRunnerClass());
+        .setClusterName(clusterName);
   }
 }

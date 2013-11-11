@@ -1,15 +1,16 @@
 package au.edu.rmit.tzar.commands;
 
 import au.edu.rmit.tzar.Utils;
-import au.edu.rmit.tzar.api.TzarException;
 import au.edu.rmit.tzar.api.Run;
+import au.edu.rmit.tzar.api.TzarException;
 import au.edu.rmit.tzar.db.RunDao;
 import au.edu.rmit.tzar.resultscopier.SshClientFactoryKeyAuth;
 import au.edu.rmit.tzar.resultscopier.SshClientFactoryPasswordAuth;
-import com.google.common.base.Function;
 import com.google.common.base.Joiner;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Lists;
-import com.google.common.collect.MapMaker;
 import com.google.common.io.Files;
 import net.schmizz.sshj.SSHClient;
 import net.schmizz.sshj.xfer.scp.SCPFileTransfer;
@@ -17,7 +18,7 @@ import net.schmizz.sshj.xfer.scp.SCPFileTransfer;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -49,7 +50,7 @@ class AggregateResults implements Command {
    * Collection of SSH connections, keyed by server name to avoid duplicating connections
    * or having to reconnect each time.
    */
-  private final Map<String, SSHClient> connections;
+  private final LoadingCache<String, SSHClient> connections;
   private final Utils.RegexFilter regexFilter;
 
   /**
@@ -77,9 +78,9 @@ class AggregateResults implements Command {
     this.destPath = flags.getOutputPath();
     this.runDao = runDao;
     this.hostname = hostname;
-    connections = new MapMaker().makeComputingMap(new Function<String, SSHClient>() {
+    connections = CacheBuilder.newBuilder().build(new CacheLoader<String, SSHClient>() {
       @Override
-      public SSHClient apply(String sourceHost) {
+      public SSHClient load(String sourceHost) {
         try {
           if (flags.isPasswordPrompt()) {
             String password = new String(System.console().readPassword("Enter the ssh password for the machine %s: ",
@@ -110,7 +111,12 @@ class AggregateResults implements Command {
           Utils.copyDirectory(runOutputPath, destPath, new RunIdRenamer(run.getRunId()), regexFilter);
         } else {
           LOG.info("Results are on machine: " + sourceHost + ". Using ssh to copy results.");
-          SCPFileTransfer scpFileTransfer = connections.get(sourceHost).newSCPFileTransfer();
+          SCPFileTransfer scpFileTransfer;
+          try {
+            scpFileTransfer = connections.get(sourceHost).newSCPFileTransfer();
+          } catch (ExecutionException e) {
+            throw new TzarException(e.getCause());
+          }
           File tempPath = Files.createTempDir();
           scpFileTransfer.download(runOutputPath.getPath(), tempPath.getPath());
           Utils.copyDirectory(new File(tempPath, runOutputPath.getName()),
@@ -120,7 +126,7 @@ class AggregateResults implements Command {
     } catch (IOException e) {
       throw new TzarException(e);
     } finally {
-      for (SSHClient connection : connections.values()) {
+      for (SSHClient connection : connections.asMap().values()) {
         try {
           connection.disconnect();
         } catch (IOException e) {

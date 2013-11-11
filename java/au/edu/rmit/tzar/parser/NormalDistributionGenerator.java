@@ -1,5 +1,7 @@
 package au.edu.rmit.tzar.parser;
 
+import au.edu.rmit.tzar.api.RepetitionGenerator;
+
 import java.math.BigDecimal;
 import java.security.SecureRandom;
 import java.util.ArrayList;
