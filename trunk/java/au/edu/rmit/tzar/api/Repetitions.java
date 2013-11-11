@@ -1,8 +1,7 @@
-package au.edu.rmit.tzar.parser;
+package au.edu.rmit.tzar.api;
 
-import au.edu.rmit.tzar.api.Parameters;
-import au.edu.rmit.tzar.api.TzarException;
 import com.google.common.base.Function;
+import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -110,6 +109,30 @@ public class Repetitions {
       map.put(pair.key, pair.value);
     }
     return map;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    Repetitions that = (Repetitions) o;
+
+    return Objects.equal(this.generators, that.generators)
+        && Objects.equal(this.staticRepetitions, that.staticRepetitions);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(staticRepetitions, generators);
+  }
+
+  @Override
+  public String toString() {
+    return Objects.toStringHelper(this)
+        .add("staticRepetitions", staticRepetitions)
+        .add("generators", generators)
+        .toString();
   }
 
   private static final class KeyValuePair {
