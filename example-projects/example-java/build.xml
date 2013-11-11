@@ -1,12 +1,12 @@
-<project name="ExampleJavaRunner" default="dist" basedir="../../../../Dropbox/src/tzar/example-projects/example-java">
+<project name="ExampleJavaRunner" default="dist">
     <description>
         Simple build file for the Example Java Runner for Tzar.
     </description>
   <!-- set global properties for this build -->
-  <property name="src" location="../../../../Dropbox/src/tzar/example-projects/example-java/src"/>
-  <property name="build" location="../../../../Dropbox/src/tzar/example-projects/example-java/build"/>
-  <property name="dist"  location="../../../../Dropbox/src/tzar/example-projects/example-java/dist"/>
-  <property name="lib"  location="../../../../Dropbox/src/tzar/example-projects/example-java/lib"/>
+  <property name="src" location="src"/>
+  <property name="build" location="build"/>
+  <property name="dist"  location="dist"/>
+  <property name="lib"  location="lib"/>
 
   <target name="init">
     <!-- Create the time stamp -->
@@ -15,10 +15,11 @@
     <mkdir dir="${build}"/>
   </target>
 
-  <target name="compile" depends="init"
+  <target name="compile" depends="init, clean"
         description="compile the source " >
     <!-- Compile the java code from ${src} into ${build} -->
-    <javac srcdir="${src}" destdir="${build}">
+    <mkdir dir="build" />
+    <javac srcdir="${src}" destdir="${build}" target="1.6" source="1.6">
       <classpath>
           <fileset dir="${lib}">
               <include name="*.jar"/>
@@ -40,6 +41,6 @@
         description="clean up" >
     <!-- Delete the ${build} and ${dist} directory trees -->
     <delete dir="${build}"/>
-    <delete dir="${dist}"/>
+    <delete file="${dist}/lib/ExampleJavaRunner.jar" />
   </target>
 </project>
