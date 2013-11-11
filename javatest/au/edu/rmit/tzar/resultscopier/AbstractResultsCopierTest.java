@@ -27,7 +27,7 @@ public abstract class AbstractResultsCopierTest extends TestCase {
     File tempSourceDir = Files.createTempDir();
     File tempOutputDir = Files.createTempDir();
 
-    run = new Run("a project", "a scenario", null);
+    run = new Run(new Run.ProjectInfo("a project", null, null, null, null), "a scenario");
 
     ExecutableRun executableRun = ExecutableRun.createExecutableRun(run, tempOutputDir, tempSourceDir,
         new RunnerFactory());

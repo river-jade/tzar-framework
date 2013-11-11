@@ -5,6 +5,8 @@ import org.python.google.common.io.Files;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 /**
  * Unit tests for the Utilities class
@@ -39,5 +41,23 @@ public class UtilsTest extends TestCase {
     new File(source, "bar").createNewFile();
 
     Utils.copyDirectory(source, dest, new Utils.NoopRenamer(), new Utils.RegexFilter(filter));
+  }
+
+  public void testRecursiveDelete() throws IOException {
+    File source = Files.createTempDir();
+
+    new File(source, "foobar").createNewFile();
+    new File(source, "barfoo").createNewFile();
+    File foo = new File(source, "foo");
+    foo.mkdirs();
+    new File(foo, "bar").createNewFile();
+    Utils.deleteRecursively(source);
+    assertFalse(source.exists());
+  }
+
+  public void testMakeAbsoluteUri() throws URISyntaxException {
+    assertEquals(new URI("file:///abc/def/ghi"), Utils.makeAbsoluteUri("/abc/def/ghi"));
+    assertEquals(new URI("file:///abc/def/ghi"), Utils.makeAbsoluteUri("file:///abc/def/ghi"));
+    assertEquals(new URI("http://abc/def/ghi"), Utils.makeAbsoluteUri("http://abc/def/ghi"));
   }
 }

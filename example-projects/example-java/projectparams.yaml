@@ -12,7 +12,7 @@ base_params:
         test.variable.2: 456
         test.variable.3: xyz
         test.variable.4: abc
-    
+
     input_files: 
     output_files: 
         PAR.testing.output.filename: test_output_file.txt

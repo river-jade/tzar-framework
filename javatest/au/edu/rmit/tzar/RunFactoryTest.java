@@ -1,8 +1,7 @@
 package au.edu.rmit.tzar;
 
 import au.edu.rmit.tzar.api.*;
-import au.edu.rmit.tzar.parser.Repetitions;
-import au.edu.rmit.tzar.repository.CodeSource;
+import au.edu.rmit.tzar.repository.CodeSourceImpl;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -22,11 +21,11 @@ public class RunFactoryTest extends TestCase {
   private static final String REVISION = "rev1";
   private static final String RUNSET = "a_runset";
   private static final String CLUSTER_NAME = "a cluster";
-  private URI sourceUrl;
 
+  private URI sourceUrl;
   private ProjectSpec mockProjectSpec;
   private Repetitions mockRepetitions;
-  private CodeSource codeSource;
+  private CodeSourceImpl codeSource;
 
   @Override
   public void setUp() throws Exception {
@@ -34,7 +33,7 @@ public class RunFactoryTest extends TestCase {
     sourceUrl = new URI("/path/to/code");
     mockProjectSpec = mock(ProjectSpec.class);
     mockRepetitions = mock(Repetitions.class);
-    codeSource = new CodeSource(sourceUrl, CodeSource.RepositoryType.LOCAL_FILE, REVISION);
+    codeSource = new CodeSourceImpl(sourceUrl, CodeSourceImpl.RepositoryType.LOCAL_FILE, REVISION);
   }
 
   /**
