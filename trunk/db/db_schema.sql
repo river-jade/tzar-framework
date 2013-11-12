@@ -4,10 +4,23 @@
 
 SET statement_timeout = 0;
 SET client_encoding = 'UTF8';
-SET standard_conforming_strings = off;
+SET standard_conforming_strings = on;
 SET check_function_bodies = false;
 SET client_min_messages = warning;
-SET escape_string_warning = off;
+
+--
+-- Name: plpgsql; Type: EXTENSION; Schema: -; Owner: 
+--
+
+CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
+
+
+--
+-- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner: 
+--
+
+COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
+
 
 SET search_path = public, pg_catalog;
 
@@ -16,7 +29,65 @@ SET default_tablespace = '';
 SET default_with_oids = false;
 
 --
--- Name: run_params; Type: TABLE; Schema: public;; Tablespace: 
+-- Name: constants; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
+--
+
+CREATE TABLE constants (
+    db_version character varying(16) NOT NULL
+);
+
+
+ALTER TABLE public.constants OWNER TO postgres;
+
+--
+-- Name: libraries; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
+--
+
+CREATE TABLE libraries (
+    library_id integer NOT NULL,
+    repo_type character varying(16) NOT NULL,
+    uri text,
+    name text
+);
+
+
+ALTER TABLE public.libraries OWNER TO postgres;
+
+--
+-- Name: libraries_library_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE libraries_library_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.libraries_library_id_seq OWNER TO postgres;
+
+--
+-- Name: libraries_library_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE libraries_library_id_seq OWNED BY libraries.library_id;
+
+
+--
+-- Name: run_libraries; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
+--
+
+CREATE TABLE run_libraries (
+    run_id integer,
+    library_id integer
+);
+
+
+ALTER TABLE public.run_libraries OWNER TO postgres;
+
+--
+-- Name: run_params; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
 --
 
 CREATE TABLE run_params (
@@ -29,28 +100,31 @@ CREATE TABLE run_params (
 );
 
 
+ALTER TABLE public.run_params OWNER TO postgres;
+
 --
--- Name: run_params_run_param_id_seq; Type: SEQUENCE; Schema: public;
+-- Name: run_params_run_param_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
 CREATE SEQUENCE run_params_run_param_id_seq
     START WITH 1
     INCREMENT BY 1
-    NO MAXVALUE
     NO MINVALUE
+    NO MAXVALUE
     CACHE 1;
 
 
+ALTER TABLE public.run_params_run_param_id_seq OWNER TO postgres;
 
 --
--- Name: run_params_run_param_id_seq; Type: SEQUENCE OWNED BY; Schema: public;
+-- Name: run_params_run_param_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
 ALTER SEQUENCE run_params_run_param_id_seq OWNED BY run_params.run_param_id;
 
 
 --
--- Name: runs; Type: TABLE; Schema: public;; Tablespace: 
+-- Name: runs; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
 --
 
 CREATE TABLE runs (
@@ -59,10 +133,7 @@ CREATE TABLE runs (
     scenario_name text NOT NULL,
     state text NOT NULL,
     seed integer,
-    model_url text NOT NULL,
-    model_repo_type text NOT NULL,
     model_revision text NOT NULL,
-    runner_flags text NOT NULL,
     hostname text,
     output_path text,
     output_host text,
@@ -71,77 +142,88 @@ CREATE TABLE runs (
     runset text,
     cluster_name text,
     runner_class text,
-    run_submission_time timestamp without time zone,
-    host_ip text;
+    run_submission_time timestamp without time zone DEFAULT timezone('utc'::text, now()),
+    model_url text NOT NULL,
+    model_repo_type character varying(16) NOT NULL,
+    runner_flags text NOT NULL,
+    host_ip text
 );
 
 
+ALTER TABLE public.runs OWNER TO postgres;
 
 --
--- Name: COLUMN runs.code_version; Type: COMMENT; Schema: public;
+-- Name: COLUMN runs.model_revision; Type: COMMENT; Schema: public; Owner: postgres
 --
 
-COMMENT ON COLUMN runs.code_version IS 'The subversion revision number of the code used to execute the run.';
+COMMENT ON COLUMN runs.model_revision IS 'The subversion revision number of the code used to execute the run.';
 
 
 --
--- Name: COLUMN runs.run_start_time; Type: COMMENT; Schema: public;
+-- Name: COLUMN runs.run_start_time; Type: COMMENT; Schema: public; Owner: postgres
 --
 
 COMMENT ON COLUMN runs.run_start_time IS 'Time run began (UTC)';
 
 
 --
--- Name: COLUMN runs.run_end_time; Type: COMMENT; Schema: public;
+-- Name: COLUMN runs.run_end_time; Type: COMMENT; Schema: public; Owner: postgres
 --
 
 COMMENT ON COLUMN runs.run_end_time IS 'Time run finished (UTC)';
 
 
 --
--- Name: runs_run_id_seq; Type: SEQUENCE; Schema: public;
+-- Name: runs_run_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
 CREATE SEQUENCE runs_run_id_seq
     START WITH 1
     INCREMENT BY 1
-    NO MAXVALUE
     NO MINVALUE
+    NO MAXVALUE
     CACHE 1;
 
 
+ALTER TABLE public.runs_run_id_seq OWNER TO postgres;
+
 --
--- Name: runs_run_id_seq; Type: SEQUENCE OWNED BY; Schema: public;
+-- Name: runs_run_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
 ALTER SEQUENCE runs_run_id_seq OWNED BY runs.run_id;
 
---
--- Name: run_param_id; Type: DEFAULT; Schema: public;
---
-
-ALTER TABLE run_params ALTER COLUMN run_param_id SET DEFAULT nextval('run_params_run_param_id_seq'::regclass);
-
 
 --
--- Name: run_id; Type: DEFAULT; Schema: public;
+-- Name: library_id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE runs ALTER COLUMN run_id SET DEFAULT nextval('runs_run_id_seq'::regclass);
+ALTER TABLE ONLY libraries ALTER COLUMN library_id SET DEFAULT nextval('libraries_library_id_seq'::regclass);
 
 
 --
--- Name: seed; Type: DEFAULT; Schema: public;
+-- Name: run_param_id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE runs ALTER COLUMN seed SET DEFAULT currval('runs_run_id_seq'::regclass);
-
-
-ALTER TABLE runs ALTER COLUMN run_submission_time SET DEFAULT timezone('utc'::text, now());
+ALTER TABLE ONLY run_params ALTER COLUMN run_param_id SET DEFAULT nextval('run_params_run_param_id_seq'::regclass);
 
 
 --
--- Name: PK; Type: CONSTRAINT; Schema: public;; Tablespace: 
+-- Name: run_id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY runs ALTER COLUMN run_id SET DEFAULT nextval('runs_run_id_seq'::regclass);
+
+
+--
+-- Name: seed; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY runs ALTER COLUMN seed SET DEFAULT currval('runs_run_id_seq'::regclass);
+
+
+--
+-- Name: PK; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
 --
 
 ALTER TABLE ONLY runs
@@ -149,7 +231,15 @@ ALTER TABLE ONLY runs
 
 
 --
--- Name: run_params_pkey; Type: CONSTRAINT; Schema: public;; Tablespace: 
+-- Name: libraries_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
+--
+
+ALTER TABLE ONLY libraries
+    ADD CONSTRAINT libraries_pkey PRIMARY KEY (library_id);
+
+
+--
+-- Name: run_params_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
 --
 
 ALTER TABLE ONLY run_params
@@ -157,7 +247,7 @@ ALTER TABLE ONLY run_params
 
 
 --
--- Name: run_params_run_id_key; Type: CONSTRAINT; Schema: public;; Tablespace: 
+-- Name: run_params_run_id_key; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
 --
 
 ALTER TABLE ONLY run_params
@@ -165,18 +255,41 @@ ALTER TABLE ONLY run_params
 
 
 --
--- Name: fki_run_id; Type: INDEX; Schema: public;; Tablespace: 
+-- Name: fki_run_id; Type: INDEX; Schema: public; Owner: postgres; Tablespace: 
 --
 
 CREATE INDEX fki_run_id ON run_params USING btree (run_id);
 
 
 --
--- Name: run_id; Type: FK CONSTRAINT; Schema: public;
+-- Name: fki_run_libraries_run_id_fk; Type: INDEX; Schema: public; Owner: postgres; Tablespace: 
+--
+
+CREATE INDEX fki_run_libraries_run_id_fk ON run_libraries USING btree (library_id);
+
+
+--
+-- Name: run_id; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY run_params
     ADD CONSTRAINT run_id FOREIGN KEY (run_id) REFERENCES runs(run_id) ON DELETE CASCADE;
+
+
+--
+-- Name: run_libraries_library_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY run_libraries
+    ADD CONSTRAINT run_libraries_library_id_fkey FOREIGN KEY (library_id) REFERENCES libraries(library_id);
+
+
+--
+-- Name: run_libraries_run_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY run_libraries
+    ADD CONSTRAINT run_libraries_run_id_fkey FOREIGN KEY (run_id) REFERENCES runs(run_id);
 
 
 --
