@@ -44,12 +44,19 @@ public class ParametersDao {
    */
   public void insertParams(int runId, Parameters parameters) throws TzarException {
     Connection connection = connectionFactory.createConnection();
+    boolean exceptionOccurred = true;
     try {
+      connection.setAutoCommit(false);
       PreparedStatement insertParam = connection.prepareStatement(INSERT_PARAM_SQL);
       batchInsertParams(runId, parameters, insertParam);
       insertParam.executeBatch();
+      connection.commit();
+      exceptionOccurred = false;
     } catch (SQLException e) {
+      Utils.rollback(connection);
       throw new TzarException(e);
+    } finally {
+      Utils.close(connection, exceptionOccurred);
     }
   }
 
@@ -64,6 +71,7 @@ public class ParametersDao {
     Connection connection = connectionFactory.createConnection();
     boolean exceptionOccurred = true;
     try {
+      connection.setAutoCommit(true);
       PreparedStatement loadParams = connection.prepareStatement(LOAD_PARAMS_SQL);
       loadParams.setInt(1, runId);
       ResultSet resultSet = loadParams.executeQuery();
@@ -104,6 +112,7 @@ public class ParametersDao {
     Connection connection = connectionFactory.createConnection();
     boolean exceptionOccurred = true;
     try {
+      connection.setAutoCommit(true);
       PreparedStatement loadParams = connection.prepareStatement(LOAD_PARAMS_SQL);
       loadParams.setInt(1, runId);
       Utils.printResultSet(loadParams.executeQuery(), truncateOutput, outputType);
