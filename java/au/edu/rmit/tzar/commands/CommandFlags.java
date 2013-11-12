@@ -65,8 +65,8 @@ public class CommandFlags {
         "uses the current user")
     private final String scpOutputUser = System.getProperty("user.name");
 
-    @Parameter(names = "--sleeptime", description = "Time to wait between database polls (millis).")
-    private int sleepTimeMillis = 10000;
+    @Parameter(names = "--rate", description = "Time to wait between database polls (milliseconds).")
+    private int pollRateMs = 10000;
 
     @Parameter(names = "--clustername", description = "Name of the cluster on which this node is running.")
     private String clusterName = Constants.DEFAULT_CLUSTER_NAME;
@@ -91,8 +91,8 @@ public class CommandFlags {
       return runset;
     }
 
-    public int getSleepTimeMillis() {
-      return sleepTimeMillis;
+    public int getPollRateMs() {
+      return pollRateMs;
     }
 
     public String getScpOutputHost() {

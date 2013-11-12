@@ -31,4 +31,11 @@ public class Constants {
   // Directory suffixes for run output directory names
   public static final String INPROGRESS_SUFFIX = ".inprogress";
   public static final String FAILED_SUFFIX = ".failed";
+
+  // we back off the polling interval exponentially up to this value
+  public static final int MAX_POLL_INTERVAL_MS = 300000; // 5 minutes
+
+  // rotate pollandrun spinner on stdout every 1 sec.
+  public static final int SPINNER_ROTATION_INTERVAL_MS = 1000;
+  public static final String STOP_FILE_NAME = "stop.now";
 }
