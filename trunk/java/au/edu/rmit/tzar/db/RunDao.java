@@ -1,10 +1,12 @@
 package au.edu.rmit.tzar.db;
 
+import au.edu.rmit.tzar.api.CodeSource;
 import au.edu.rmit.tzar.api.Parameters;
 import au.edu.rmit.tzar.api.Run;
 import au.edu.rmit.tzar.api.TzarException;
 import au.edu.rmit.tzar.repository.CodeSourceImpl;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 
 import java.io.File;
@@ -63,7 +65,7 @@ public class RunDao {
     Connection connection = connectionFactory.createConnection();
     boolean exceptionOccurred = true;
     try {
-      connection.setAutoCommit(false);
+      connection.setAutoCommit(true);
       PreparedStatement selectNextRun = connection.prepareStatement(NEXT_RUN_SQL, ResultSet.TYPE_FORWARD_ONLY,
           ResultSet.CONCUR_READ_ONLY);
       selectNextRun.setString(1, runset == null ? "%" : runset);
@@ -104,6 +106,7 @@ public class RunDao {
         return false;
       }
       persistRun(run, connection);
+      connection.commit();
       exceptionOccurred = false;
     } catch (SQLException e) {
       LOG.log(Level.WARNING, "SQLException thrown. Rolling back transaction.", e);
@@ -120,7 +123,9 @@ public class RunDao {
     Connection connection = connectionFactory.createConnection();
     boolean exceptionOccurred = true;
     try {
+      connection.setAutoCommit(false);
       persistRun(run, connection);
+      connection.commit();
       exceptionOccurred = false;
     } catch (SQLException e) {
       LOG.log(Level.WARNING, "SQLException thrown. Rolling back transaction.", e);
@@ -145,7 +150,6 @@ public class RunDao {
     updateRun.setString(7, run.getOutputHost());
     updateRun.setInt(8, run.getRunId()); // this is for the where clause, we don't update this field.
     updateRun.executeUpdate();
-    connection.commit();
   }
 
   /**
@@ -161,6 +165,8 @@ public class RunDao {
 
     boolean exceptionOccurred = true;
     try {
+      connection.setAutoCommit(false);
+
       ResultSet rs = connection.prepareStatement("select nextval('runs_run_id_seq')").executeQuery();
       rs.next();
       int nextRunId = rs.getInt(1);
@@ -247,6 +253,7 @@ public class RunDao {
     boolean exceptionOccurred = true;
 
     try {
+      connection.setAutoCommit(true);
       StringBuilder sql = new StringBuilder("SELECT * FROM runs WHERE 1=1 ");
       if (states != null && !states.isEmpty()) {
         sql.append("AND state = ANY(?) ");
@@ -317,8 +324,10 @@ public class RunDao {
         resultSet.getString("model_revision"));
 
     // FIXME: load and save libraries to / from db.
+    ImmutableMap<String, CodeSource> libraries = ImmutableMap.of();
+
     Run.ProjectInfo projectInfo = new Run.ProjectInfo(resultSet.getString("project_name"), codeSource,
-        null, resultSet.getString("runner_class"), resultSet.getString("runner_flags"));
+        libraries, resultSet.getString("runner_class"), resultSet.getString("runner_flags"));
     Run run = new Run(projectInfo, resultSet.getString("scenario_name"))
         .setRunId(runId)
         .setParameters(parameters)

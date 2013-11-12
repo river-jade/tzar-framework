@@ -1,9 +1,11 @@
 package au.edu.rmit.tzar.db;
 
+import au.edu.rmit.tzar.api.CodeSource;
 import au.edu.rmit.tzar.api.Parameters;
 import au.edu.rmit.tzar.api.Run;
 import au.edu.rmit.tzar.api.TzarException;
 import au.edu.rmit.tzar.repository.CodeSourceImpl;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import junit.framework.TestCase;
 import org.mockito.InOrder;
@@ -43,7 +45,6 @@ public class RunDaoTest extends TestCase {
   private PreparedStatement updateRun;
   private ResultSet resultSet;
   private RunDao runDao;
-  private CodeSourceImpl codeSource;
   private Run.ProjectInfo projectInfo;
 
   public void setUp() throws Exception {
@@ -53,7 +54,6 @@ public class RunDaoTest extends TestCase {
     PreparedStatement nextRunStatement = mock(PreparedStatement.class);
     resultSet = mock(ResultSet.class);
     ParametersDao mockParametersDao = mock(ParametersDao.class);
-    codeSource = new CodeSourceImpl(new URI(MODEL_URL), CodeSourceImpl.RepositoryType.SVN, CODE_VERSION);
 
     ConnectionFactory mockConnectionFactory = mock(ConnectionFactory.class);
     when(mockConnectionFactory.createConnection()).thenReturn(mockConnection);
@@ -77,8 +77,10 @@ public class RunDaoTest extends TestCase {
     when(mockParametersDao.loadFromDatabase(RUN_ID)).thenReturn(Parameters.EMPTY_PARAMETERS);
     runDao = new RunDao(mockConnectionFactory, mockParametersDao);
 
+    CodeSourceImpl codeSource = new CodeSourceImpl(new URI(MODEL_URL), CodeSourceImpl.RepositoryType.SVN, CODE_VERSION);
     // FIXME: test library load/save
-    projectInfo = new Run.ProjectInfo(PROJECT_NAME, codeSource, null, RUNNER_CLASS, RUNNER_FLAGS);
+    ImmutableMap<String, CodeSource> library = ImmutableMap.of();
+    projectInfo = new Run.ProjectInfo(PROJECT_NAME, codeSource, library, RUNNER_CLASS, RUNNER_FLAGS);
   }
 
   public void testGetNextRun() throws Exception {
