@@ -11,6 +11,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -46,7 +47,6 @@ public class ParametersDao {
     Connection connection = connectionFactory.createConnection();
     boolean exceptionOccurred = true;
     try {
-      connection.setAutoCommit(false);
       PreparedStatement insertParam = connection.prepareStatement(INSERT_PARAM_SQL);
       batchInsertParams(runId, parameters, insertParam);
       insertParam.executeBatch();
@@ -71,7 +71,6 @@ public class ParametersDao {
     Connection connection = connectionFactory.createConnection();
     boolean exceptionOccurred = true;
     try {
-      connection.setAutoCommit(true);
       PreparedStatement loadParams = connection.prepareStatement(LOAD_PARAMS_SQL);
       loadParams.setInt(1, runId);
       ResultSet resultSet = loadParams.executeQuery();
@@ -91,9 +90,12 @@ public class ParametersDao {
         }
       }
       Parameters parameters = Parameters.createParameters(variables, inputFiles, outputFiles);
+      connection.commit();
       exceptionOccurred = false;
       return parameters;
     } catch (SQLException e) {
+      Utils.rollback(connection);
+      LOG.log(Level.WARNING, "SQLException caused by:", e.getNextException());
       throw new TzarException(e);
     } finally {
       Utils.close(connection, exceptionOccurred);
@@ -112,12 +114,14 @@ public class ParametersDao {
     Connection connection = connectionFactory.createConnection();
     boolean exceptionOccurred = true;
     try {
-      connection.setAutoCommit(true);
       PreparedStatement loadParams = connection.prepareStatement(LOAD_PARAMS_SQL);
       loadParams.setInt(1, runId);
       Utils.printResultSet(loadParams.executeQuery(), truncateOutput, outputType);
+      connection.commit();
       exceptionOccurred = false;
     } catch (SQLException e) {
+      LOG.log(Level.WARNING, "SQLException caused by:", e.getNextException());
+      Utils.rollback(connection);
       throw new TzarException(e);
     } finally {
       Utils.close(connection, exceptionOccurred);

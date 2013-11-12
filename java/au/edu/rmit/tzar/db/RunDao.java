@@ -65,7 +65,6 @@ public class RunDao {
     Connection connection = connectionFactory.createConnection();
     boolean exceptionOccurred = true;
     try {
-      connection.setAutoCommit(true);
       PreparedStatement selectNextRun = connection.prepareStatement(NEXT_RUN_SQL, ResultSet.TYPE_FORWARD_ONLY,
           ResultSet.CONCUR_READ_ONLY);
       selectNextRun.setString(1, runset == null ? "%" : runset);
@@ -79,9 +78,11 @@ public class RunDao {
         run = null;
       }
       exceptionOccurred = false;
+      connection.commit();
       return run;
     } catch (SQLException e) {
       LOG.log(Level.WARNING, "SQLException caused by:", e.getNextException());
+      Utils.rollback(connection);
       throw new TzarException(e);
     } finally {
       Utils.close(connection, exceptionOccurred);
@@ -92,7 +93,6 @@ public class RunDao {
     Connection connection = connectionFactory.createConnection();
     boolean exceptionOccurred = true;
     try {
-      connection.setAutoCommit(false);
       PreparedStatement selectRun = connection.prepareStatement(SELECT_RUN_SQL);
       selectRun.setInt(1, run.getRunId());
       ResultSet resultSet = selectRun.executeQuery();
@@ -123,7 +123,6 @@ public class RunDao {
     Connection connection = connectionFactory.createConnection();
     boolean exceptionOccurred = true;
     try {
-      connection.setAutoCommit(false);
       persistRun(run, connection);
       connection.commit();
       exceptionOccurred = false;
@@ -165,8 +164,6 @@ public class RunDao {
 
     boolean exceptionOccurred = true;
     try {
-      connection.setAutoCommit(false);
-
       ResultSet rs = connection.prepareStatement("select nextval('runs_run_id_seq')").executeQuery();
       rs.next();
       int nextRunId = rs.getInt(1);
@@ -194,6 +191,7 @@ public class RunDao {
         insertRun.setString(11, run.getRunnerClass());
         insertRun.addBatch();
         parametersDao.batchInsertParams(run.getRunId(), run.getParameters(), insertParams);
+//        librariesDao.insertLibrary(run.getLibraries());
         nextRunId++;
       }
 
@@ -253,7 +251,6 @@ public class RunDao {
     boolean exceptionOccurred = true;
 
     try {
-      connection.setAutoCommit(true);
       StringBuilder sql = new StringBuilder("SELECT * FROM runs WHERE 1=1 ");
       if (states != null && !states.isEmpty()) {
         sql.append("AND state = ANY(?) ");
@@ -284,10 +281,12 @@ public class RunDao {
       }
       statement.execute();
       ResultSet resultSet = statement.getResultSet();
+      connection.commit();
       exceptionOccurred = false;
       return resultSet;
     } catch (SQLException e) {
       LOG.log(Level.WARNING, "SQLException caused by:", e.getNextException());
+      Utils.rollback(connection);
       throw new TzarException(e);
     } finally {
       Utils.close(connection, exceptionOccurred);
