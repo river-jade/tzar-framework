@@ -1,7 +1,7 @@
 CREATE OR REPLACE FUNCTION update_schema() returns void AS $$
 DECLARE
    current_db_version varchar;
-   latest_db_version varchar := '0.4.2';
+   latest_db_version varchar := '0.4.3';
 BEGIN
 
 if not exists (SELECT * FROM pg_class where relname = 'constants' and relkind = 'r') then
@@ -68,6 +68,48 @@ BEGIN
     update runs set cluster_name = 'default' where cluster_name = '';
     update runs set runset = 'default_runset' where runset = '';
     alter table runs add column host_ip text;
+    return new_db_version;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Update from v0.4.2 to v0.4.3
+CREATE OR REPLACE FUNCTION update_schema_042() returns varchar AS $$
+DECLARE
+    old_db_version varchar := '0.4.2';
+    new_db_version varchar := '0.4.3';
+BEGIN
+    CREATE TABLE libraries (
+        library_id integer NOT NULL,
+        repo_type character varying(16) NOT NULL,
+        uri text,
+        name text
+    );
+
+    CREATE SEQUENCE libraries_library_id_seq
+        START WITH 1
+        INCREMENT BY 1
+        NO MINVALUE
+        NO MAXVALUE
+        CACHE 1;
+
+    ALTER SEQUENCE libraries_library_id_seq OWNED BY libraries.library_id;
+
+    CREATE TABLE run_libraries (
+        run_id integer,
+        library_id integer
+    );
+
+    ALTER TABLE ONLY libraries ALTER COLUMN library_id SET DEFAULT nextval('libraries_library_id_seq'::regclass);
+    ALTER TABLE ONLY run_params ALTER COLUMN run_param_id SET DEFAULT nextval('run_params_run_param_id_seq'::regclass);
+
+    ALTER TABLE ONLY libraries ADD CONSTRAINT libraries_pkey PRIMARY KEY (library_id);
+
+    CREATE INDEX fki_run_libraries_run_id_fk ON run_libraries USING btree (library_id);
+
+    ALTER TABLE ONLY run_libraries
+        ADD CONSTRAINT run_libraries_library_id_fkey FOREIGN KEY (library_id) REFERENCES libraries(library_id);
+    ALTER TABLE ONLY run_libraries
+        ADD CONSTRAINT run_libraries_run_id_fkey FOREIGN KEY (run_id) REFERENCES runs(run_id);
     return new_db_version;
 END;
 $$ LANGUAGE plpgsql;
