@@ -16,7 +16,7 @@ public class DaoFactory {
 
   public RunDao createRunDao() throws TzarException {
     try {
-      return new RunDao(connectionFactory, new ParametersDao(connectionFactory));
+      return new RunDao(connectionFactory, new ParametersDao(connectionFactory), new LibraryDao());
     } catch (SQLException e) {
       throw new TzarException(e);
     }

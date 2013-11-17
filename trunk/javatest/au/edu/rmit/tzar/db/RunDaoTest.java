@@ -26,6 +26,7 @@ import static org.mockito.Mockito.*;
 /**
  * Tests for the RunDao.
  */
+// TODO(river): add tests for libraries
 public class RunDaoTest extends TestCase {
   private static final int RUN_ID = 1234;
   private static final String CODE_VERSION = "4321";
@@ -46,45 +47,39 @@ public class RunDaoTest extends TestCase {
   private ResultSet resultSet;
   private RunDao runDao;
   private Run.ProjectInfo projectInfo;
+  private ParametersDao.BatchInserter mockBatchInserter;
+  private LibraryDao mockLibraryDao;
+  private ParametersDao mockParametersDao;
 
   public void setUp() throws Exception {
     mockConnection = mock(Jdbc4Connection.class);
     insertRun = mock(PreparedStatement.class);
     updateRun = mock(PreparedStatement.class);
-    PreparedStatement nextRunStatement = mock(PreparedStatement.class);
     resultSet = mock(ResultSet.class);
-    ParametersDao mockParametersDao = mock(ParametersDao.class);
+    mockParametersDao = mock(ParametersDao.class);
+    mockLibraryDao = mock(LibraryDao.class);
+    mockBatchInserter = mock(ParametersDao.BatchInserter.class);
 
     ConnectionFactory mockConnectionFactory = mock(ConnectionFactory.class);
     when(mockConnectionFactory.createConnection()).thenReturn(mockConnection);
 
-    when(resultSet.getInt("run_id")).thenReturn(RUN_ID);
-    when(resultSet.getString("project_name")).thenReturn(PROJECT_NAME);
-    when(resultSet.getString("scenario_name")).thenReturn(SCENARIO_NAME);
-    when(resultSet.getString("runner_flags")).thenReturn(RUNNER_FLAGS);
-    when(resultSet.getString("runset")).thenReturn(RUNSET);
-    when(resultSet.getString("cluster_name")).thenReturn(CLUSTER_NAME);
-    when(resultSet.getString("model_repo_type")).thenReturn(REPO_TYPE);
-    when(resultSet.getString("model_url")).thenReturn(MODEL_URL);
-    when(resultSet.getString("model_revision")).thenReturn(CODE_VERSION);
-    when(resultSet.getString("state")).thenReturn("scheduled");
-    when(resultSet.getString("runner_class")).thenReturn(RUNNER_CLASS);
-    when(mockConnection.prepareStatement(RunDao.NEXT_RUN_SQL, ResultSet.TYPE_FORWARD_ONLY,
-        ResultSet.CONCUR_READ_ONLY)).thenReturn(nextRunStatement);
-    when(mockConnection.prepareStatement(RunDao.INSERT_RUN_SQL)).thenReturn(insertRun);
-    when(mockConnection.prepareStatement(RunDao.UPDATE_RUN_SQL)).thenReturn(updateRun);
-    when(nextRunStatement.executeQuery()).thenReturn(resultSet);
-    when(mockParametersDao.loadFromDatabase(RUN_ID)).thenReturn(Parameters.EMPTY_PARAMETERS);
-    runDao = new RunDao(mockConnectionFactory, mockParametersDao);
+    when(mockConnection.prepareStatement(isA(String.class))).thenReturn(mock(PreparedStatement.class));
+    when(mockParametersDao.createBatchInserter(mockConnection)).thenReturn(mockBatchInserter);
+    runDao = new RunDao(mockConnectionFactory, mockParametersDao, mockLibraryDao);
 
     CodeSourceImpl codeSource = new CodeSourceImpl(new URI(MODEL_URL), CodeSourceImpl.RepositoryType.SVN, CODE_VERSION);
-    // FIXME: test library load/save
     ImmutableMap<String, CodeSource> library = ImmutableMap.of();
     projectInfo = new Run.ProjectInfo(PROJECT_NAME, codeSource, library, RUNNER_CLASS, RUNNER_FLAGS);
   }
 
   public void testGetNextRun() throws Exception {
+    setupResultSet();
+    PreparedStatement nextRunStatement = mock(PreparedStatement.class);
+    when(mockConnection.prepareStatement(RunDao.NEXT_RUN_SQL)).thenReturn(nextRunStatement);
+    when(nextRunStatement.executeQuery()).thenReturn(resultSet);
     when(resultSet.next()).thenReturn(true);
+    when(mockLibraryDao.getLibraries(RUN_ID, mockConnection)).thenReturn(ImmutableMap.<String, CodeSource>of());
+    when(mockParametersDao.loadFromDatabase(RUN_ID, mockConnection)).thenReturn(Parameters.EMPTY_PARAMETERS);
     Run run = new Run(projectInfo, SCENARIO_NAME)
         .setRunId(RUN_ID)
         .setParameters(Parameters.EMPTY_PARAMETERS)
@@ -94,11 +89,15 @@ public class RunDaoTest extends TestCase {
   }
 
   public void testGetNextRunNoMatch() throws Exception {
+    PreparedStatement nextRunStatement = mock(PreparedStatement.class);
+    when(mockConnection.prepareStatement(RunDao.NEXT_RUN_SQL)).thenReturn(nextRunStatement);
+    when(nextRunStatement.executeQuery()).thenReturn(resultSet);
     when(resultSet.next()).thenReturn(false);
     assertNull(runDao.getNextRun(null, CLUSTER_NAME));
   }
 
   public void testInsertRuns() throws TzarException, SQLException, URISyntaxException {
+    when(mockConnection.prepareStatement(RunDao.INSERT_RUN_SQL)).thenReturn(insertRun);
     List<Run> runs = Lists.newArrayList();
 
     Run run = new Run(projectInfo, SCENARIO_NAME)
@@ -111,7 +110,6 @@ public class RunDaoTest extends TestCase {
 
     CodeSourceImpl codeSource2 = new CodeSourceImpl(new URI(MODEL_URL), CodeSourceImpl.RepositoryType.LOCAL_FILE,
         CODE_VERSION + 1);
-    // FIXME: test for libraries
     Run.ProjectInfo projectInfo2 = new Run.ProjectInfo(PROJECT_NAME, codeSource2, null, RUNNER_CLASS, RUNNER_FLAGS);
     run = new Run(projectInfo2, SCENARIO_NAME + 1)
         .setRunId(RUN_ID)
@@ -132,7 +130,7 @@ public class RunDaoTest extends TestCase {
         ", false)")).thenReturn(statement);
 
     when(mockConnection.prepareStatement(ParametersDao.INSERT_PARAM_SQL)).thenReturn(statement);
-    
+
     InOrder inOrder = inOrder(insertRun, mockConnection);
     runDao.insertRuns(runs);
     inOrder.verify(insertRun).setInt(1, FIRST_RUN_ID);
@@ -159,7 +157,44 @@ public class RunDaoTest extends TestCase {
     inOrder.verify(insertRun).setString(11, RUNNER_CLASS);
   }
 
+  public void testInsertRunWithParams() throws Exception {
+    setupResultSet();
+    List<Run> runs = Lists.newArrayList();
+
+    Parameters parameters = Parameters.createParameters(
+        ImmutableMap.<String, String>of("var1", "varval1"),
+        ImmutableMap.<String, String>of("in1", "inval1"),
+        ImmutableMap.<String, String>of("out1", "outval1")
+    );
+    Run run = new Run(projectInfo, SCENARIO_NAME)
+        .setRunId(RUN_ID)
+        .setParameters(parameters)
+        .setRunset(RUNSET)
+        .setClusterName(CLUSTER_NAME);
+
+    runs.add(run);
+
+    ResultSet generatedKeys = mock(ResultSet.class);
+
+    PreparedStatement statement = mock(PreparedStatement.class);
+    when(mockConnection.prepareStatement("select nextval('runs_run_id_seq')")).thenReturn(statement);
+    when(statement.executeQuery()).thenReturn(generatedKeys);
+    when(generatedKeys.getInt(1)).thenReturn(FIRST_RUN_ID);
+
+    when(mockConnection.prepareStatement("select setval('runs_run_id_seq', " + (FIRST_RUN_ID + runs.size()) +
+        ", false)")).thenReturn(statement);
+
+    when(mockConnection.prepareStatement(ParametersDao.INSERT_PARAM_SQL)).thenReturn(statement);
+
+    runDao.insertRuns(runs);
+
+    verify(mockBatchInserter, times(1)).insertParams(FIRST_RUN_ID, parameters);
+    verify(mockBatchInserter, times(1)).executeBatch();
+  }
+
   public void testUpdateRun() throws TzarException, SQLException {
+    when(mockConnection.prepareStatement(RunDao.UPDATE_RUN_SQL)).thenReturn(updateRun);
+
     Date START_TIME = new GregorianCalendar(2012, 12, 25, 12, 15).getTime();
     Date END_TIME = new GregorianCalendar(2012, 12, 31, 11, 59).getTime();
     String HOSTNAME = "foo.bar.com";
@@ -189,5 +224,19 @@ public class RunDaoTest extends TestCase {
     inOrder.verify(updateRun).setInt(8, RUN_ID);
     inOrder.verify(updateRun).executeUpdate();
     inOrder.verify(mockConnection).commit();
+  }
+
+  private void setupResultSet() throws SQLException {
+    when(resultSet.getInt("run_id")).thenReturn(RUN_ID);
+    when(resultSet.getString("project_name")).thenReturn(PROJECT_NAME);
+    when(resultSet.getString("scenario_name")).thenReturn(SCENARIO_NAME);
+    when(resultSet.getString("runner_flags")).thenReturn(RUNNER_FLAGS);
+    when(resultSet.getString("runset")).thenReturn(RUNSET);
+    when(resultSet.getString("cluster_name")).thenReturn(CLUSTER_NAME);
+    when(resultSet.getString("model_repo_type")).thenReturn(REPO_TYPE);
+    when(resultSet.getString("model_url")).thenReturn(MODEL_URL);
+    when(resultSet.getString("model_revision")).thenReturn(CODE_VERSION);
+    when(resultSet.getString("state")).thenReturn("scheduled");
+    when(resultSet.getString("runner_class")).thenReturn(RUNNER_CLASS);
   }
 }
