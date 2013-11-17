@@ -10,7 +10,7 @@ import java.util.logging.Logger;
 
 /**
  * A ResultsCopier wrapper which also updates the runs database. 
- * TODO(michaell): unit tests
+ * TODO(river): unit tests
  */
 public class DbUpdatingResultsCopier implements ResultsCopier {
   private static final Logger LOG = Logger.getLogger(DbUpdatingResultsCopier.class.getName());

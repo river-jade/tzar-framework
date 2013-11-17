@@ -127,8 +127,8 @@ public class ExecutableRunTest extends TestCase {
         eq(Integer.toString(RUN_ID)), eq(RUNNER_FLAGS),
         parametersArgumentCaptor.capture(), isA(Logger.class));
 
-    Parameters expected = parameters.mergeParameters(variables, ImmutableMap.<String, String>of(),
-        ImmutableMap.<String, String>of());
+    Parameters expected = parameters.mergeParameters(Parameters.createParameters(variables, ImmutableMap.<String,
+        String>of(), ImmutableMap.<String, String>of()));
 
     assertEquals(expected, parametersArgumentCaptor.getValue());
     assertEquals(success, result);
