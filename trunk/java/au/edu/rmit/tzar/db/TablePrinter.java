@@ -101,7 +101,6 @@ public class TablePrinter {
     out.println("");
     int numDashes = cols.length * 3 + 1;
     for (Col col : cols) numDashes += col.maxWidth;
-    // TODO make columns have + instead of -
     out.println(dashes(numDashes));
     for (Row row : rows) {
       out.print("|");

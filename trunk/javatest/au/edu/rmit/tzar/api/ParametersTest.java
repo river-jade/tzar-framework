@@ -50,8 +50,8 @@ public class ParametersTest extends TestCase {
     Parameters overrides = Parameters.createParameters(ImmutableMap.of("a", 3, "b", 2), ImmutableMap.of("x",
         "foobar.txt"), ImmutableMap.of("c", "foobar.gif"));
     Parameters result1 = parameters.mergeParameters(overrides);
-    Parameters result2 = parameters.mergeParameters(overrides.getVariables(), overrides.getInputFiles(),
-        overrides.getOutputFiles());
+    Parameters result2 = parameters.mergeParameters(Parameters.createParameters(overrides.getVariables(),
+        overrides.getInputFiles(), overrides.getOutputFiles()));
     assertEquals("Merging parameters via overload method should give same result.", result1, result2);
     assertEquals(3, result1.getVariables().get("a"));
     assertEquals(2, result1.getVariables().get("b"));

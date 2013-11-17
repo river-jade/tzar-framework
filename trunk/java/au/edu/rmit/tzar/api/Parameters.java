@@ -122,12 +122,6 @@ public class Parameters {
     return createParameters(variables, inputFiles, outputFiles);
   }
 
-  // TODO(michaell): javadocs
-  public Parameters mergeParameters(Map<String, Object> variables, Map<String, String> inputFiles,
-      Map<String, String> outputFiles) throws TzarException {
-    return mergeParameters(createParameters(variables, inputFiles, outputFiles));
-  }
-
   /**
    * Replaces any of the provided wildcard keys (as delimited by $$<param name>$$) with
    * the provided values.

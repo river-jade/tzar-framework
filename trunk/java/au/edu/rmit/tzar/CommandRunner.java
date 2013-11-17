@@ -1,8 +1,8 @@
 package au.edu.rmit.tzar;
 
 import au.edu.rmit.tzar.api.Parameters;
-import au.edu.rmit.tzar.api.TzarException;
 import au.edu.rmit.tzar.api.Runner;
+import au.edu.rmit.tzar.api.TzarException;
 import com.google.common.base.Joiner;
 
 import java.io.File;
@@ -11,11 +11,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * An implementation of the Runner interface which calls out to an executable command (run_model)_in the model code.
- * TODO(michaell): consider making this command specifiable in the database. can we do this without introducing a
- * security hole? Note that one major concern is with path traversal vulnerabilities
- * (eg file_name="../../usr/bin/do_something bad"). Recognising ".." may not be enough to catch variants of this attack
- * and its relatives.
+ * An implementation of the Runner interface which calls out to an executable command (run_model) in the model code.
  */
 public class CommandRunner implements Runner {
   private static Logger LOG = Logger.getLogger(CommandRunner.class.getName());

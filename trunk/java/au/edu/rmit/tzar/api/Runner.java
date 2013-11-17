@@ -24,7 +24,6 @@ public interface Runner {
    * @return true if the run succeeded, false otherwise
    * @throws TzarException
    */
-  // TODO(michaell): read flags from project spec
   boolean runModel(File model, File outputPath, String runId, String runnerFlags, Parameters parameters,
       Logger logger) throws TzarException;
 }
