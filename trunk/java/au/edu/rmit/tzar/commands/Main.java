@@ -92,7 +92,7 @@ public class Main {
         System.err.println(e.getMessage());
         System.exit(2);
       } catch (Exception e) {
-        LOG.log(Level.WARNING, e.getMessage());
+        LOG.log(Level.WARNING, "An unrecoverable error occurred: " + e.getMessage());
         LOG.log(Level.FINE, "An unrecoverable error occurred.", e);
         System.exit(3);
       }
