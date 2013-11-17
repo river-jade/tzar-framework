@@ -81,8 +81,9 @@ BEGIN
     CREATE TABLE libraries (
         library_id integer NOT NULL,
         repo_type character varying(16) NOT NULL,
-        uri text,
-        name text
+        uri text NOT NULL,
+        name text NOT NULL,
+        revision character varying(16)
     );
 
     CREATE SEQUENCE libraries_library_id_seq
@@ -105,11 +106,15 @@ BEGIN
     ALTER TABLE ONLY libraries ADD CONSTRAINT libraries_pkey PRIMARY KEY (library_id);
 
     CREATE INDEX fki_run_libraries_run_id_fk ON run_libraries USING btree (library_id);
+    -- Make each library record unique
+    ALTER TABLE libraries ADD UNIQUE (repo_type, uri, name);
 
     ALTER TABLE ONLY run_libraries
-        ADD CONSTRAINT run_libraries_library_id_fkey FOREIGN KEY (library_id) REFERENCES libraries(library_id);
+        ADD CONSTRAINT run_libraries_library_id_fkey FOREIGN KEY (library_id) REFERENCES libraries(library_id)
+        DEFERRABLE INITIALLY IMMEDIATE;
     ALTER TABLE ONLY run_libraries
-        ADD CONSTRAINT run_libraries_run_id_fkey FOREIGN KEY (run_id) REFERENCES runs(run_id);
+        ADD CONSTRAINT run_libraries_run_id_fkey FOREIGN KEY (run_id) REFERENCES runs(run_id)
+        DEFERRABLE INITIALLY IMMEDIATE;
     return new_db_version;
 END;
 $$ LANGUAGE plpgsql;

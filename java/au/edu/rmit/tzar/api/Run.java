@@ -176,14 +176,21 @@ public class Run {
 
   @Override
   public String toString() {
-    return "Run{" +
-        "runId=" + runId +
-        ", projectInfo='" + projectInfo + '\'' +
-        ", scenarioName='" + scenarioName + '\'' +
-        ", state='" + state + '\'' +
-        ", runset='" + runset + '\'' +
-        ", clustername='" + clusterName + '\'' +
-        '}';
+    return Objects.toStringHelper(this)
+        .add("projectInfo", projectInfo)
+        .add("scenarioName", scenarioName)
+        .add("runId", runId)
+        .add("hostname", hostname)
+        .add("hostIp", hostIp)
+        .add("startTime", startTime)
+        .add("endTime", endTime)
+        .add("parameters", parameters)
+        .add("state", state)
+        .add("runset", runset)
+        .add("clusterName", clusterName)
+        .add("remoteOutputPath", remoteOutputPath)
+        .add("outputHost", outputHost)
+        .toString();
   }
 
   @Override

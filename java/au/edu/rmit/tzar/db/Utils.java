@@ -11,6 +11,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -61,10 +62,9 @@ public class Utils {
 
   public static void rollback(Connection connection) {
     try {
-      LOG.log(Level.WARNING, "SQLException thrown. Rolling back transaction.");
       connection.rollback();
     } catch (SQLException e) {
-      LOG.log(Level.SEVERE, "Exception occurred rolling back transaction.", e);
+      LOG.log(Level.SEVERE, "Exception occurred while rolling back transaction.", e);
     }
   }
 
@@ -99,6 +99,26 @@ public class Utils {
       printer.addRow(values);
     }
     printer.print();
+  }
+
+  public static <V> V executeInTransaction(Callable<V> callable, Connection connection) throws TzarException {
+    boolean exceptionOccurred = true;
+    V retVal;
+    try {
+      retVal = callable.call();
+      connection.commit();
+      exceptionOccurred = false;
+    } catch (Exception e) {
+      LOG.log(Level.WARNING, "Exception thrown. Rolling back transaction.", e);
+      if (e instanceof SQLException) {
+        LOG.log(Level.WARNING, "SQLException caused by:", ((SQLException) e).getNextException());
+      }
+      rollback(connection);
+      throw new TzarException(e);
+    } finally {
+      close(connection, exceptionOccurred);
+    }
+    return retVal;
   }
 
   public enum OutputType {

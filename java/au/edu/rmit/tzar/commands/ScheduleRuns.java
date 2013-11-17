@@ -1,8 +1,8 @@
 package au.edu.rmit.tzar.commands;
 
 import au.edu.rmit.tzar.RunFactory;
-import au.edu.rmit.tzar.api.TzarException;
 import au.edu.rmit.tzar.api.Run;
+import au.edu.rmit.tzar.api.TzarException;
 import au.edu.rmit.tzar.db.RunDao;
 import com.google.common.collect.ImmutableList;
 
@@ -35,6 +35,7 @@ class ScheduleRuns implements Command {
   @Override
   public boolean execute() throws TzarException {
     String runset = CREATE_RUNS_FLAGS.getRunset();
+    // TODO(river): make runDao.runsetExists(runset); instead. much more efficient.
     List<Run> runsetRuns = runDao.getRuns(ImmutableList.<String>of(), null, runset,
         ImmutableList.<Integer>of());
     if (!runsetRuns.isEmpty() && System.console() != null) {

@@ -42,6 +42,22 @@ public class CodeSourceImpl implements CodeSource {
   }
 
   @Override
+  public RepositoryType getRepositoryType() {
+    return repositoryType;
+  }
+
+  @Override
+  // TODO(river): make this Optional<String>
+  public String getRevision() {
+    return revision;
+  }
+
+  @Override
+  public URI getSourceUri() {
+    return sourceUri;
+  }
+
+  @Override
   public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
@@ -76,18 +92,6 @@ public class CodeSourceImpl implements CodeSource {
         ", revision='" + revision + '\'' +
         ", repositoryType=" + repositoryType +
         '}';
-  }
-
-  public URI getSourceUri() {
-    return sourceUri;
-  }
-
-  public RepositoryType getRepositoryType() {
-    return repositoryType;
-  }
-
-  public String getRevision() {
-    return revision;
   }
 
   public enum RepositoryType {

@@ -11,7 +11,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Map;
-import java.util.logging.Level;
+import java.util.concurrent.Callable;
 import java.util.logging.Logger;
 
 /**
@@ -36,6 +36,16 @@ public class ParametersDao {
   }
 
   /**
+   * Factory method for BatchInserter. Facilitates inserting or updating records in batches.
+   * @param connection db connection
+   * @return a new BatchInserter
+   * @throws SQLException
+   */
+  BatchInserter createBatchInserter(Connection connection) throws SQLException {
+    return new BatchInserter(connection.prepareStatement(INSERT_PARAM_SQL));
+  }
+
+  /**
    * Insert the provided parameters into the database, to be associated with the
    * provided runId.
    *
@@ -43,21 +53,17 @@ public class ParametersDao {
    * @param parameters
    * @throws TzarException
    */
-  public void insertParams(int runId, Parameters parameters) throws TzarException {
-    Connection connection = connectionFactory.createConnection();
-    boolean exceptionOccurred = true;
-    try {
-      PreparedStatement insertParam = connection.prepareStatement(INSERT_PARAM_SQL);
-      batchInsertParams(runId, parameters, insertParam);
-      insertParam.executeBatch();
-      connection.commit();
-      exceptionOccurred = false;
-    } catch (SQLException e) {
-      Utils.rollback(connection);
-      throw new TzarException(e);
-    } finally {
-      Utils.close(connection, exceptionOccurred);
-    }
+  public void insertParams(final int runId, final Parameters parameters) throws TzarException {
+    final Connection connection = connectionFactory.createConnection();
+    Utils.executeInTransaction(new Callable<Void>() {
+      @Override
+      public Void call() throws Exception {
+        BatchInserter batchInserter = createBatchInserter(connection);
+        batchInserter.insertParams(runId, parameters);
+        batchInserter.executeBatch();
+        return null;
+      }
+    }, connection);
   }
 
   /**
@@ -67,39 +73,36 @@ public class ParametersDao {
    * @return
    * @throws SQLException
    */
-  public Parameters loadFromDatabase(int runId) throws TzarException {
-    Connection connection = connectionFactory.createConnection();
-    boolean exceptionOccurred = true;
-    try {
-      PreparedStatement loadParams = connection.prepareStatement(LOAD_PARAMS_SQL);
-      loadParams.setInt(1, runId);
-      ResultSet resultSet = loadParams.executeQuery();
-      Map<String, Object> variables = Maps.newLinkedHashMap();
-      Map<String, String> inputFiles = Maps.newLinkedHashMap();
-      Map<String, String> outputFiles = Maps.newLinkedHashMap();
-      while (resultSet.next()) {
-        DataType type = DataType.fromName(resultSet.getString("data_type"));
-        Object param = type.newInstance(resultSet.getString("param_value"));
-        String paramType = resultSet.getString("param_type");
-        if ("variable".equals(paramType)) {
-          addParam(resultSet, variables, param);
-        } else if ("input_file".equals(paramType)) {
-          addParam(resultSet, inputFiles, (String) param);
-        } else if ("output_file".equals(paramType)) {
-          addParam(resultSet, outputFiles, (String) param);
-        }
+  public Parameters loadFromDatabase(final int runId) throws TzarException {
+    final Connection connection = connectionFactory.createConnection();
+    return Utils.executeInTransaction(new Callable<Parameters>() {
+      @Override
+      public Parameters call() throws Exception {
+        return loadFromDatabase(runId, connection);
       }
-      Parameters parameters = Parameters.createParameters(variables, inputFiles, outputFiles);
-      connection.commit();
-      exceptionOccurred = false;
-      return parameters;
-    } catch (SQLException e) {
-      Utils.rollback(connection);
-      LOG.log(Level.WARNING, "SQLException caused by:", e.getNextException());
-      throw new TzarException(e);
-    } finally {
-      Utils.close(connection, exceptionOccurred);
+    }, connection);
+  }
+
+  Parameters loadFromDatabase(int runId, Connection connection) throws SQLException, TzarException {
+    PreparedStatement loadParams = connection.prepareStatement(LOAD_PARAMS_SQL);
+    loadParams.setInt(1, runId);
+    ResultSet resultSet = loadParams.executeQuery();
+    Map<String, Object> variables = Maps.newLinkedHashMap();
+    Map<String, String> inputFiles = Maps.newLinkedHashMap();
+    Map<String, String> outputFiles = Maps.newLinkedHashMap();
+    while (resultSet.next()) {
+      DataType type = DataType.fromName(resultSet.getString("data_type"));
+      Object param = type.newInstance(resultSet.getString("param_value"));
+      String paramType = resultSet.getString("param_type");
+      if ("variable".equals(paramType)) {
+        addParam(resultSet, variables, param);
+      } else if ("input_file".equals(paramType)) {
+        addParam(resultSet, inputFiles, (String) param);
+      } else if ("output_file".equals(paramType)) {
+        addParam(resultSet, outputFiles, (String) param);
+      }
     }
+    return Parameters.createParameters(variables, inputFiles, outputFiles);
   }
 
   /**
@@ -110,42 +113,17 @@ public class ParametersDao {
    * @param outputType     output format
    * @throws TzarException if the parameters can't be loaded
    */
-  public void printParameters(int runId, boolean truncateOutput, Utils.OutputType outputType) throws TzarException {
-    Connection connection = connectionFactory.createConnection();
-    boolean exceptionOccurred = true;
-    try {
-      PreparedStatement loadParams = connection.prepareStatement(LOAD_PARAMS_SQL);
-      loadParams.setInt(1, runId);
-      Utils.printResultSet(loadParams.executeQuery(), truncateOutput, outputType);
-      connection.commit();
-      exceptionOccurred = false;
-    } catch (SQLException e) {
-      LOG.log(Level.WARNING, "SQLException caused by:", e.getNextException());
-      Utils.rollback(connection);
-      throw new TzarException(e);
-    } finally {
-      Utils.close(connection, exceptionOccurred);
-    }
-  }
-
-  void batchInsertParams(int runId, Parameters parameters, PreparedStatement insertParam)
-      throws SQLException {
-    insertParams(runId, parameters.getOutputFiles(), "output_file", insertParam);
-    insertParams(runId, parameters.getInputFiles(), "input_file", insertParam);
-    insertParams(runId, parameters.getVariables(), "variable", insertParam);
-  }
-
-  private void insertParams(int runId, Map<String, ?> inputFiles, String paramType, PreparedStatement insertParam)
-      throws SQLException {
-    for (Map.Entry<String, ?> entry : inputFiles.entrySet()) {
-      insertParam.setInt(1, runId);
-      insertParam.setString(2, entry.getKey());
-      Object value = entry.getValue();
-      insertParam.setString(3, value.toString());
-      insertParam.setString(4, paramType);
-      insertParam.setString(5, DataType.getType(value).name);
-      insertParam.addBatch();
-    }
+  public void printParameters(final int runId, final boolean truncateOutput, final Utils.OutputType outputType) throws TzarException {
+    final Connection connection = connectionFactory.createConnection();
+    Utils.executeInTransaction(new Callable<Void>() {
+      @Override
+      public Void call() throws Exception {
+        PreparedStatement loadParams = connection.prepareStatement(LOAD_PARAMS_SQL);
+        loadParams.setInt(1, runId);
+        Utils.printResultSet(loadParams.executeQuery(), truncateOutput, outputType);
+        return null;
+      }
+    }, connection);
   }
 
   private static <T> void addParam(ResultSet resultSet, Map<String, T> paramMap, T param) throws SQLException {
@@ -210,6 +188,43 @@ public class ParametersDao {
         throw new IllegalArgumentException("Parameter type: " + name + " not recognised.");
       }
       return map.get(name);
+    }
+  }
+
+  /**
+   * Helper class for inserting parameters in a batch, which drastically reduces
+   * database round trips.
+   *
+   * {@link #insertParams} may be called multiple times, but the database won't be updated until
+   * {@link #executeBatch} is called.
+   */
+  class BatchInserter {
+    private final PreparedStatement insertParam;
+
+    public BatchInserter(PreparedStatement insertParam) {
+      this.insertParam = insertParam;
+    }
+
+    public void insertParams(int runId, Parameters parameters) throws SQLException {
+      insertParams(runId, parameters.getOutputFiles(), "output_file");
+      insertParams(runId, parameters.getInputFiles(), "input_file");
+      insertParams(runId, parameters.getVariables(), "variable");
+    }
+
+    public void executeBatch() throws SQLException {
+      insertParam.executeBatch();
+    }
+
+    private void insertParams(int runId, Map<String, ?> parameters, String paramType) throws SQLException {
+      for (Map.Entry<String, ?> entry : parameters.entrySet()) {
+        insertParam.setInt(1, runId);
+        insertParam.setString(2, entry.getKey());
+        Object value = entry.getValue();
+        insertParam.setString(3, value.toString());
+        insertParam.setString(4, paramType);
+        insertParam.setString(5, DataType.getType(value).name);
+        insertParam.addBatch();
+      }
     }
   }
 }

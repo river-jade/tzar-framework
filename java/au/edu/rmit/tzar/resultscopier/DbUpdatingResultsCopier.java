@@ -1,7 +1,7 @@
 package au.edu.rmit.tzar.resultscopier;
 
-import au.edu.rmit.tzar.api.TzarException;
 import au.edu.rmit.tzar.api.Run;
+import au.edu.rmit.tzar.api.TzarException;
 import au.edu.rmit.tzar.db.RunDao;
 
 import java.io.File;
@@ -27,8 +27,8 @@ public class DbUpdatingResultsCopier implements ResultsCopier {
 
   @Override
   public void copyResults(Run run, File sourcePath, boolean success) {
-    if (!(Run.State.COMPLETED == run.getState()) || Run.State.FAILED == run.getState()) {
-      LOG.log(Level.SEVERE, "Expected run to have status: 'completed' or 'failed'. Was '{0}'. " +
+    if ((Run.State.COMPLETED != run.getState()) && (Run.State.FAILED != run.getState())) {
+      LOG.log(Level.SEVERE, "Expected run to have status: 'completed' or 'failed'. Was {0}. " +
           "Skipping copy for run: {1}", new Object[]{run.getState(), run});
     }
 

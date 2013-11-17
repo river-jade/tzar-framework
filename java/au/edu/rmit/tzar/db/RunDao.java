@@ -17,7 +17,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
-import java.util.logging.Level;
+import java.util.concurrent.Callable;
 import java.util.logging.Logger;
 
 /**
@@ -44,11 +44,14 @@ public class RunDao {
   @VisibleForTesting
   static final String SELECT_RUN_SQL = "SELECT state FROM runs where run_id = ? FOR UPDATE";
   private final ParametersDao parametersDao;
+  private final LibraryDao libraryDao;
   private final ConnectionFactory connectionFactory;
 
-  public RunDao(ConnectionFactory connectionFactory, ParametersDao parametersDao) throws TzarException {
+  public RunDao(ConnectionFactory connectionFactory, ParametersDao parametersDao, LibraryDao libraryDao)
+      throws TzarException {
     this.connectionFactory = connectionFactory;
     this.parametersDao = parametersDao;
+    this.libraryDao = libraryDao;
   }
 
   /**
@@ -61,79 +64,61 @@ public class RunDao {
    * @return true if a run was found, false otherwise
    * @throws TzarException if something goes wrong executing the run
    */
-  public synchronized Run getNextRun(String runset, String clusterName) throws TzarException {
-    Connection connection = connectionFactory.createConnection();
-    boolean exceptionOccurred = true;
-    try {
-      PreparedStatement selectNextRun = connection.prepareStatement(NEXT_RUN_SQL, ResultSet.TYPE_FORWARD_ONLY,
-          ResultSet.CONCUR_READ_ONLY);
-      selectNextRun.setString(1, runset == null ? "%" : runset);
-      selectNextRun.setString(2, clusterName);
-      ResultSet resultSet = selectNextRun.executeQuery();
+  // TODO(river): replace runset with Optional<String>
+  // TODO(river): replace Run with Optional<Run>
+  public synchronized Run getNextRun(final String runset, final String clusterName) throws TzarException {
+    final Connection connection = connectionFactory.createConnection();
+    return Utils.executeInTransaction(new Callable<Run>() {
+      @Override
+      public Run call() throws Exception {
+        PreparedStatement selectNextRun = connection.prepareStatement(NEXT_RUN_SQL);
+        selectNextRun.setString(1, runset == null ? "%" : runset);
+        selectNextRun.setString(2, clusterName);
+        ResultSet resultSet = selectNextRun.executeQuery();
 
-      Run run;
-      if (resultSet.next()) {
-        run = runFromResultSet(resultSet, true);
-      } else {
-        run = null;
+        final Run run;
+        if (resultSet.next()) {
+          run = runFromResultSet(resultSet, true, connection);
+        } else {
+          run = null;
+        }
+        return run;
       }
-      exceptionOccurred = false;
-      connection.commit();
-      return run;
-    } catch (SQLException e) {
-      LOG.log(Level.WARNING, "SQLException caused by:", e.getNextException());
-      Utils.rollback(connection);
-      throw new TzarException(e);
-    } finally {
-      Utils.close(connection, exceptionOccurred);
-    }
+    }, connection);
   }
 
-  public boolean markRunInProgress(Run run) throws TzarException {
-    Connection connection = connectionFactory.createConnection();
-    boolean exceptionOccurred = true;
-    try {
-      PreparedStatement selectRun = connection.prepareStatement(SELECT_RUN_SQL);
-      selectRun.setInt(1, run.getRunId());
-      ResultSet resultSet = selectRun.executeQuery();
-      if (!resultSet.next()) {
-        throw new TzarException("Expected to find record matching run_id: " + run.getRunId());
+  public boolean markRunInProgress(final Run run) throws TzarException {
+    final Connection connection = connectionFactory.createConnection();
+    return Utils.executeInTransaction(new Callable<Boolean>() {
+      @Override
+      public Boolean call() throws Exception {
+        PreparedStatement selectRun = connection.prepareStatement(SELECT_RUN_SQL);
+        selectRun.setInt(1, run.getRunId());
+        ResultSet resultSet = selectRun.executeQuery();
+        if (!resultSet.next()) {
+          throw new TzarException("Expected to find record matching run_id: " + run.getRunId());
+        }
+        Run.State status = Run.State.valueOf(resultSet.getString("state").toUpperCase());
+        if (status != Run.State.SCHEDULED) {
+          LOG.fine("Expected run to have status 'scheduled', but status was: " + status + ". This probably indicates" +
+              " that another node has grabbed the run.");
+          return false;
+        }
+        persistRun(run, connection);
+        return true;
       }
-      String status = resultSet.getString("state");
-      if (!"scheduled".equals(status)) {
-        LOG.fine("Expected run to have status 'scheduled', but status was: " + status + ". This probably indicates" +
-            " that another node has grabbed the run.");
-        return false;
-      }
-      persistRun(run, connection);
-      connection.commit();
-      exceptionOccurred = false;
-    } catch (SQLException e) {
-      LOG.log(Level.WARNING, "SQLException thrown. Rolling back transaction.", e);
-      LOG.log(Level.WARNING, "SQLException caused by:", e.getNextException());
-      Utils.rollback(connection);
-      throw new TzarException(e);
-    } finally {
-      Utils.close(connection, exceptionOccurred);
-    }
-    return true;
+    }, connection);
   }
 
-  public synchronized void persistRun(Run run) throws TzarException {
-    Connection connection = connectionFactory.createConnection();
-    boolean exceptionOccurred = true;
-    try {
-      persistRun(run, connection);
-      connection.commit();
-      exceptionOccurred = false;
-    } catch (SQLException e) {
-      LOG.log(Level.WARNING, "SQLException thrown. Rolling back transaction.", e);
-      LOG.log(Level.WARNING, "SQLException caused by:", e.getNextException());
-      Utils.rollback(connection);
-      throw new TzarException(e);
-    } finally {
-      Utils.close(connection, exceptionOccurred);
-    }
+  public synchronized void persistRun(final Run run) throws TzarException {
+    final Connection connection = connectionFactory.createConnection();
+    Utils.executeInTransaction(new Callable<Void>() {
+      @Override
+      public Void call() throws Exception {
+        persistRun(run, connection);
+        return null;
+      }
+    }, connection);
   }
 
   private void persistRun(Run run, Connection connection) throws SQLException {
@@ -158,56 +143,52 @@ public class RunDao {
    * @param runs runs to insert into the db
    * @throws TzarException if an error occurs inserting the runs
    */
-  public synchronized void insertRuns(List<? extends Run> runs) throws TzarException {
+  public synchronized void insertRuns(final List<? extends Run> runs) throws TzarException {
     LOG.info("Saving new runs to database.");
-    Connection connection = connectionFactory.createConnection();
+    final Connection connection = connectionFactory.createConnection();
 
-    boolean exceptionOccurred = true;
-    try {
-      ResultSet rs = connection.prepareStatement("select nextval('runs_run_id_seq')").executeQuery();
-      rs.next();
-      int nextRunId = rs.getInt(1);
-      connection.prepareStatement("select setval('runs_run_id_seq', " + (nextRunId + runs.size()) +
-          ", false)").execute();
-          // false here indicates that the next sequence number returned by 'select nextval' will be
-          // nextRunId + runs.size(), as opposed to nextRunId + runs.size() + 1
+    Utils.executeInTransaction(new Callable<Void>() {
+      @Override
+      public Void call() throws Exception {
+        ResultSet rs = connection.prepareStatement("select nextval('runs_run_id_seq')").executeQuery();
+        rs.next();
+        int nextRunId = rs.getInt(1);
+        connection.prepareStatement("select setval('runs_run_id_seq', " + (nextRunId + runs.size()) +
+            ", false)").execute();
+            // false here indicates that the next sequence number returned by 'select nextval' will be
+            // nextRunId + runs.size(), as opposed to nextRunId + runs.size() + 1
 
-      PreparedStatement insertRun = connection.prepareStatement(INSERT_RUN_SQL);
-      PreparedStatement insertParams = connection.prepareStatement(ParametersDao.INSERT_PARAM_SQL);
+        PreparedStatement insertRun = connection.prepareStatement(INSERT_RUN_SQL);
 
-      for (Run run : runs) {
-        CodeSourceImpl codeSource = run.getCodeSource();
-        run.setRunId(nextRunId);
-        insertRun.setInt(1, nextRunId);
-        insertRun.setString(2, run.getState().name().toLowerCase());
-        insertRun.setString(3, codeSource.getSourceUri().toString());
-        insertRun.setString(4, codeSource.getRepositoryType().toString());
-        insertRun.setString(5, codeSource.getRevision());
-        insertRun.setString(6, run.getProjectName());
-        insertRun.setString(7, run.getScenarioName());
-        insertRun.setString(8, run.getRunnerFlags());
-        insertRun.setString(9, run.getRunset());
-        insertRun.setString(10, run.getClusterName());
-        insertRun.setString(11, run.getRunnerClass());
-        insertRun.addBatch();
-        parametersDao.batchInsertParams(run.getRunId(), run.getParameters(), insertParams);
-//        librariesDao.insertLibrary(run.getLibraries());
-        nextRunId++;
+        // defer constraint checking because the run won't exist when we add the library. this is safe
+        // because it's in a transaction. the constraint will be checked once the transaction is committed.
+        connection.prepareStatement("SET CONSTRAINTS run_libraries_run_id_fkey DEFERRED").execute();
+        ParametersDao.BatchInserter batchInserter = parametersDao.createBatchInserter(connection);
+        for (Run run : runs) {
+          CodeSourceImpl codeSource = run.getCodeSource();
+          run.setRunId(nextRunId);
+          insertRun.setInt(1, nextRunId);
+          insertRun.setString(2, run.getState().name().toLowerCase());
+          insertRun.setString(3, codeSource.getSourceUri().toString());
+          insertRun.setString(4, codeSource.getRepositoryType().toString());
+          insertRun.setString(5, codeSource.getRevision());
+          insertRun.setString(6, run.getProjectName());
+          insertRun.setString(7, run.getScenarioName());
+          insertRun.setString(8, run.getRunnerFlags());
+          insertRun.setString(9, run.getRunset());
+          insertRun.setString(10, run.getClusterName());
+          insertRun.setString(11, run.getRunnerClass());
+          insertRun.addBatch();
+          batchInserter.insertParams(run.getRunId(), run.getParameters());
+          libraryDao.associateLibraries(run.getLibraries(), nextRunId, connection);
+          nextRunId++;
+        }
+
+        insertRun.executeBatch();
+        batchInserter.executeBatch();
+        return null;
       }
-
-      insertRun.executeBatch();
-      insertParams.executeBatch();
-
-      connection.commit();
-      exceptionOccurred = false;
-    } catch (SQLException e) {
-      LOG.log(Level.WARNING, "SQLException thrown. Rolling back transaction.", e);
-      LOG.log(Level.WARNING, "SQLException caused by:", e.getNextException());
-      Utils.rollback(connection);
-      throw new TzarException(e);
-    } finally {
-      Utils.close(connection, exceptionOccurred);
-    }
+    }, connection);
   }
 
   /**
@@ -221,95 +202,94 @@ public class RunDao {
    * @param outputType     output format
    * @throws TzarException if the runs cannot be loaded
    */
-  public synchronized void printRuns(List<String> states, String hostname, String runset, List<Integer> runIds,
-      boolean truncateOutput, Utils.OutputType outputType) throws TzarException {
-    Utils.printResultSet(loadRuns(states, hostname, runset, runIds), truncateOutput, outputType);
+  public synchronized void printRuns(final List<String> states, final String hostname, final String runset,
+      final List<Integer> runIds, final boolean truncateOutput, final Utils.OutputType outputType)
+      throws TzarException {
+    final Connection connection = connectionFactory.createConnection();
+    Utils.executeInTransaction(new Callable<Void>() {
+      @Override
+      public Void call() throws Exception {
+        ResultSet rs = loadRuns(states, hostname, runset, runIds, connection);
+        Utils.printResultSet(rs, truncateOutput, outputType);
+        return null;
+      }
+    }, connection);
   }
 
-  public synchronized List<Run> getRuns(List<String> states, String hostname, String runset, List<Integer> runIds)
-      throws TzarException {
-    ResultSet resultSet = loadRuns(states, hostname, runset, runIds);
-    List<Run> runs = Lists.newArrayList();
-    try {
-      while (resultSet.next()) {
-        runs.add(runFromResultSet(resultSet, true));
+  public synchronized List<Run> getRuns(final List<String> states, final String hostname, final String runset,
+      final List<Integer> runIds) throws TzarException {
+    final Connection connection = connectionFactory.createConnection();
+    return Utils.executeInTransaction(new Callable<List<Run>>() {
+      @Override
+      public List<Run> call() throws Exception {
+        ResultSet resultSet = loadRuns(states, hostname, runset, runIds, connection);
+        List<Run> runs = Lists.newArrayList();
+        while (resultSet.next()) {
+          runs.add(runFromResultSet(resultSet, true, connection));
+        }
+        return runs;
       }
-      return runs;
-    } catch (SQLException e) {
-      LOG.log(Level.WARNING, "SQLException caused by:", e.getNextException());
-      throw new TzarException(e);
-    }
+    }, connection);
   }
 
   private static Timestamp getTimestamp(Date time) {
     return time == null ? null : new Timestamp(time.getTime());
   }
 
-  private ResultSet loadRuns(List<String> states, String hostname, String runset, List<Integer> runIds)
-      throws TzarException {
-    Connection connection = connectionFactory.createConnection();
-    boolean exceptionOccurred = true;
-
-    try {
-      StringBuilder sql = new StringBuilder("SELECT * FROM runs WHERE 1=1 ");
-      if (states != null && !states.isEmpty()) {
-        sql.append("AND state = ANY(?) ");
-      }
-      if (hostname != null) {
-        sql.append("AND hostname = ? ");
-      }
-      if (runset != null) {
-        sql.append("AND runset LIKE ? ");
-      }
-      if (runIds != null && !runIds.isEmpty()) {
-        sql.append("AND run_id = ANY(?) ");
-      }
-      sql.append("ORDER BY run_id ASC");
-      PreparedStatement statement = connection.prepareStatement(sql.toString());
-      int fieldCounter = 1;
-      if (states != null && !states.isEmpty()) {
-        statement.setArray(fieldCounter++, connection.createArrayOf("text", states.toArray()));
-      }
-      if (hostname != null) {
-        statement.setString(fieldCounter++, hostname);
-      }
-      if (runset != null) {
-        statement.setString(fieldCounter++, runset);
-      }
-      if (runIds != null && !runIds.isEmpty()) {
-        statement.setArray(fieldCounter, connection.createArrayOf("int", runIds.toArray()));
-      }
-      statement.execute();
-      ResultSet resultSet = statement.getResultSet();
-      connection.commit();
-      exceptionOccurred = false;
-      return resultSet;
-    } catch (SQLException e) {
-      LOG.log(Level.WARNING, "SQLException caused by:", e.getNextException());
-      Utils.rollback(connection);
-      throw new TzarException(e);
-    } finally {
-      Utils.close(connection, exceptionOccurred);
+  // TODO(river): make parameters Optional<>
+  private ResultSet loadRuns(List<String> states, String hostname, String runset, List<Integer> runIds,
+      Connection connection) throws SQLException {
+    StringBuilder sql = new StringBuilder("SELECT * FROM runs WHERE 1=1 ");
+    if (states != null && !states.isEmpty()) {
+      sql.append("AND state = ANY(?) ");
     }
-  }
-
-  // TODO(michaell): This is inefficient for cases where we're loading multiple runs,
-  // as it does a db call for each run.
-  // If this turns out to be a problem, it may be worth switching to an ORM such as Hibernate.
-  private Parameters loadParameters(int runId) throws TzarException {
-    return parametersDao.loadFromDatabase(runId);
+    if (hostname != null) {
+      sql.append("AND hostname = ? ");
+    }
+    if (runset != null) {
+      sql.append("AND runset LIKE ? ");
+    }
+    if (runIds != null && !runIds.isEmpty()) {
+      sql.append("AND run_id = ANY(?) ");
+    }
+    sql.append("ORDER BY run_id ASC");
+    PreparedStatement statement = connection.prepareStatement(sql.toString());
+    int fieldCounter = 1;
+    if (states != null && !states.isEmpty()) {
+      statement.setArray(fieldCounter++, connection.createArrayOf("text", states.toArray()));
+    }
+    if (hostname != null) {
+      statement.setString(fieldCounter++, hostname);
+    }
+    if (runset != null) {
+      statement.setString(fieldCounter++, runset);
+    }
+    if (runIds != null && !runIds.isEmpty()) {
+      statement.setArray(fieldCounter, connection.createArrayOf("int", runIds.toArray()));
+    }
+    statement.execute();
+    return statement.getResultSet();
   }
 
   /**
-   * Create a Run from a resultset row
+   * Create a Run from a resultset row. This looks up the libraries for the run, and (optionally)
+   * the parameters.
    *
    * @param resultSet      resultSet must have active record (ie have called next() which returned true)
    * @param withParameters if true, also load the parameters for the run
+   * @param connection     connection object, to be used for looking up params and libs
    * @return newly created Run
    */
-  private Run runFromResultSet(ResultSet resultSet, boolean withParameters) throws SQLException, TzarException {
+  private Run runFromResultSet(ResultSet resultSet, boolean withParameters, Connection connection)
+      throws SQLException, TzarException {
     int runId = resultSet.getInt("run_id");
-    Parameters parameters = withParameters ? loadParameters(runId) : Parameters.EMPTY_PARAMETERS;
+
+    // TODO(river): This is inefficient for cases where we're loading multiple runs,
+    // as it does a db call for each run.
+    // If this turns out to be a problem, it may be worth switching to an ORM such as Hibernate.
+    Parameters parameters = withParameters ? parametersDao.loadFromDatabase(runId, connection)
+        : Parameters.EMPTY_PARAMETERS;
+    ImmutableMap<String, CodeSource> libraries = libraryDao.getLibraries(runId, connection);
     String modelUrlString = resultSet.getString("model_url");
     URI modelUri;
     try {
@@ -321,9 +301,6 @@ public class RunDao {
     CodeSourceImpl codeSource = new CodeSourceImpl(modelUri,
         CodeSourceImpl.RepositoryType.valueOf(resultSet.getString("model_repo_type").toUpperCase()),
         resultSet.getString("model_revision"));
-
-    // FIXME: load and save libraries to / from db.
-    ImmutableMap<String, CodeSource> libraries = ImmutableMap.of();
 
     Run.ProjectInfo projectInfo = new Run.ProjectInfo(resultSet.getString("project_name"), codeSource,
         libraries, resultSet.getString("runner_class"), resultSet.getString("runner_flags"));
