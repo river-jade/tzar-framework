@@ -2,6 +2,7 @@ package au.edu.rmit.tzar;
 
 import au.edu.rmit.tzar.api.*;
 import au.edu.rmit.tzar.repository.CodeSourceImpl;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
 import java.util.List;
@@ -47,16 +48,22 @@ public class RunFactory {
    * Create a List of Runs, one for each repetition in the Repetitions object, for each scenario in the projectSpec.
    */
   private List<Run> createRuns() throws TzarException {
-    List<Run> runs = Lists.newArrayList();
+    ImmutableList.Builder<Run> runs = ImmutableList.builder();
 
     for (Parameters repetitionParams : projectSpec.getRepetitions().getParamsList()) {
-      for (Scenario scenario : projectSpec.getScenarios()) {
-        Parameters params = projectSpec.getBaseParams().mergeParameters(scenario.getParameters());
-        params = params.mergeParameters(repetitionParams);
-        runs.add(createRun(params, scenario.getName()));
+      List<Scenario> scenarios = projectSpec.getScenarios();
+      if (scenarios.isEmpty()) {
+        Parameters params = projectSpec.getBaseParams().mergeParameters(repetitionParams);
+        runs.add(createRun(params, Scenario.DEFAULT_NAME));
+      } else {
+        for (Scenario scenario : scenarios) {
+          Parameters params = projectSpec.getBaseParams().mergeParameters(scenario.getParameters());
+          params = params.mergeParameters(repetitionParams);
+          runs.add(createRun(params, scenario.getName()));
+        }
       }
     }
-    return runs;
+    return runs.build();
   }
 
   private Run createRun(Parameters runParams, String scenarioName) {
