@@ -114,7 +114,7 @@ class SharedFlags {
     public CodeSourceImpl.RepositoryType getRepositoryType() {
       if (repositoryType == null) {
         String scheme = getProjectUri().getScheme();
-        if ("http".equals(scheme)) {
+        if ("http".equals(scheme) || "https".equals(scheme)) {
           return CodeSourceImpl.RepositoryType.SVN;
         } else if ("file".equals(scheme) || scheme == null) {
           return CodeSourceImpl.RepositoryType.LOCAL_FILE;
