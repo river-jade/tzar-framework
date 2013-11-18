@@ -100,7 +100,7 @@ public class ExecutableRun {
 
       ImmutableMap.Builder<String, String> builder = ImmutableMap.<String, String>builder()
           .put("run_id", Integer.toString(getRunId()))
-          .put("source_root", model.getAbsolutePath())
+          .put("model_path", model.getAbsolutePath())
           .put("output_path", outputPath.getAbsolutePath());
       for (Map.Entry<String, ? extends CodeSource> entry : run.getLibraries().entrySet()) {
         builder.put(String.format("library_path(%s)", entry.getKey()),
