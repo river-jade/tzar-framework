@@ -22,8 +22,8 @@ public class Repetitions {
       new ArrayList<RepetitionGenerator<?>>());
 
   public Repetitions(List<Parameters> staticRepetitions, List<RepetitionGenerator<?>> generators) {
-    this.staticRepetitions = staticRepetitions == null ? new ArrayList<Parameters>() : staticRepetitions;
-    this.generators = generators == null ? new ArrayList<RepetitionGenerator<?>>() : generators;
+    this.staticRepetitions = staticRepetitions;
+    this.generators = generators;
   }
 
   /**

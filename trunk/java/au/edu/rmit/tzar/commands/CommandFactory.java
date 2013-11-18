@@ -11,6 +11,7 @@ import au.edu.rmit.tzar.repository.CodeSourceImpl;
 import au.edu.rmit.tzar.resultscopier.*;
 import au.edu.rmit.tzar.server.WebServer;
 import com.beust.jcommander.JCommander;
+import com.google.common.base.Optional;
 import com.google.common.collect.Maps;
 import com.google.common.io.Files;
 
@@ -76,23 +77,23 @@ class CommandFactory {
 
     Executors.newSingleThreadExecutor().submit(new WebServer(Constants.WEBSERVER_PORT, tzarBaseDirectory));
 
-    File baseRemoteOutputPath = POLL_AND_RUN_FLAGS.getFinalOutputPath();
+    Optional<ScpDestination> scpDestination = POLL_AND_RUN_FLAGS.getScpDestination();
+    Optional<File> finalOutputPath = POLL_AND_RUN_FLAGS.getFinalOutputPath();
+    RunDao runDao = new DaoFactory(getDbUrl()).createRunDao();
+
     ResultsCopier resultsCopier;
-    if (baseRemoteOutputPath == null) { // no path specified. don't copy output
-      LOG.warning("No final output path specified. Results will be left on this node. Is that intentional?");
+    if (!finalOutputPath.isPresent()) { // no path specified. don't copy output
+      LOG.warning("No final output destination specified. Results will be left on this node. Is that intentional?");
       resultsCopier = new NoopCopier();
     } else {
-      if (POLL_AND_RUN_FLAGS.getScpOutputHost() != null) {
-        SshClientFactory sshClientFactory = new SshClientFactoryKeyAuth(POLL_AND_RUN_FLAGS);
-        resultsCopier = new ScpResultsCopier(sshClientFactory, baseRemoteOutputPath);
+      if (scpDestination.isPresent()) {
+        SshClientFactory sshClientFactory = new SshClientFactoryKeyAuth(scpDestination.get());
+        resultsCopier = new ScpResultsCopier(sshClientFactory, finalOutputPath.get());
       } else { // path specified but no host, so use file copier
-        resultsCopier = new FileResultsCopier(baseRemoteOutputPath);
+        resultsCopier = new FileResultsCopier(finalOutputPath.get());
       }
+      resultsCopier = new CopierFactory().createAsyncCopier(resultsCopier, true, true, runDao, finalOutputPath.get());
     }
-
-    DaoFactory daoFactory = new DaoFactory(getDbUrl());
-    RunDao runDao = daoFactory.createRunDao();
-    resultsCopier = new CopierFactory().createAsyncCopier(resultsCopier, true, true, runDao, baseRemoteOutputPath);
 
     File baseLocalOutputPath = new File(tzarBaseDirectory, Constants.POLL_AND_RUN_OUTPUT_DIR);
     return new PollAndRun(runDao, resultsCopier, baseLocalOutputPath, RUNNER_FLAGS.getBaseModelPath(),

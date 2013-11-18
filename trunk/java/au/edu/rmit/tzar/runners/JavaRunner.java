@@ -63,7 +63,7 @@ public class JavaRunner implements Runner {
      * Path to the module jar file.
      */
     @Parameter(names = "--jarpath", description = "Relative path to the project jar file", required=true)
-    private String jarPath = null;
+    private String jarPath;
 
     /**
      * Java class name to execute. Default: RunnerImpl. Note that the default is tzar.RunnerImpl,

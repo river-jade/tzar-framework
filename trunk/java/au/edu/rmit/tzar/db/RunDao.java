@@ -6,6 +6,7 @@ import au.edu.rmit.tzar.api.Run;
 import au.edu.rmit.tzar.api.TzarException;
 import au.edu.rmit.tzar.repository.CodeSourceImpl;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 
@@ -64,25 +65,22 @@ public class RunDao {
    * @return true if a run was found, false otherwise
    * @throws TzarException if something goes wrong executing the run
    */
-  // TODO(river): replace runset with Optional<String>
-  // TODO(river): replace Run with Optional<Run>
-  public synchronized Run getNextRun(final String runset, final String clusterName) throws TzarException {
+  public synchronized Optional<Run> getNextRun(final Optional<String> runset, final String clusterName)
+      throws TzarException {
     final Connection connection = connectionFactory.createConnection();
-    return Utils.executeInTransaction(new Callable<Run>() {
+    return Utils.executeInTransaction(new Callable<Optional<Run>>() {
       @Override
-      public Run call() throws Exception {
+      public Optional<Run> call() throws Exception {
         PreparedStatement selectNextRun = connection.prepareStatement(NEXT_RUN_SQL);
-        selectNextRun.setString(1, runset == null ? "%" : runset);
+        selectNextRun.setString(1, runset.or("%"));
         selectNextRun.setString(2, clusterName);
         ResultSet resultSet = selectNextRun.executeQuery();
 
-        final Run run;
         if (resultSet.next()) {
-          run = runFromResultSet(resultSet, true, connection);
+          return Optional.of(runFromResultSet(resultSet, true, connection));
         } else {
-          run = null;
+          return Optional.absent();
         }
-        return run;
       }
     }, connection);
   }
@@ -194,35 +192,36 @@ public class RunDao {
   /**
    * Prints the set of matching runs in the database to stdout.
    *
-   * @param states         list of states to be matched (using boolean OR) (may be empty or null)
-   * @param hostname       hostname to match, may be null.
-   * @param runset         runset to match, may be null
-   * @param runIds         list of run ids to match, may be null or empty
+   *
+   * @param states         list of states to be matched (using boolean OR) (may be empty)
+   * @param hostname       hostname to match
+   * @param runset         runset to match
+   * @param runIds         list of run ids to match, may be empty
    * @param truncateOutput if the output should be truncated
    * @param outputType     output format
    * @throws TzarException if the runs cannot be loaded
    */
-  public synchronized void printRuns(final List<String> states, final String hostname, final String runset,
-      final List<Integer> runIds, final boolean truncateOutput, final Utils.OutputType outputType)
-      throws TzarException {
+  public synchronized void printRuns(final List<String> states, final Optional<String> hostname,
+      final Optional<String> runset, final List<Integer> runIds, final boolean truncateOutput,
+      final Utils.OutputType outputType) throws TzarException {
     final Connection connection = connectionFactory.createConnection();
     Utils.executeInTransaction(new Callable<Void>() {
       @Override
       public Void call() throws Exception {
-        ResultSet rs = loadRuns(states, hostname, runset, runIds, connection);
+        ResultSet rs = findRuns(states, hostname, runset, runIds, connection);
         Utils.printResultSet(rs, truncateOutput, outputType);
         return null;
       }
     }, connection);
   }
 
-  public synchronized List<Run> getRuns(final List<String> states, final String hostname, final String runset,
-      final List<Integer> runIds) throws TzarException {
+  public synchronized List<Run> getRuns(final List<String> states, final Optional<String> hostname,
+      final Optional<String> runset, final List<Integer> runIds) throws TzarException {
     final Connection connection = connectionFactory.createConnection();
     return Utils.executeInTransaction(new Callable<List<Run>>() {
       @Override
       public List<Run> call() throws Exception {
-        ResultSet resultSet = loadRuns(states, hostname, runset, runIds, connection);
+        ResultSet resultSet = findRuns(states, hostname, runset, runIds, connection);
         List<Run> runs = Lists.newArrayList();
         while (resultSet.next()) {
           runs.add(runFromResultSet(resultSet, true, connection));
@@ -236,35 +235,34 @@ public class RunDao {
     return time == null ? null : new Timestamp(time.getTime());
   }
 
-  // TODO(river): make parameters Optional<>
-  private ResultSet loadRuns(List<String> states, String hostname, String runset, List<Integer> runIds,
-      Connection connection) throws SQLException {
+  private ResultSet findRuns(List<String> states, Optional<String> hostname, Optional<String> runset,
+      List<Integer> runIds, Connection connection) throws SQLException {
     StringBuilder sql = new StringBuilder("SELECT * FROM runs WHERE 1=1 ");
-    if (states != null && !states.isEmpty()) {
+    if (!states.isEmpty()) {
       sql.append("AND state = ANY(?) ");
     }
-    if (hostname != null) {
+    if (hostname.isPresent()) {
       sql.append("AND hostname = ? ");
     }
-    if (runset != null) {
+    if (runset.isPresent()) {
       sql.append("AND runset LIKE ? ");
     }
-    if (runIds != null && !runIds.isEmpty()) {
+    if (!runIds.isEmpty()) {
       sql.append("AND run_id = ANY(?) ");
     }
     sql.append("ORDER BY run_id ASC");
     PreparedStatement statement = connection.prepareStatement(sql.toString());
     int fieldCounter = 1;
-    if (states != null && !states.isEmpty()) {
+    if (!states.isEmpty()) {
       statement.setArray(fieldCounter++, connection.createArrayOf("text", states.toArray()));
     }
-    if (hostname != null) {
-      statement.setString(fieldCounter++, hostname);
+    if (hostname.isPresent()) {
+      statement.setString(fieldCounter++, hostname.get());
     }
-    if (runset != null) {
-      statement.setString(fieldCounter++, runset);
+    if (runset.isPresent()) {
+      statement.setString(fieldCounter++, runset.get());
     }
-    if (runIds != null && !runIds.isEmpty()) {
+    if (!runIds.isEmpty()) {
       statement.setArray(fieldCounter, connection.createArrayOf("int", runIds.toArray()));
     }
     statement.execute();

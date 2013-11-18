@@ -4,6 +4,7 @@ import au.edu.rmit.tzar.api.Parameters;
 import au.edu.rmit.tzar.api.RepetitionGenerator;
 import au.edu.rmit.tzar.api.Repetitions;
 import au.edu.rmit.tzar.api.TzarException;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import junit.framework.TestCase;
@@ -55,7 +56,7 @@ public class RepetitionsTest extends TestCase {
    * just equal to the static repetitions.
    */
   public void testStaticRepetitions() throws TzarException {
-    Repetitions repetitions = new Repetitions(staticRepetitions, null);
+    Repetitions repetitions = new Repetitions(staticRepetitions, ImmutableList.<RepetitionGenerator<?>>of());
     assertEquals(staticRepetitions, repetitions.getParamsList());
   }
 
@@ -65,7 +66,7 @@ public class RepetitionsTest extends TestCase {
   public void testGeneratedRepetitions() throws TzarException {
     List<RepetitionGenerator<?>> generators = Lists.newArrayList();
     generators.add(new LinearStepGenerator(KEY, BigDecimal.valueOf(1.0), 10, BigDecimal.valueOf(2.0)));
-    Repetitions repetitions = new Repetitions(null, generators);
+    Repetitions repetitions = new Repetitions(ImmutableList.<Parameters>of(), generators);
     List<Parameters> paramsList = repetitions.getParamsList();
     assertEquals(10, paramsList.size());
     for (int i = 0; i < 10; i++) {

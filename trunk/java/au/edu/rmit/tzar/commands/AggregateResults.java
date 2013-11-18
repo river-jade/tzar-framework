@@ -7,6 +7,7 @@ import au.edu.rmit.tzar.db.RunDao;
 import au.edu.rmit.tzar.resultscopier.SshClientFactoryKeyAuth;
 import au.edu.rmit.tzar.resultscopier.SshClientFactoryPasswordAuth;
 import com.google.common.base.Joiner;
+import com.google.common.base.Optional;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -35,13 +36,13 @@ class AggregateResults implements Command {
 
   private final List<Integer> runIds;
   private final RunDao runDao;
-  private final String runset;
+  private final Optional<String> runset;
   private final File destPath;
   private final List<String> states;
   /**
    * Host name (of machine on which run was executed) to filter results by
    */
-  private final String filterHostname;
+  private final Optional<String> filterHostname;
   /**
    * Hostname of this machine
    */
@@ -56,19 +57,19 @@ class AggregateResults implements Command {
   /**
    * Constructor.
    *
-   * @param runIds         list of ids of runs to query. Empty or null to not filter by id.
-   * @param states         list of states of runs to query. Empty or null to default to 'copied'.
+   * @param runIds         list of ids of runs to query. Empty to not filter by id.
+   * @param states         list of states of runs to query. Empty to default to 'copied'.
    * @param filterHostname host name (of machine on which run was executed) to filter results by
-   * @param runset         name of runset to filter by, or null to not filter by runset
+   * @param runset         name of runset to filter by, or not set to not filter by runset
    * @param runDao         for accessing the database of runs
    * @param hostname       host name of this machine (used to determine if ssh is required to copy files)
    * @param flags          command line parameters for this command
    */
-  public AggregateResults(List<Integer> runIds, List<String> states, String filterHostname, String runset,
-      RunDao runDao, String hostname, final CommandFlags.AggregateResultsFlags flags) {
+  public AggregateResults(List<Integer> runIds, List<String> states, Optional<String> filterHostname,
+      Optional<String> runset, RunDao runDao, String hostname, final CommandFlags.AggregateResultsFlags flags) {
     this.runIds = runIds;
 
-    if (states == null || states.isEmpty()) {
+    if (states.isEmpty()) {
       this.states = Lists.newArrayList("copied");
     } else {
       this.states = states;

@@ -5,6 +5,7 @@ import au.edu.rmit.tzar.api.Parameters;
 import au.edu.rmit.tzar.api.Run;
 import au.edu.rmit.tzar.api.TzarException;
 import au.edu.rmit.tzar.repository.CodeSourceImpl;
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import junit.framework.TestCase;
@@ -85,7 +86,7 @@ public class RunDaoTest extends TestCase {
         .setParameters(Parameters.EMPTY_PARAMETERS)
         .setRunset(RUNSET)
         .setClusterName(CLUSTER_NAME);
-    assertEquals(run, runDao.getNextRun(null, CLUSTER_NAME));
+    assertEquals(run, runDao.getNextRun(Optional.<String>absent(), CLUSTER_NAME).get());
   }
 
   public void testGetNextRunNoMatch() throws Exception {
@@ -93,7 +94,7 @@ public class RunDaoTest extends TestCase {
     when(mockConnection.prepareStatement(RunDao.NEXT_RUN_SQL)).thenReturn(nextRunStatement);
     when(nextRunStatement.executeQuery()).thenReturn(resultSet);
     when(resultSet.next()).thenReturn(false);
-    assertNull(runDao.getNextRun(null, CLUSTER_NAME));
+    assertFalse(runDao.getNextRun(Optional.<String>absent(), CLUSTER_NAME).isPresent());
   }
 
   public void testInsertRuns() throws TzarException, SQLException, URISyntaxException {

@@ -5,6 +5,7 @@ import au.edu.rmit.tzar.Constants;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.beust.jcommander.converters.FileConverter;
+import com.google.common.base.Optional;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -79,32 +80,43 @@ public class CommandFlags {
       return concurrentTaskCount;
     }
 
-    public File getPemFile() {
-      return pemFile;
+    public Optional<File> getFinalOutputPath() {
+      return Optional.fromNullable(finalOutputPath);
     }
 
     public List<String> getRepositoryUriPrefixes() {
       return repositoryUriPrefixes;
     }
 
-    public String getRunset() {
-      return runset;
+    public Optional<String> getRunset() {
+      return Optional.fromNullable(runset);
     }
 
     public int getPollRateMs() {
       return pollRateMs;
     }
 
-    public String getScpOutputHost() {
-      return scpOutputHost;
+    public Optional<ScpDestination> getScpDestination() {
+      if (scpOutputHost == null) {
+        return Optional.absent();
+      }
+      if (finalOutputPath != null) {
+        return Optional.of(new ScpDestination(scpOutputHost, scpOutputUser, pemFile));
+      } else {
+        throw new ParseException("If --scpoutputhost is set, --finaloutputpath must also be set.");
+      }
     }
+  }
 
-    public File getFinalOutputPath() {
-      return finalOutputPath;
-    }
+  public static class ScpDestination {
+    public final String host;
+    public final String scpOutputUser;
+    public final File pemFile;
 
-    public String getScpOutputUser() {
-      return scpOutputUser;
+    public ScpDestination(String host, String scpOutputUser, File pemFile) {
+      this.host = host;
+      this.scpOutputUser = scpOutputUser;
+      this.pemFile = pemFile;
     }
   }
 
@@ -153,7 +165,7 @@ public class CommandFlags {
     }
 
     @Parameter(names = "--runid", description = "Run id.", required = true)
-    private Integer runId = null;
+    private Integer runId;
 
     public Integer getRunId() {
       return runId;
