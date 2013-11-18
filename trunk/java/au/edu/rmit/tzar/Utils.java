@@ -312,13 +312,13 @@ public class Utils {
         throws TzarException {
       int sleepTime = initialSleepTimeMillis;
       TzarException lastException = null;
-      for (int i = 0; i < retryCount; i++) {
+      for (int i = 1; i <= retryCount; i++) {
         try {
           retryable.exec();
           return;
         } catch (TzarException e) {
-          LOG.log(Level.WARNING, "Exception occurred, pausing for {0}ms and retrying. Retry #{1}. " +
-              "Error was: {2}", new Object[]{sleepTime, i, e.getMessage()});
+          LOG.log(Level.WARNING, "Exception occurred, pausing for {0}s and retrying. Retry #{1} of {2}. " +
+              "Error was: {3}", new Object[]{sleepTime/1000, i, retryCount, e.getMessage()});
           lastException = e;
           try {
             Thread.sleep(sleepTime);
