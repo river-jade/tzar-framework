@@ -6,6 +6,8 @@ package au.edu.rmit.tzar.api;
  * multiple scenarios).
  */
 public class Scenario {
+  public static final String DEFAULT_NAME = "default_scenario";
+
   private final String name;
   private final Parameters parameters;
 

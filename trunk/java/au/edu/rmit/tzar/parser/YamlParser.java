@@ -167,9 +167,6 @@ public class YamlParser {
       Repetitions reps = repetitions == null ? Repetitions.EMPTY_REPETITIONS : repetitions.toRepetitions();
       Map<String, CodeSourceImpl> libs = libraries == null ? ImmutableMap.<String, CodeSourceImpl>of() :
           LibraryBean.toLibraries(libraries);
-      if (scenarios == null || scenarios.isEmpty()) {
-        throw new TzarException("Invalid project specification. Must have at least one scenario defined.");
-      }
       return new ProjectSpecImpl(project_name, runner_class, runner_flags == null ? "" : runner_flags,
           base_params.toParameters(), ScenarioBean.toScenarios(scenarios), reps, libs);
     }
@@ -220,11 +217,14 @@ public class YamlParser {
     }
 
     public static List<Scenario> toScenarios(List<ScenarioBean> beans) {
-      List<Scenario> scenarios = Lists.newArrayList();
+      ImmutableList.Builder<Scenario> scenarios = ImmutableList.builder();
+      if (beans == null) {
+        return ImmutableList.of();
+      }
       for (ScenarioBean bean : beans) {
         scenarios.add(bean.toScenario());
       }
-      return scenarios;
+      return scenarios.build();
     }
 
     private Scenario toScenario() {
