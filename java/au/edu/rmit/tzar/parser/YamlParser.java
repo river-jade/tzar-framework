@@ -3,7 +3,7 @@ package au.edu.rmit.tzar.parser;
 import au.edu.rmit.tzar.Utils;
 import au.edu.rmit.tzar.api.*;
 import au.edu.rmit.tzar.repository.CodeSourceImpl;
-import com.google.common.base.Function;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -19,6 +19,7 @@ import org.yaml.snakeyaml.nodes.Tag;
 import java.io.*;
 import java.math.BigDecimal;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -278,33 +279,40 @@ public class YamlParser {
     private List<RepetitionGeneratorBean> generators;
     
     public Repetitions toRepetitions() {
-      List<Parameters> parametersList = static_repetitions == null ? null :
-          Lists.transform(static_repetitions, new Function<ParametersBean, Parameters>() {
-        @Override
-        public Parameters apply(ParametersBean bean) {
-          return bean == null ? Parameters.EMPTY_PARAMETERS : bean.toParameters();
+      List<Parameters> parametersList;
+      if (static_repetitions == null) {
+        parametersList = ImmutableList.of();
+      } else {
+        ImmutableList.Builder<Parameters> builder = ImmutableList.builder();
+        for (ParametersBean bean : static_repetitions) {
+          builder.add(bean.toParameters());
         }
-      });
+        parametersList = builder.build();
+      }
 
-      List<RepetitionGenerator<?>> repetitionGenerators = generators == null ? null : Lists.transform(generators,
-          new Function<RepetitionGeneratorBean, RepetitionGenerator<?>>() {
-        @Override
-        public RepetitionGenerator<?> apply(RepetitionGeneratorBean bean) {
-          return bean == null ? null : bean.toGenerator();
+      List<RepetitionGenerator<?>> repetitionGenerators;
+      if (generators == null) {
+        repetitionGenerators = ImmutableList.of();
+      } else {
+        ImmutableList.Builder<RepetitionGenerator<?>> builder = ImmutableList.builder();
+        for (RepetitionGeneratorBean bean : generators) {
+          builder.add(bean.toGenerator());
         }
-      });
+        repetitionGenerators = builder.build();
+      }
       return new Repetitions(parametersList, repetitionGenerators);
     }
 
     public static RepetitionsBean fromRepetitions(Repetitions repetitions) {
       RepetitionsBean bean = new RepetitionsBean();
-      bean.static_repetitions = Lists.transform(repetitions.getStaticRepetitions(),
-          new Function<Parameters, ParametersBean>() {
-            @Override
-            public ParametersBean apply(Parameters parameters) {
-              return parameters == null ? null : ParametersBean.fromParameters(parameters);
-            }
-      });
+      bean.static_repetitions = new ArrayList<ParametersBean>();
+      for (Parameters parameters : repetitions.getStaticRepetitions()) {
+        bean.static_repetitions.add(ParametersBean.fromParameters(parameters));
+      }
+      bean.generators = new ArrayList<RepetitionGeneratorBean>();
+      for (RepetitionGenerator<?> generator : repetitions.getGenerators()) {
+        bean.generators.add(RepetitionGeneratorBean.fromGenerators(generator));
+      }
       return bean;
     }
   }
@@ -327,6 +335,30 @@ public class YamlParser {
         default:
           throw new YAMLException("Generator type: " + generator_type + " not recognised.");
       }
+    }
+
+    public static RepetitionGeneratorBean fromGenerators(RepetitionGenerator<?> generator) {
+      Class<? extends RepetitionGenerator> generatorClass = generator.getClass();
+      final RepetitionGenerator.GeneratorType type;
+      RepetitionGeneratorBean bean = new RepetitionGeneratorBean();
+      if (generatorClass == LinearStepGenerator.class) {
+        type = RepetitionGenerator.GeneratorType.LINEAR_STEP;
+        LinearStepGenerator linearStepGenerator = (LinearStepGenerator) generator;
+        bean.count = linearStepGenerator.count;
+        bean.start = linearStepGenerator.start;
+        bean.step_size = linearStepGenerator.stepSize;
+      } else if (generatorClass == NormalDistributionGenerator.class) {
+        type = RepetitionGenerator.GeneratorType.NORMAL_DISTRIBUTION;
+        NormalDistributionGenerator normalDistributionGenerator = (NormalDistributionGenerator) generator;
+        bean.count = normalDistributionGenerator.count;
+        bean.mean = normalDistributionGenerator.mean;
+        bean.std_dev = normalDistributionGenerator.stdDev;
+      } else {
+        throw new YAMLException("Generator type: " + generatorClass + " not recognised.");
+      }
+      bean.generator_type = type.toString().toLowerCase();
+      bean.key = generator.getKey();
+      return bean;
     }
   }
 }

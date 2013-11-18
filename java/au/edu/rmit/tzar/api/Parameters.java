@@ -72,7 +72,7 @@ public class Parameters {
    * Map of keys to values of type String, Integer, Boolean or BigDecimal.
    */
   public ImmutableMap<String, Object> getVariables() {
-    return variables != null ? variables : ImmutableMap.<String, Object>of();
+    return variables;
   }
 
   /**
@@ -80,7 +80,7 @@ public class Parameters {
    * using getQualifiedParams.
    */
   public ImmutableMap<String, String> getInputFiles() {
-    return inputFiles != null ? inputFiles : ImmutableMap.<String, String>of();
+    return inputFiles;
   }
 
   /**
@@ -88,7 +88,7 @@ public class Parameters {
    * using getQualifiedParams.
    */
   public ImmutableMap<String, String> getOutputFiles() {
-    return outputFiles != null ? outputFiles : ImmutableMap.<String, String>of();
+    return outputFiles;
   }
 
   /**
@@ -202,18 +202,18 @@ public class Parameters {
 
     Parameters that = (Parameters) o;
 
-    if (inputFiles != null ? !inputFiles.equals(that.inputFiles) : that.inputFiles != null) return false;
-    if (outputFiles != null ? !outputFiles.equals(that.outputFiles) : that.outputFiles != null) return false;
-    if (variables != null ? !variables.equals(that.variables) : that.variables != null) return false;
+    if (!inputFiles.equals(that.inputFiles)) return false;
+    if (!outputFiles.equals(that.outputFiles)) return false;
+    if (!variables.equals(that.variables)) return false;
 
     return true;
   }
 
   @Override
   public int hashCode() {
-    int result = variables != null ? variables.hashCode() : 0;
-    result = 31 * result + (inputFiles != null ? inputFiles.hashCode() : 0);
-    result = 31 * result + (outputFiles != null ? outputFiles.hashCode() : 0);
+    int result = variables.hashCode() ;
+    result = 31 * result + inputFiles.hashCode();
+    result = 31 * result + outputFiles.hashCode();
     return result;
   }
 

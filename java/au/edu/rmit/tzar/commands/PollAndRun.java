@@ -8,6 +8,7 @@ import au.edu.rmit.tzar.api.Run;
 import au.edu.rmit.tzar.api.TzarException;
 import au.edu.rmit.tzar.db.RunDao;
 import au.edu.rmit.tzar.resultscopier.ResultsCopier;
+import com.google.common.base.Optional;
 
 import java.io.File;
 import java.util.Date;
@@ -15,9 +16,6 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Semaphore;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -35,10 +33,8 @@ class PollAndRun implements Command {
 
   private final RunDao runDao;
   private final int pollRateMs;
-  private final String runset;
+  private final Optional<String> runset;
   private final ResultsCopier resultsCopier;
-  private final ExecutorService executorService;
-  private final Semaphore runningTasks;
   private final String clusterName;
   private final File baseOutputPath;
   private final File baseModelPath;
@@ -52,14 +48,13 @@ class PollAndRun implements Command {
    * @param resultsCopier to copy the results from this node to permanent storage
    * @param runset name of the runset to poll, or null to poll all runsets
    * @param clusterName name of the cluster which this node is running on
-   * @param concurrentTaskCount max number of runs to execute in parallel
    * @param baseOutputPath base local path for output of the runs
    * @param runnerFactory to create runners
    * @param repositoryUriPrefixes list of allowed repository uri prefixes
    */
-  public PollAndRun(RunDao runDao, int pollRateMs, ResultsCopier resultsCopier, String runset,
-      String clusterName, int concurrentTaskCount, File baseOutputPath, File baseModelPath,
-      RunnerFactory runnerFactory, List<String> repositoryUriPrefixes) {
+  public PollAndRun(RunDao runDao, int pollRateMs, ResultsCopier resultsCopier, Optional<String> runset,
+      String clusterName, File baseOutputPath, File baseModelPath, RunnerFactory runnerFactory,
+      List<String> repositoryUriPrefixes) {
     this.baseOutputPath = baseOutputPath;
     this.baseModelPath = baseModelPath;
     this.runnerFactory = runnerFactory;
@@ -69,8 +64,6 @@ class PollAndRun implements Command {
     this.clusterName = clusterName;
     this.resultsCopier = resultsCopier;
     this.repositoryUriPrefixes = repositoryUriPrefixes;
-    executorService = Executors.newFixedThreadPool(concurrentTaskCount);
-    runningTasks = new Semaphore(concurrentTaskCount);
   }
 
   /**
@@ -93,8 +86,6 @@ class PollAndRun implements Command {
     this.runset = POLL_AND_RUN_FLAGS.getRunset();
     this.clusterName = POLL_AND_RUN_FLAGS.getClusterName();
     this.resultsCopier = resultsCopier;
-    executorService = Executors.newFixedThreadPool(POLL_AND_RUN_FLAGS.getConcurrentTaskCount());
-    runningTasks = new Semaphore(POLL_AND_RUN_FLAGS.getConcurrentTaskCount());
     repositoryUriPrefixes = POLL_AND_RUN_FLAGS.getRepositoryUriPrefixes();
   }
 
@@ -126,17 +117,10 @@ class PollAndRun implements Command {
     run.setHostIp(Utils.getHostIp());
     if (!runDao.markRunInProgress(run)) {
       // another node must have grabbed the job.
-      runningTasks.release();
       return;
     }
 
-    executorService.submit(new DbExecutableRun(executableRun, resultsCopier, runDao, repositoryUriPrefixes,
-        new Callback() {
-          @Override
-          public void complete() {
-            runningTasks.release(); // release the semaphore now that the task is done
-          }
-        }));
+    new DbExecutableRun(executableRun, resultsCopier, runDao, repositoryUriPrefixes).run();
   }
 
   /**
@@ -145,28 +129,21 @@ class PollAndRun implements Command {
    * @throws InterruptedException
    */
   private void pollUntilDone() throws TzarException, InterruptedException {
-    runningTasks.acquire(); // this line will block if there are already max tasks running
-    try {
-      while (true) {
-        LOG.finer("Polling for next run.");
-        Run run = runDao.getNextRun(runset, clusterName);
-        if (run == null) {
-          return;
-        }
-        executeRun(run);
+    while (true) {
+      LOG.finer("Polling for next run.");
+      Optional<Run> run = runDao.getNextRun(runset, clusterName);
+      if (!run.isPresent()) {
+        return;
       }
-    } finally {
-      runningTasks.release();
+      executeRun(run.get());
     }
-  }
-
-  private static interface Callback {
-    void complete();
   }
 
   /**
    * A Runnable (ie implements Runnable) wrapper around ExecutableRun which
    * updates the database upon completion.
+   * TODO(river): this class exists as a legacy of the incomplete parallel run execution
+   * code. Either finish that work or remove this class.
    */
   private static class DbExecutableRun implements Runnable {
     private final ExecutableRun executableRun;
@@ -174,15 +151,13 @@ class PollAndRun implements Command {
     private final Run run;
     private final RunDao runDao;
     private final List<String> repositoryUriPrefixes;
-    private final Callback callback;
 
     public DbExecutableRun(ExecutableRun executableRun, ResultsCopier resultsCopier, RunDao runDao,
-        List<String> repositoryUriPrefixes, Callback callback) {
+        List<String> repositoryUriPrefixes) {
       this.executableRun = executableRun;
       this.resultsCopier = resultsCopier;
       this.runDao = runDao;
       this.repositoryUriPrefixes = repositoryUriPrefixes;
-      this.callback = callback;
       this.run = executableRun.getRun();
     }
 
@@ -226,7 +201,6 @@ class PollAndRun implements Command {
       } catch (TzarException e) {
         LOG.log(Level.WARNING, "Failed to copy the results for run: " + run.getRunId(), e);
       }
-      callback.complete();
     }
 
     /**

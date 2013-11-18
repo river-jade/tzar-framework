@@ -25,9 +25,9 @@ public class SshClientFactoryKeyAuth extends SshClientFactory {
     this.pemFile = pemFile;
   }
 
-  public SshClientFactoryKeyAuth(CommandFlags.PollAndRunFlags flags) {
-    super(flags.getScpOutputHost(), flags.getScpOutputUser());
-    this.pemFile = flags.getPemFile();
+  public SshClientFactoryKeyAuth(CommandFlags.ScpDestination scpDestination) {
+    super(scpDestination.host, scpDestination.scpOutputUser);
+    this.pemFile = scpDestination.pemFile;
   }
 
   @Override

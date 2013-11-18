@@ -6,11 +6,12 @@ import au.edu.rmit.tzar.repository.CodeSourceImpl;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.beust.jcommander.converters.FileConverter;
+import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableList;
 
 import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -132,7 +133,7 @@ class SharedFlags {
   @Parameters(separators = "= ")
   public static class LoadRunsFlags {
     @Parameter(names = "--states", description = "Run states to filter by.")
-    private List<String> states = new ArrayList<String>();
+    private List<String> states = ImmutableList.of();
 
     @Parameter(names = "--hostname", description = "Host name to filter by.")
     private String hostName = null;
@@ -141,18 +142,18 @@ class SharedFlags {
     private String runset = null;
 
     @Parameter(names = "--runids", description = "List of run ids.")
-    private List<Integer> runIds = null;
+    private List<Integer> runIds = ImmutableList.of();
 
     public List<String> getStates() {
       return states;
     }
 
-    public String getHostName() {
-      return hostName;
+    public Optional<String> getHostName() {
+      return Optional.fromNullable(hostName);
     }
 
-    public String getRunset() {
-      return runset;
+    public Optional<String> getRunset() {
+      return Optional.fromNullable(runset);
     }
 
     public List<Integer> getRunIds() {

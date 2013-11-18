@@ -1,7 +1,8 @@
 package au.edu.rmit.tzar.resultscopier;
 
-import au.edu.rmit.tzar.api.TzarException;
 import au.edu.rmit.tzar.api.Run;
+import au.edu.rmit.tzar.api.TzarException;
+import com.google.common.base.Optional;
 
 import java.io.File;
 import java.util.logging.Level;
@@ -23,27 +24,27 @@ public class RetryingResultsCopier implements ResultsCopier {
 
   @Override
   public void copyResults(Run run, File sourcePath, boolean success) throws TzarException {
-    TzarException e = null;
+    Optional<TzarException> e = Optional.absent();
     for (int i = 0; i < retryCount; i++) {
-      if (e != null) {
-        LOG.log(Level.WARNING, "Error copying results for run: " + run + ". Error: " + e.getMessage() +
+      if (e.isPresent()) {
+        LOG.log(Level.WARNING, "Error copying results for run: " + run + ". Error: " + e.get().getMessage() +
             " Retry: " + i);
       }
 
       e = copyResultsInternal(run, sourcePath, success);
-      if (e == null) { // success!
+      if (!e.isPresent()) { // no error, success!
         return;
       }
     }
-    throw e;
+    throw e.get();
   }
 
-  private TzarException copyResultsInternal(Run run, File sourcePath, boolean success) {
+  private Optional<TzarException> copyResultsInternal(Run run, File sourcePath, boolean success) {
     try {
       delegate.copyResults(run, sourcePath, success);
-      return null;
+      return Optional.absent();
     } catch (TzarException e) {
-      return e;
+      return Optional.of(e);
     }
   }
 }
