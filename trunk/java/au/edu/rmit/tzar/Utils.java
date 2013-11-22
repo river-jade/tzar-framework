@@ -20,6 +20,16 @@ public class Utils {
   private Utils() { // not to be instantiated
   }
 
+  /**
+   * Returns the default value if str is null or of zero length, str otherwise.
+   * @param str string to test and return if non-empty / null
+   * @param def default to return if str is empty or null
+   * @return str or def if str is empty or null
+   */
+  public static String defaultIfEmpty(String str, String def) {
+    return (str == null || str.isEmpty()) ?  def : str;
+  }
+
   public static String getHostname() {
     try {
       // This is the canonical way to retrieve the hostname. Unfortunately, if the /etc/hosts file

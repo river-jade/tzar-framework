@@ -19,6 +19,12 @@ public class CodeSourceImpl implements CodeSource {
   private final String revision;
   private final RepositoryType repositoryType;
 
+  /**
+   * Constructor.
+   * @param sourceUri uri specifying the location of the code / data
+   * @param repositoryType type of repository containing the code / data
+   * @param revision String representing the revision or empty String if this is not a versioned repository
+   */
   public CodeSourceImpl(URI sourceUri, RepositoryType repositoryType, String revision) {
     this.sourceUri = sourceUri;
     this.repositoryType = repositoryType;
@@ -47,7 +53,6 @@ public class CodeSourceImpl implements CodeSource {
   }
 
   @Override
-  // TODO(river): make this Optional<String>
   public String getRevision() {
     return revision;
   }
