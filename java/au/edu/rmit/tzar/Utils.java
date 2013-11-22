@@ -1,10 +1,13 @@
 package au.edu.rmit.tzar;
 
 import au.edu.rmit.tzar.api.TzarException;
+import com.google.common.base.Function;
+import com.google.common.base.Optional;
 import com.google.common.io.Files;
 
 import java.io.*;
 import java.net.*;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -207,6 +210,14 @@ public class Utils {
     }
   }
 
+  public static <V, I> V reduce(Iterable<I> iter, Function<Pair<V, I>, V> combiner, V initial) {
+    V currentVal = initial;
+    for (I val : iter) {
+      currentVal = combiner.apply(new Pair<V, I>(currentVal, val));
+    }
+    return currentVal;
+  }
+
   public interface RenamingStrategy {
     /**
      * Given a run and a (relative) file source path, returns a (relative)
@@ -241,6 +252,20 @@ public class Utils {
     }
   }
 
+  public static class Pair<V1, V2> {
+    public final V1 first;
+    public final V2 second;
+
+    private Pair(V1 first, V2 second) {
+      this.first = first;
+      this.second = second;
+    }
+
+    public static <V1, V2> Pair<V1, V2> of(V1 first, V2 second) {
+      return new Pair<V1, V2>(first, second);
+    }
+  }
+
   public static class AllFilesFilter implements Filter {
     @Override
     public boolean matches(File file) {
@@ -249,18 +274,26 @@ public class Utils {
   }
 
   public static class RegexFilter implements Utils.Filter {
-    private final Pattern filenamePattern;
+    private final Optional<Pattern> filenamePattern;
 
-    public RegexFilter(String filenameFilter) {
-      filenamePattern = filenameFilter == null ? null : Pattern.compile(filenameFilter);
+    public static RegexFilter of(Optional<String> filenameFilter) {
+      return new RegexFilter(filenameFilter.transform(new Function<String, Pattern>() {
+        public Pattern apply(String input) {
+          return Pattern.compile(input);
+        }
+      }));
+    }
+
+    private RegexFilter(Optional<Pattern> pattern) {
+      filenamePattern = pattern;
     }
 
     @Override
     public boolean matches(File file) {
-      if (filenamePattern == null) {
+      if (!filenamePattern.isPresent()) {
         return true;
       }
-      Matcher matcher = filenamePattern.matcher(file.toString());
+      Matcher matcher = filenamePattern.get().matcher(file.toString());
       return matcher.matches();
     }
   }
@@ -272,15 +305,11 @@ public class Utils {
      * @return
      */
     public static String combine(String... paths) {
-      if (paths.length == 0) {
-        return "";
-      }
-
-      File file = null;
-      for (String path : paths) {
-        file = new File(file, path);
-      }
-      return file.getPath();
+      return reduce(Arrays.asList(paths), new Function<Pair<File, String>, File>() {
+        public File apply(Pair<File, String> input) {
+          return new File(input.first, input.second);
+        }
+      }, null).getPath();
     }
 
     /**
@@ -290,16 +319,12 @@ public class Utils {
      * @param replacementChar the character to use to replace any whitespace characters
      * @return
      */
-    public static String combineAndReplaceWhitespace(String replacementChar, String... paths) {
-      if (paths.length == 0) {
-        return "";
-      }
-      File file = null;
-      for (String path : paths) {
-        file = new File(file, path.replaceAll("\\W", replacementChar));
-      }
-
-      return file.getPath();
+    public static String combineAndReplaceWhitespace(final String replacementChar, String... paths) {
+      return reduce(Arrays.asList(paths), new Function<Pair<File, String>, File>() {
+        public File apply(Pair<File, String> input) {
+          return new File(input.first, input.second.replaceAll("\\W", replacementChar));
+        }
+      }, null).getPath();
     }
   }
 

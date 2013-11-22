@@ -114,23 +114,21 @@ public class ExecutableRun {
       Map<String, String> wildcards = builder.build();
       Parameters parameters = run.getParameters().replaceWildcards(wildcards);
 
-      FileHandler handler = null;
+      FileHandler handler = setupLogFileHandler(outputPath);
+      RUNNER_LOGGER.addHandler(handler);
+      RUNNER_LOGGER.log(Level.INFO, "Executing run with revision: {0}, from project: {1}",
+          new Object[]{defaultIfEmpty(codeSource.getRevision(), "none"), codeSource.getSourceUri()});
+      File parametersFile = new File(outputPath, "parameters.yaml");
+
       boolean success = false;
       try {
-        handler = setupLogFileHandler(outputPath);
-        RUNNER_LOGGER.addHandler(handler);
-        RUNNER_LOGGER.log(Level.INFO, "Executing run with revision: {0}, from project: {1}",
-            new Object[]{defaultIfEmpty(codeSource.getRevision(), "none"), codeSource.getSourceUri()});
-        File parametersFile = new File(outputPath, "parameters.yaml");
         yamlParser.parametersToYaml(parameters, parametersFile);
         Runner runner = runnerFactory.getRunner(run.getRunnerClass());
         success = runner.runModel(model, outputPath, Integer.toString(run.getRunId()), run.getRunnerFlags(),
             parameters, RUNNER_LOGGER);
       } finally {
-        if (handler != null) {
-          RUNNER_LOGGER.removeHandler(handler);
-          handler.close();
-        }
+        RUNNER_LOGGER.removeHandler(handler);
+        handler.close();
         renameOutputDir(success);
       }
       return success;

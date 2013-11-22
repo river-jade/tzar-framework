@@ -3,6 +3,9 @@ package au.edu.rmit.tzar.parser;
 import au.edu.rmit.tzar.Utils;
 import au.edu.rmit.tzar.api.*;
 import au.edu.rmit.tzar.repository.CodeSourceImpl;
+import com.google.common.base.Joiner;
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -44,9 +47,7 @@ public class YamlParser {
    * @throws TzarException          if the file cannot be parsed
    */
   public Parameters parametersFromYaml(File file) throws FileNotFoundException, TzarException {
-    if (file == null) {
-      return Parameters.EMPTY_PARAMETERS;
-    }
+    Preconditions.checkNotNull(file);
     Yaml yaml = new Yaml(new ProjectSpecConstructor());
     return objectFromYaml(file, ParametersBean.class, yaml).toParameters();
   }
@@ -65,9 +66,7 @@ public class YamlParser {
    */
   public ProjectSpec projectSpecFromYaml(File file) throws FileNotFoundException, TzarException {
     Yaml yaml = new Yaml(new ProjectSpecConstructor());
-    ProjectSpecImpl projectSpec = objectFromYaml(file, ProjectSpecBean.class, yaml).toProjectSpec();
-    projectSpec.validate();
-    return projectSpec;
+    return objectFromYaml(file, ProjectSpecBean.class, yaml).toProjectSpec();
   }
 
   /**
@@ -82,9 +81,7 @@ public class YamlParser {
   }
 
   public Repetitions repetitionsFromYaml(File repetitionsFile) throws TzarException, FileNotFoundException {
-    if (repetitionsFile == null) {
-      return Repetitions.EMPTY_REPETITIONS;
-    }
+    Preconditions.checkNotNull(repetitionsFile);
     Yaml yaml = new Yaml(new Constructor(RepetitionsBean.class));
     return objectFromYaml(repetitionsFile, RepetitionsBean.class, yaml).toRepetitions();
   }
@@ -164,10 +161,25 @@ public class YamlParser {
     }
 
     public ProjectSpecImpl toProjectSpec() throws TzarException {
-      Repetitions reps = repetitions == null ? Repetitions.EMPTY_REPETITIONS : repetitions.toRepetitions();
-      Map<String, CodeSourceImpl> libs = libraries == null ? ImmutableMap.<String, CodeSourceImpl>of() :
-          LibraryBean.toLibraries(libraries);
-      return new ProjectSpecImpl(project_name, runner_class, runner_flags == null ? "" : runner_flags,
+      Repetitions reps = (repetitions == null ? Repetitions.EMPTY_REPETITIONS : repetitions.toRepetitions());
+      Map<String, CodeSourceImpl> libs = (libraries == null ? ImmutableMap.<String, CodeSourceImpl>of() :
+          LibraryBean.toLibraries(libraries));
+
+      List<String> errors = Lists.newArrayList();
+      if (base_params == null) {
+        errors.add("Base parameters must be set.");
+      }
+      if (project_name == null) {
+        errors.add("Project name must be set.");
+      }
+      if (runner_class == null) {
+        errors.add("Runner class must be set.");
+      }
+      if (!errors.isEmpty()) {
+        throw new TzarException(String.format("Errors parsing project spec: [\n%s\n]", Joiner.on("\n").join(errors)));
+      }
+
+      return new ProjectSpecImpl(project_name, runner_class, Strings.nullToEmpty(runner_flags),
           base_params.toParameters(), ScenarioBean.toScenarios(scenarios), reps, libs);
     }
   }
@@ -217,10 +229,10 @@ public class YamlParser {
     }
 
     public static List<Scenario> toScenarios(List<ScenarioBean> beans) {
-      ImmutableList.Builder<Scenario> scenarios = ImmutableList.builder();
       if (beans == null) {
         return ImmutableList.of();
       }
+      ImmutableList.Builder<Scenario> scenarios = ImmutableList.builder();
       for (ScenarioBean bean : beans) {
         scenarios.add(bean.toScenario());
       }

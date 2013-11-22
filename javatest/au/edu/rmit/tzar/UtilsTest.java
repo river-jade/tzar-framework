@@ -1,5 +1,6 @@
 package au.edu.rmit.tzar;
 
+import com.google.common.base.Optional;
 import junit.framework.TestCase;
 import org.python.google.common.io.Files;
 
@@ -40,7 +41,7 @@ public class UtilsTest extends TestCase {
     new File(source, "foo").createNewFile();
     new File(source, "bar").createNewFile();
 
-    Utils.copyDirectory(source, dest, new Utils.NoopRenamer(), new Utils.RegexFilter(filter));
+    Utils.copyDirectory(source, dest, new Utils.NoopRenamer(), Utils.RegexFilter.of(Optional.of(filter)));
   }
 
   public void testRecursiveDelete() throws IOException {
@@ -59,5 +60,15 @@ public class UtilsTest extends TestCase {
     assertEquals(new URI("file:///abc/def/ghi"), Utils.makeAbsoluteUri("/abc/def/ghi"));
     assertEquals(new URI("file:///abc/def/ghi"), Utils.makeAbsoluteUri("file:///abc/def/ghi"));
     assertEquals(new URI("http://abc/def/ghi"), Utils.makeAbsoluteUri("http://abc/def/ghi"));
+  }
+
+  public void testPathCombine() {
+    assertEquals("aaa" + File.separator + "bbb" + File.separator + "ccc",
+        Utils.Path.combine("aaa", "bbb", "ccc"));
+  }
+
+  public void testPathCombineAndReplace() {
+    assertEquals("a_a_a" + File.separator + "b_b_b" + File.separator + "ccc",
+        Utils.Path.combineAndReplaceWhitespace("_", "a a a", "b b b", "ccc"));
   }
 }

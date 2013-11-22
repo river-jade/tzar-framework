@@ -92,7 +92,8 @@ class CommandFactory {
       } else { // path specified but no host, so use file copier
         resultsCopier = new FileResultsCopier(finalOutputPath.get());
       }
-      resultsCopier = new CopierFactory().createAsyncCopier(resultsCopier, true, true, runDao, finalOutputPath.get());
+      resultsCopier = new CopierFactory().createAsyncCopier(resultsCopier, true, true, Optional.of(runDao),
+          finalOutputPath.get());
     }
 
     File baseLocalOutputPath = new File(tzarBaseDirectory, Constants.POLL_AND_RUN_OUTPUT_DIR);
@@ -219,8 +220,8 @@ class CommandFactory {
 
     abstract Command instantiate(CommandFactory factory) throws IOException, TzarException, ParseException;
 
-    public static Commands getCommandByName(String name) {
-      return map.get(name);
+    public static Optional<Commands> getCommandByName(String name) {
+      return Optional.fromNullable(map.get(name));
     }
 
     public String getName() {
