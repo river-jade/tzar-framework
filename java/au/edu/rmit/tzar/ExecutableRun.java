@@ -2,6 +2,7 @@ package au.edu.rmit.tzar;
 
 import au.edu.rmit.tzar.api.*;
 import au.edu.rmit.tzar.parser.YamlParser;
+import au.edu.rmit.tzar.repository.CodeSourceImpl;
 import com.google.common.collect.ImmutableMap;
 
 import java.io.File;
@@ -12,6 +13,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static au.edu.rmit.tzar.Utils.*;
 
 /**
  * An executable Run. Instances of this class have all the information they need to execute
@@ -46,7 +49,7 @@ public class ExecutableRun {
   public static ExecutableRun createExecutableRun(Run run, File baseOutputPath, File baseModelPath,
       RunnerFactory runnerFactory) throws TzarException {
 
-    baseOutputPath = new File(baseOutputPath, Utils.Path.combineAndReplaceWhitespace("_", run.getProjectName(),
+    baseOutputPath = new File(baseOutputPath, Path.combineAndReplaceWhitespace("_", run.getProjectName(),
         run.getRunset()));
 
     // TODO(river): this is a bit dodgy. if some bug cause the run id not to be set, then we would give
@@ -56,7 +59,7 @@ public class ExecutableRun {
       run.setRunId(getNextRunId(baseOutputPath));
     }
     // replace whitespace and punctuation in run name with '_' to make a valid path.
-    String dirName = Utils.Path.combineAndReplaceWhitespace("_", run.getRunId() + "_" + run.getScenarioName());
+    String dirName = Path.combineAndReplaceWhitespace("_", run.getRunId() + "_" + run.getScenarioName());
     LOG.log(Level.FINER, "Creating run: {0}", run);
     return new ExecutableRun(run, new File(baseOutputPath, dirName), runnerFactory, baseModelPath);
   }
@@ -84,11 +87,12 @@ public class ExecutableRun {
    * @throws TzarException if an error occurs executing the run
    */
   public boolean execute() throws TzarException {
-    File model = run.getCodeSource().getCode(baseModelPath);
+    CodeSourceImpl codeSource = run.getCodeSource();
+    File model = codeSource.getCode(baseModelPath);
     try {
       if (outputPath.exists()) {
         LOG.warning("Temp output path: " + outputPath + " already exists. Deleting.");
-        Utils.deleteRecursively(outputPath);
+        deleteRecursively(outputPath);
       }
       LOG.info("Creating temporary outputdir: " + outputPath);
       if (!outputPath.mkdirs()) {
@@ -115,6 +119,8 @@ public class ExecutableRun {
       try {
         handler = setupLogFileHandler(outputPath);
         RUNNER_LOGGER.addHandler(handler);
+        RUNNER_LOGGER.log(Level.INFO, "Executing run with revision: {0}, from project: {1}",
+            new Object[]{defaultIfEmpty(codeSource.getRevision(), "none"), codeSource.getSourceUri()});
         File parametersFile = new File(outputPath, "parameters.yaml");
         yamlParser.parametersToYaml(parameters, parametersFile);
         Runner runner = runnerFactory.getRunner(run.getRunnerClass());
@@ -197,12 +203,12 @@ public class ExecutableRun {
     if (destPath.exists()) {
       try {
         LOG.warning("Path: " + destPath + " already exists. Deleting.");
-        Utils.deleteRecursively(destPath);
+        deleteRecursively(destPath);
       } catch (IOException e) {
         throw new TzarException("Unable to delete existing path: " + destPath, e);
       }
     }
-    Utils.fileRename(outputPath, destPath);
+    fileRename(outputPath, destPath);
     outputPath = destPath;
   }
 }
