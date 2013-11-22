@@ -199,8 +199,8 @@ public class CommandFlags {
     private AggregateResultsFlags() {
     }
 
-    public String getFilenameFilter() {
-      return filenameFilter;
+    public Optional<String> getFilenameFilter() {
+      return Optional.fromNullable(filenameFilter);
     }
 
     public File getOutputPath() {

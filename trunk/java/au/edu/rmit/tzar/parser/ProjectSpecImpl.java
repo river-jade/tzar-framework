@@ -1,6 +1,9 @@
 package au.edu.rmit.tzar.parser;
 
-import au.edu.rmit.tzar.api.*;
+import au.edu.rmit.tzar.api.Parameters;
+import au.edu.rmit.tzar.api.ProjectSpec;
+import au.edu.rmit.tzar.api.Repetitions;
+import au.edu.rmit.tzar.api.Scenario;
 import au.edu.rmit.tzar.repository.CodeSourceImpl;
 
 import java.util.List;
@@ -58,31 +61,6 @@ public class ProjectSpecImpl implements ProjectSpec {
 
   @Override public List<Scenario> getScenarios() {
     return scenarios;
-  }
-
-  /**
-   * Validates that the project spec has been correctly initialised. Throws an exception if baseParams
-   * or projectName are not set.
-   *
-   * @throws au.edu.rmit.tzar.api.TzarException
-   */
-  public void validate() throws TzarException {
-    // Would be nicer to use a List and a Joiner here, but we don't
-    // want to introduce third party dependencies in the api package, and
-    // java has no string join method!!
-    StringBuilder errors = new StringBuilder();
-    if (baseParams == null) {
-      errors.append("Base parameters must be set.\n");
-    }
-    if (projectName == null) {
-      errors.append("Project name must be set.\n");
-    }
-    if (runnerClass == null) {
-      errors.append("Runner class must be set.\n");
-    }
-    if (errors.length() > 0) {
-      throw new TzarException(String.format("Errors parsing project spec: [\n%s\n]", errors));
-    }
   }
 
   @Override

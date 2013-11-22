@@ -5,6 +5,7 @@ import au.edu.rmit.tzar.ColorConsoleHandler;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
 import com.google.common.base.Joiner;
+import com.google.common.base.Optional;
 import com.google.common.collect.ObjectArrays;
 
 import java.io.BufferedReader;
@@ -64,9 +65,9 @@ public class Main {
     new File(System.getProperty("user.home"), "tzar").mkdir();
 
     String cmdStr = jCommander.getParsedCommand();
+    Optional<CommandFactory.Commands> cmd = CommandFactory.Commands.getCommandByName(cmdStr);
 
-    CommandFactory.Commands cmd = CommandFactory.Commands.getCommandByName(cmdStr);
-    if (cmd == null) {
+    if (!cmd.isPresent()) {
       if (SharedFlags.COMMON_FLAGS.isVersion()) {
         BufferedReader in = new BufferedReader(
             new InputStreamReader(Main.class.getResourceAsStream("/version.properties")));
@@ -84,7 +85,7 @@ public class Main {
     } else {
       try {
         setupLogging();
-        Command command = cmd.instantiate(new CommandFactory(jCommander));
+        Command command = cmd.get().instantiate(new CommandFactory(jCommander));
         if (!command.execute()) {
           System.exit(1);
         }

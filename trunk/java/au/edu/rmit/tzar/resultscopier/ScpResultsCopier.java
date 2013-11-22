@@ -38,12 +38,11 @@ public class ScpResultsCopier implements ResultsCopier {
     String hostname = sshClientFactory.getHostname();
     LOG.info("Copying results from: " + sourcePath + " to " + hostname + ":" + baseDestPath);
     try {
+      // we create a new ssh connection for each copy attempt, as we were having issues with
+      // connections dropping and not reconnecting. this is a bit less efficient, but more robust.
+      SSHClient sshClient = sshClientFactory.createSSHClient();
       boolean thrown = true;
-      SSHClient sshClient = null;
       try {
-        // we create a new ssh connection for each copy attempt, as we were having issues with
-        // connections dropping and not reconnecting. this is a bit less efficient, but more robust.
-        sshClient = sshClientFactory.createSSHClient();
         SCPFileTransfer scpFileTransfer = sshClient.newSCPFileTransfer();
 
         // slight hack here because the SCPFileTransfer class upload method doesn't accept a File object for
@@ -61,12 +60,7 @@ public class ScpResultsCopier implements ResultsCopier {
             new Object[]{run.getRunId(), sourcePath, hostname, baseDestPath});
         thrown = false;
       } finally {
-        if (sshClient != null) {
-          // if an exception was thrown, we make sure we don't
-          // throw another one while closing the connection (as this would mean that the first one
-          // would be lost).
-          Closeables.close(sshClient, thrown);
-        }
+        Closeables.close(sshClient, thrown);
       }
     } catch (IOException e) {
       throw new TzarException(e);

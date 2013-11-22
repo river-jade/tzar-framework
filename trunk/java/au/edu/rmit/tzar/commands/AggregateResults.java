@@ -96,7 +96,7 @@ class AggregateResults implements Command {
         }
       }
     });
-    regexFilter = new Utils.RegexFilter(flags.getFilenameFilter());
+    regexFilter = Utils.RegexFilter.of(flags.getFilenameFilter());
   }
 
   @Override

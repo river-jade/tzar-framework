@@ -93,7 +93,7 @@ public class Utils {
       String[] values = new String[numCols];
       for (int i = 0; i < numCols; i++) {
         String val = rs.getString(i + 1);
-        values[i] = val == null ? "null" : val;
+        values[i] = (val == null ? "null" : val);
       }
 
       printer.addRow(values);
