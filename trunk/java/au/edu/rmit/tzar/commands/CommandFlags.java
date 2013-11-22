@@ -50,17 +50,19 @@ public class CommandFlags {
         "server. Defaults to $HOME/.ssh/id_rsa", converter = FileConverter.class)
     private File pemFile = new File(System.getProperty("user.home"), ".ssh/id_rsa");
 
-    @Parameter(names = "--runset", description = "Name of runset to poll for. If omitted, will poll for any runs.")
-    private String runset = null;
+    @Parameter(names = "--runset", description = "Name of runset to poll for. If omitted, will poll for any runs.",
+        converter=Converters.OptionalString.class)
+    private Optional<String> runset = Optional.absent();
 
-    @Parameter(names = "--scpoutputhost", description = "Hostname for run output data and logs.")
-    private final String scpOutputHost = null;
+    @Parameter(names = "--scpoutputhost", description = "Hostname for run output data and logs.",
+        converter=Converters.OptionalString.class)
+    private final Optional<String> scpOutputHost = Optional.absent();
 
     @Parameter(names = "--finaloutputpath", description = "Remote path for run output data and logs. If " +
         "--scpoutputhost is set, this will be the path on the remote machine that files are copied to. Otherwise, " +
         "files will be copied to this path on the local machine (intended for use with mounted network drives).",
-        converter = FileConverter.class)
-    private final File finalOutputPath = null;
+        converter = Converters.OptionalFile.class)
+    private final Optional<File> finalOutputPath = Optional.absent();
 
     @Parameter(names = "--scpoutputuser", description = "Username for the run output ssh host. If not specified, " +
         "uses the current user")
@@ -81,7 +83,7 @@ public class CommandFlags {
     }
 
     public Optional<File> getFinalOutputPath() {
-      return Optional.fromNullable(finalOutputPath);
+      return finalOutputPath;
     }
 
     public List<String> getRepositoryUriPrefixes() {
@@ -89,7 +91,7 @@ public class CommandFlags {
     }
 
     public Optional<String> getRunset() {
-      return Optional.fromNullable(runset);
+      return runset;
     }
 
     public int getPollRateMs() {
@@ -97,11 +99,11 @@ public class CommandFlags {
     }
 
     public Optional<ScpDestination> getScpDestination() {
-      if (scpOutputHost == null) {
+      if (!scpOutputHost.isPresent()) {
         return Optional.absent();
       }
-      if (finalOutputPath != null) {
-        return Optional.of(new ScpDestination(scpOutputHost, scpOutputUser, pemFile));
+      if (finalOutputPath.isPresent()) {
+        return Optional.of(new ScpDestination(scpOutputHost.get(), scpOutputUser, pemFile));
       } else {
         throw new ParseException("If --scpoutputhost is set, --finaloutputpath must also be set.");
       }
@@ -178,8 +180,8 @@ public class CommandFlags {
   @Parameters(commandDescription = "Copy the results of a set of runs to a local dir for analysis.", separators = "= ")
   public static class AggregateResultsFlags {
     @Parameter(names = "--filenamefilter", description = "Regular expression matching name of files to include.",
-        required = false)
-    private String filenameFilter;
+        required = false, converter=Converters.OptionalString.class)
+    private Optional<String> filenameFilter = Optional.absent();
 
     @Parameter(names = "--outputpath", description = "Local path to put the consolidated data.", required = true)
     private File outputPath;
@@ -200,7 +202,7 @@ public class CommandFlags {
     }
 
     public Optional<String> getFilenameFilter() {
-      return Optional.fromNullable(filenameFilter);
+      return filenameFilter;
     }
 
     public File getOutputPath() {

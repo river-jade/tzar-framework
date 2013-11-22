@@ -135,11 +135,11 @@ class SharedFlags {
     @Parameter(names = "--states", description = "Run states to filter by.")
     private List<String> states = ImmutableList.of();
 
-    @Parameter(names = "--hostname", description = "Host name to filter by.")
-    private String hostName = null;
+    @Parameter(names = "--hostname", description = "Host name to filter by.", converter=Converters.OptionalString.class)
+    private Optional<String> hostName = Optional.absent();
 
-    @Parameter(names = "--runset", description = "Runset name to filter by.")
-    private String runset = null;
+    @Parameter(names = "--runset", description = "Runset name to filter by.", converter=Converters.OptionalString.class)
+    private Optional<String> runset = Optional.absent();
 
     @Parameter(names = "--runids", description = "List of run ids.")
     private List<Integer> runIds = ImmutableList.of();
@@ -149,11 +149,11 @@ class SharedFlags {
     }
 
     public Optional<String> getHostName() {
-      return Optional.fromNullable(hostName);
+      return hostName;
     }
 
     public Optional<String> getRunset() {
-      return Optional.fromNullable(runset);
+      return runset;
     }
 
     public List<Integer> getRunIds() {
@@ -170,7 +170,7 @@ class SharedFlags {
     }
 
     @Parameter(names = "--csv", description = "Set if output should be CSV format.")
-    private boolean outputType;
+    private boolean outputType = false;
 
     @Parameter(names = "--notruncate", description = "Set if output fields should be arbitrarily long.")
     private boolean noTruncateOutput = false;
