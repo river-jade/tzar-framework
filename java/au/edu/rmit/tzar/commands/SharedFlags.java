@@ -1,7 +1,7 @@
 package au.edu.rmit.tzar.commands;
 
-import au.edu.rmit.tzar.Constants;
 import au.edu.rmit.tzar.Utils;
+import au.edu.rmit.tzar.api.Constants;
 import au.edu.rmit.tzar.repository.CodeSourceImpl;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
@@ -71,9 +71,9 @@ class SharedFlags {
 
     @Parameter(description = "URI path to the repository where the project spec and model " +
         "code can be found. The structure of this value will depend on the type set in --repotype. If --repotype is " +
-        "\"local_file\", then this should be a local file path to the folder containing projectparams.yaml and the " +
+        "\"local_file\", then this should be a local file path to the folder containing project.yaml and the " +
         "model code. If it's \"svn\" for example, then it should be a URL pointing to a directory in a subversion " +
-        "repository that contains the projectparams.yaml and the model code.", required=true)
+        "repository that contains the project.yaml and the model code.", required=true)
     private List<String> projectPath = null;
 
     @Parameter(names = "--revision", description = "The source control revision of the model code to schedule for " +
@@ -85,7 +85,7 @@ class SharedFlags {
     @Parameter(names = "--repotype", description = "The type of repository that the project spec and model code " +
         "should be retrieved from. Currently accepted values are: 'LOCAL_FILE', 'SVN'. If not provided, Tzar will " +
         "attempt to guess based on the projectpath flag.")
-    private CodeSourceImpl.RepositoryType repositoryType;
+    private CodeSourceImpl.RepositoryTypeImpl repositoryType;
 
     @Parameter(names = "--runset", description = "Name of runset to schedule.")
     private String runset = Constants.DEFAULT_RUNSET;
@@ -111,13 +111,13 @@ class SharedFlags {
       }
     }
 
-    public CodeSourceImpl.RepositoryType getRepositoryType() {
+    public CodeSourceImpl.RepositoryTypeImpl getRepositoryType() {
       if (repositoryType == null) {
         String scheme = getProjectUri().getScheme();
         if ("http".equals(scheme) || "https".equals(scheme)) {
-          return CodeSourceImpl.RepositoryType.SVN;
+          return CodeSourceImpl.RepositoryTypeImpl.SVN;
         } else if ("file".equals(scheme) || scheme == null) {
-          return CodeSourceImpl.RepositoryType.LOCAL_FILE;
+          return CodeSourceImpl.RepositoryTypeImpl.LOCAL_FILE;
         } else {
           throw new ParseException("No repository type given, and couldn't guess type based on " +
               "provided projectpath. Try specifying the repotype explicitly.");

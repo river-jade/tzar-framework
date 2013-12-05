@@ -1,9 +1,7 @@
 package au.edu.rmit.tzar.api;
 
-import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 
 import java.io.File;
 import java.util.HashMap;
@@ -17,39 +15,26 @@ import java.util.regex.Pattern;
  */
 public class Parameters {
   private static final Logger LOG = Logger.getLogger(Parameters.class.getName());
-  public static final Parameters EMPTY_PARAMETERS = new Parameters(ImmutableMap.<String, Object>of(),
-      ImmutableMap.<String, String>of(),
-      ImmutableMap.<String, String>of());
+  public static final Parameters EMPTY_PARAMETERS = new Parameters(ImmutableMap.<String, Object>of());
 
-  private final ImmutableMap<String, Object> variables;
-  private final ImmutableMap<String, String> inputFiles;
-  private final ImmutableMap<String, String> outputFiles;
+  private final ImmutableMap<String, Object> parameters;
 
   /**
    * Factory method to create a new Parameters object. Verifies that there are no duplicate keys.
    *
-   * @param variables
-   * @param inputFiles
-   * @param outputFiles
+   * @param parameters
    * @return a new Parameters object
    * @throws TzarException if there are duplicate keys
    */
-  public static Parameters createParameters(Map<String, ?> variables, Map<String, String> inputFiles,
-      Map<String, String> outputFiles) throws TzarException {
-    checkForDuplicateKeys(variables, inputFiles);
-    checkForDuplicateKeys(variables, outputFiles);
-    checkForDuplicateKeys(inputFiles, outputFiles);
-    return new Parameters(variables, inputFiles, outputFiles);
+  public static Parameters createParameters(Map<String, ?> parameters) {
+    return new Parameters(ImmutableMap.copyOf(parameters));
   }
 
   /**
-   * Private constructor. Key names across the maps must be unique. Callers of this method should call validate
-   * immediately after, unless there are guaranteed to be no duplicate keys.
+   * Private constructor. Key names across the maps must be unique.
    */
-  private Parameters(Map<String, ?> variables, Map<String, String> inputFiles, Map<String, String> outputFiles) {
-    this.variables = ImmutableMap.copyOf(variables);
-    this.inputFiles = ImmutableMap.copyOf(inputFiles);
-    this.outputFiles = ImmutableMap.copyOf(outputFiles);
+  private Parameters(ImmutableMap<String, Object> parameters) {
+    this.parameters = parameters;
   }
 
   /**
@@ -57,38 +42,23 @@ public class Parameters {
    * where the input and output filenames are qualified
    * by the provided baseInputPath and baseOutputPaths respectively.
    *
+   * This method is deprecated, since we no longer have qualified params. This will simply return
+   * the parameters map. Use {@link #asMap} instead.
+   *
    * @param baseInputPath  the absolute base path for input files
    * @param baseOutputPath the absolute base path for output files
    * @return a Map of qualified parameters
    */
+  @Deprecated
   public Map<String, Object> getQualifiedParams(File baseInputPath, File baseOutputPath) {
-    Map<String, Object> qualifiedParams = Maps.newLinkedHashMap(variables);
-    qualifiedParams.putAll(prependPath(baseInputPath, inputFiles));
-    qualifiedParams.putAll(prependPath(baseOutputPath, outputFiles));
-    return qualifiedParams;
+    return parameters;
   }
 
   /**
    * Map of keys to values of type String, Integer, Boolean or BigDecimal.
    */
-  public ImmutableMap<String, Object> getVariables() {
-    return variables;
-  }
-
-  /**
-   * Map of keys to input file names. These can be qualified by an input file path
-   * using getQualifiedParams.
-   */
-  public ImmutableMap<String, String> getInputFiles() {
-    return inputFiles;
-  }
-
-  /**
-   * Map of keys to output file names. These can be qualified by an output file path
-   * using getQualifiedParams.
-   */
-  public ImmutableMap<String, String> getOutputFiles() {
-    return outputFiles;
+  public ImmutableMap<String, Object> asMap() {
+    return parameters;
   }
 
   /**
@@ -97,7 +67,7 @@ public class Parameters {
    * @return total number of parameters
    */
   public int getSize() {
-    return getOutputFiles().size() + getInputFiles().size() + getVariables().size();
+    return parameters.size();
   }
 
   /**
@@ -114,12 +84,8 @@ public class Parameters {
    *         objects
    */
   public Parameters mergeParameters(Parameters overrideParameters) throws TzarException {
-    Map<String, Object> variables = mergeParameters(getVariables(), overrideParameters.getVariables());
-    Map<String, String> inputFiles = mergeParameters(getInputFiles(),
-        overrideParameters.getInputFiles());
-    Map<String, String> outputFiles = mergeParameters(getOutputFiles(),
-        overrideParameters.getOutputFiles());
-    return createParameters(variables, inputFiles, outputFiles);
+    Map<String, Object> parameters = mergeParameterMaps(asMap(), overrideParameters.asMap());
+    return createParameters(parameters);
   }
 
   /**
@@ -136,9 +102,7 @@ public class Parameters {
    *         and outputFiles) replaced by the provided values.
    */
   public Parameters replaceWildcards(Map<String, String> wildcards) {
-    return new Parameters(replaceWildcards(variables, wildcards),
-        replaceWildcards(inputFiles, wildcards),
-        replaceWildcards(outputFiles, wildcards));
+    return Parameters.createParameters(replaceWildcards(parameters, wildcards));
   }
 
   private static <T> Map<String, T> replaceWildcards(ImmutableMap<String, T> inputMap, Map<String, String> wildcards) {
@@ -171,28 +135,10 @@ public class Parameters {
     return map.put(key, (T) value);
   }
 
-  private static void checkForDuplicateKeys(Map<String, ?> map1, Map<String, ?> map2) throws TzarException {
-    Sets.SetView<String> intersection = Sets.intersection(map1.keySet(), map2.keySet());
-    if (!intersection.isEmpty()) {
-      throw new TzarException("Duplicate keys found. There cannot be any shared keys between variables, " +
-          "input_files and output_files. Duplicate keys are: " + intersection);
-    }
-  }
-
-  private static <T> Map<String, T> mergeParameters(Map<String, T> baseParameters, Map<String, T> overrideParameters) {
+  private static <T> Map<String, T> mergeParameterMaps(Map<String, T> baseParameters, Map<String, T> overrideParameters) {
     HashMap<String, T> map = Maps.newHashMap(baseParameters);
     map.putAll(overrideParameters);
     return map;
-  }
-
-  private static Map<String, String> prependPath(final File baseFileName, Map<String, String> inputFiles) {
-    Function<String, String> appendFileName = new Function<String, String>() {
-      @Override
-      public String apply(String filename) {
-        return new File(baseFileName, filename).getAbsolutePath();
-      }
-    };
-    return Maps.transformValues(inputFiles, appendFileName);
   }
 
   @Override
@@ -202,27 +148,20 @@ public class Parameters {
 
     Parameters that = (Parameters) o;
 
-    if (!inputFiles.equals(that.inputFiles)) return false;
-    if (!outputFiles.equals(that.outputFiles)) return false;
-    if (!variables.equals(that.variables)) return false;
+    if (!parameters.equals(that.parameters)) return false;
 
     return true;
   }
 
   @Override
   public int hashCode() {
-    int result = variables.hashCode() ;
-    result = 31 * result + inputFiles.hashCode();
-    result = 31 * result + outputFiles.hashCode();
-    return result;
+    return parameters.hashCode();
   }
 
   @Override
   public String toString() {
     return "Parameters{" +
-        "variables=" + variables +
-        "\ninputFiles=" + inputFiles +
-        "\noutputFiles=" + outputFiles +
+        "parameters=" + parameters +
         '}';
   }
 }

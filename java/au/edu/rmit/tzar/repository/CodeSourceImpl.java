@@ -1,9 +1,7 @@
 package au.edu.rmit.tzar.repository;
 
 import au.edu.rmit.tzar.Utils;
-import au.edu.rmit.tzar.api.CodeSource;
-import au.edu.rmit.tzar.api.ProjectSpec;
-import au.edu.rmit.tzar.api.TzarException;
+import au.edu.rmit.tzar.api.*;
 import au.edu.rmit.tzar.parser.YamlParser;
 
 import java.io.File;
@@ -17,7 +15,7 @@ import java.net.URISyntaxException;
 public class CodeSourceImpl implements CodeSource {
   private final URI sourceUri;
   private final String revision;
-  private final RepositoryType repositoryType;
+  private final RepositoryTypeImpl repositoryType;
 
   /**
    * Constructor.
@@ -25,7 +23,7 @@ public class CodeSourceImpl implements CodeSource {
    * @param repositoryType type of repository containing the code / data
    * @param revision String representing the revision or empty String if this is not a versioned repository
    */
-  public CodeSourceImpl(URI sourceUri, RepositoryType repositoryType, String revision) {
+  public CodeSourceImpl(URI sourceUri, RepositoryTypeImpl repositoryType, String revision) {
     this.sourceUri = sourceUri;
     this.repositoryType = repositoryType;
     this.revision = revision;
@@ -39,7 +37,7 @@ public class CodeSourceImpl implements CodeSource {
   @Override
   public ProjectSpec getProjectSpec(File baseModelPath) throws TzarException, FileNotFoundException {
     YamlParser parser = new YamlParser();
-    File file = getRepository(baseModelPath).retrieveProjectParams("projectparams.yaml", revision);
+    File file = getRepository(baseModelPath).retrieveProjectParams(Constants.PROJECT_YAML, revision);
     return parser.projectSpecFromYaml(file);
   }
 
@@ -48,7 +46,7 @@ public class CodeSourceImpl implements CodeSource {
   }
 
   @Override
-  public RepositoryType getRepositoryType() {
+  public RepositoryTypeImpl getRepositoryType() {
     return repositoryType;
   }
 
@@ -99,7 +97,7 @@ public class CodeSourceImpl implements CodeSource {
         '}';
   }
 
-  public enum RepositoryType {
+  public enum RepositoryTypeImpl implements CodeSource.RepositoryType {
     LOCAL_FILE {
       @Override
       public CodeRepository createRepository(URI sourceUri, File baseModelPath) {
@@ -140,7 +138,6 @@ public class CodeSourceImpl implements CodeSource {
     };
 
     public abstract CodeRepository createRepository(URI sourceUri, File baseModelPath);
-
     public abstract boolean isValidRevision(String revision);
   }
 }

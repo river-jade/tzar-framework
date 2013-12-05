@@ -1,6 +1,4 @@
-package au.edu.rmit.tzar.repository;
-
-import au.edu.rmit.tzar.api.TzarException;
+package au.edu.rmit.tzar.api;
 
 import java.io.File;
 

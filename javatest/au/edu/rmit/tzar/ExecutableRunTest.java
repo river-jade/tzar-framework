@@ -1,9 +1,6 @@
 package au.edu.rmit.tzar;
 
-import au.edu.rmit.tzar.api.Parameters;
-import au.edu.rmit.tzar.api.Run;
-import au.edu.rmit.tzar.api.Runner;
-import au.edu.rmit.tzar.api.TzarException;
+import au.edu.rmit.tzar.api.*;
 import au.edu.rmit.tzar.repository.CodeSourceImpl;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Files;
@@ -63,8 +60,8 @@ public class ExecutableRunTest extends TestCase {
     variables.put("aac", "124$$run_id$$123");
     variables.put("libtest", "$$library_path(lib1)$$/2");
 
-    parameters = Parameters.createParameters(variables, INPUT_FILES, OUTPUT_FILES);
-    modelSource = new CodeSourceImpl(new URI(SOURCE_URL), CodeSourceImpl.RepositoryType.LOCAL_FILE, REVISION);
+    parameters = Parameters.createParameters(variables);
+    modelSource = new CodeSourceImpl(new URI(SOURCE_URL), CodeSourceImpl.RepositoryTypeImpl.LOCAL_FILE, REVISION);
 
     Run.ProjectInfo projectInfo = new Run.ProjectInfo(PROJECT_NAME, modelSource, libraries, RUNNER_CLASS, RUNNER_FLAGS);
     run = new Run(projectInfo, SCENARIO_NAME)
@@ -96,13 +93,13 @@ public class ExecutableRunTest extends TestCase {
 
   public void testLibraryParamReplacement() throws Exception {
     libraries = ImmutableMap.of(
-        "lib1", new CodeSourceImpl(new URI("file:///source/code/1"), CodeSourceImpl.RepositoryType.LOCAL_FILE, "123"),
-        "lib2", new CodeSourceImpl(new URI("file:///source/code/2"), CodeSourceImpl.RepositoryType.LOCAL_FILE, "223"),
-        "lib3", new CodeSourceImpl(new URI("file:///source/code/3"), CodeSourceImpl.RepositoryType.LOCAL_FILE, "323"));
+        "lib1", new CodeSourceImpl(new URI("file:///source/code/1"), CodeSourceImpl.RepositoryTypeImpl.LOCAL_FILE, "123"),
+        "lib2", new CodeSourceImpl(new URI("file:///source/code/2"), CodeSourceImpl.RepositoryTypeImpl.LOCAL_FILE, "223"),
+        "lib3", new CodeSourceImpl(new URI("file:///source/code/3"), CodeSourceImpl.RepositoryTypeImpl.LOCAL_FILE, "323"));
 
     // we rerun setup to recreate the objects that depend on library. a bit dodgy though.
     setUp();
-    Map<String, Object> variables = Maps.newHashMap(parameters.getVariables());
+    Map<String, Object> variables = Maps.newHashMap(parameters.asMap());
     variables.put("aac", "124" + RUN_ID + "123"); // because the id wildcard will be replaced
     variables.put("libtest", "/source/code/1/2");
 
@@ -111,7 +108,7 @@ public class ExecutableRunTest extends TestCase {
   }
 
   private void testExecute(boolean success) throws TzarException {
-    Map<String, Object> variables = Maps.newHashMap(parameters.getVariables());
+    Map<String, Object> variables = Maps.newHashMap(parameters.asMap());
     variables.put("aac", "124" + RUN_ID + "123"); // because the id wildcard will be replaced
     testExecute(success, variables);
   }
@@ -127,8 +124,7 @@ public class ExecutableRunTest extends TestCase {
         eq(Integer.toString(RUN_ID)), eq(RUNNER_FLAGS),
         parametersArgumentCaptor.capture(), isA(Logger.class));
 
-    Parameters expected = parameters.mergeParameters(Parameters.createParameters(variables, ImmutableMap.<String,
-        String>of(), ImmutableMap.<String, String>of()));
+    Parameters expected = parameters.mergeParameters(Parameters.createParameters(variables));
 
     assertEquals(expected, parametersArgumentCaptor.getValue());
     assertEquals(success, result);

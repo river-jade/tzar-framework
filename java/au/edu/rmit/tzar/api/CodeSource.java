@@ -1,7 +1,5 @@
 package au.edu.rmit.tzar.api;
 
-import au.edu.rmit.tzar.repository.CodeSourceImpl;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.URI;
@@ -43,5 +41,10 @@ public interface CodeSource {
    */
   URI getSourceUri();
 
-  CodeSourceImpl.RepositoryType getRepositoryType();
+  CodeSource.RepositoryType getRepositoryType();
+
+  public interface RepositoryType {
+    CodeRepository createRepository(URI sourceUri, File baseModelPath);
+    boolean isValidRevision(String revision);
+  }
 }

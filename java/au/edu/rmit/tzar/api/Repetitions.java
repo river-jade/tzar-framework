@@ -94,8 +94,7 @@ public class Repetitions {
       throws TzarException {
     List<Parameters> parametersList = Lists.newArrayList();
     for (List<KeyValuePair> keyValuePairs : cartesianProduct) {
-      parametersList.add(Parameters.createParameters(keyValuePairsToMap(keyValuePairs),
-          Maps.<String, String>newHashMap(), Maps.<String, String>newHashMap()));
+      parametersList.add(Parameters.createParameters(keyValuePairsToMap(keyValuePairs)));
     }
     return parametersList;
   }

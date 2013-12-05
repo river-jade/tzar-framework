@@ -1,5 +1,6 @@
 package au.edu.rmit.tzar.repository;
 
+import au.edu.rmit.tzar.api.CodeRepository;
 import au.edu.rmit.tzar.api.TzarException;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.io.Files;

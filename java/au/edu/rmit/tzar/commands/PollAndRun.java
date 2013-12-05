@@ -1,9 +1,9 @@
 package au.edu.rmit.tzar.commands;
 
-import au.edu.rmit.tzar.Constants;
 import au.edu.rmit.tzar.ExecutableRun;
 import au.edu.rmit.tzar.RunnerFactory;
 import au.edu.rmit.tzar.Utils;
+import au.edu.rmit.tzar.api.Constants;
 import au.edu.rmit.tzar.api.Run;
 import au.edu.rmit.tzar.api.TzarException;
 import au.edu.rmit.tzar.db.RunDao;

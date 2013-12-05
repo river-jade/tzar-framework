@@ -102,7 +102,7 @@ public class ParametersDao {
         addParam(resultSet, outputFiles, (String) param);
       }
     }
-    return Parameters.createParameters(variables, inputFiles, outputFiles);
+    return Parameters.createParameters(variables);
   }
 
   /**
@@ -206,25 +206,19 @@ public class ParametersDao {
     }
 
     public void insertParams(int runId, Parameters parameters) throws SQLException {
-      insertParams(runId, parameters.getOutputFiles(), "output_file");
-      insertParams(runId, parameters.getInputFiles(), "input_file");
-      insertParams(runId, parameters.getVariables(), "variable");
-    }
-
-    public void executeBatch() throws SQLException {
-      insertParam.executeBatch();
-    }
-
-    private void insertParams(int runId, Map<String, ?> parameters, String paramType) throws SQLException {
-      for (Map.Entry<String, ?> entry : parameters.entrySet()) {
+      for (Map.Entry<String, ?> entry : parameters.asMap().entrySet()) {
         insertParam.setInt(1, runId);
         insertParam.setString(2, entry.getKey());
         Object value = entry.getValue();
         insertParam.setString(3, value.toString());
-        insertParam.setString(4, paramType);
+        insertParam.setString(4, "variable");
         insertParam.setString(5, DataType.getType(value).name);
         insertParam.addBatch();
       }
+    }
+
+    public void executeBatch() throws SQLException {
+      insertParam.executeBatch();
     }
   }
 }

@@ -24,7 +24,7 @@ class BaseModel(object):
         decimals get passed as java.math.BigDecimal, which can't be used with '*')
         """
         return dict((k, decimal.Decimal(str(v)) if type(v) is java.math.BigDecimal else v) for k, v in
-            dict(params.getVariables()).iteritems())
+            dict(params.asMap()).iteritems())
 
     def run_r_code(self, rscript, params, variables=None, inputfiles=None,
                    outputfiles=None):

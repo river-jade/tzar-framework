@@ -29,23 +29,11 @@ public class RepetitionsTest extends TestCase {
     staticRepetitions.add(Parameters.createParameters(
         new HashMap<String, Object>() {{
           put("x", "y");
-        }},
-        new HashMap<String, String>() {{
-          put("a", "1.txt");
-        }},
-        new HashMap<String, String>() {{
-          put("b", "2.txt");
         }}
     ));
     staticRepetitions.add(Parameters.createParameters(
         new HashMap<String, Object>() {{
           put("x", "z");
-        }},
-        new HashMap<String, String>() {{
-          put("a", "3.txt");
-        }},
-        new HashMap<String, String>() {{
-          put("b", "4.txt");
         }}
     ));
 
@@ -71,10 +59,8 @@ public class RepetitionsTest extends TestCase {
     assertEquals(10, paramsList.size());
     for (int i = 0; i < 10; i++) {
       Parameters parameters = paramsList.get(i);
-      ImmutableMap<String, Object> variables = parameters.getVariables();
+      ImmutableMap<String, Object> variables = parameters.asMap();
       assertEquals(1, variables.size());
-      assertEquals(0, parameters.getInputFiles().size());
-      assertEquals(0, parameters.getOutputFiles().size());
       assertEquals(BigDecimal.valueOf(1.0 + (i * 2)), variables.get(KEY));
     }
   }

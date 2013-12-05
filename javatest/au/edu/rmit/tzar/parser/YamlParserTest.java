@@ -30,11 +30,11 @@ public class YamlParserTest extends TestCase {
 
   public void testWriteThenReadProjectSpec() throws Exception {
     Map<String, CodeSourceImpl> libraries = Maps.newLinkedHashMap();
-    libraries.put("library1", new CodeSourceImpl(new URI("/source/code/1"), CodeSourceImpl.RepositoryType.LOCAL_FILE,
+    libraries.put("library1", new CodeSourceImpl(new URI("/source/code/1"), CodeSourceImpl.RepositoryTypeImpl.LOCAL_FILE,
         "123"));
-    libraries.put("library2", new CodeSourceImpl(new URI("/source/code/2"), CodeSourceImpl.RepositoryType.LOCAL_FILE,
+    libraries.put("library2", new CodeSourceImpl(new URI("/source/code/2"), CodeSourceImpl.RepositoryTypeImpl.LOCAL_FILE,
         "124"));
-    libraries.put("library3", new CodeSourceImpl(new URI("/source/code/3"), CodeSourceImpl.RepositoryType.LOCAL_FILE,
+    libraries.put("library3", new CodeSourceImpl(new URI("/source/code/3"), CodeSourceImpl.RepositoryTypeImpl.LOCAL_FILE,
         "125"));
 
     Map<String, Object> variables = Maps.newLinkedHashMap();
@@ -44,9 +44,8 @@ public class YamlParserTest extends TestCase {
     Map<String, String> inputFiles = Maps.newLinkedHashMap();
     inputFiles.put("test4", "foo");
     inputFiles.put("test5", "bar");
-    Map<String, String> outputFiles = Maps.newLinkedHashMap();
 
-    Parameters baseParameters = Parameters.createParameters(variables, inputFiles, outputFiles);
+    Parameters baseParameters = Parameters.createParameters(variables);
 
     ArrayList<Scenario> scenarios = Lists.newArrayList();
 
@@ -56,7 +55,7 @@ public class YamlParserTest extends TestCase {
     inputFiles.put("test4", "foo2");
     inputFiles.put("test7", "flurgle");
 
-    Parameters overrideParameters1 = Parameters.createParameters(variables, inputFiles, outputFiles);
+    Parameters overrideParameters1 = Parameters.createParameters(variables);
     Parameters overrideParameters2 = Parameters.EMPTY_PARAMETERS;
     scenarios.add(new Scenario("test scenario1", overrideParameters1));
     scenarios.add(new Scenario("test scenario2", overrideParameters2));
@@ -86,10 +85,8 @@ public class YamlParserTest extends TestCase {
   public void testRepetitionDeserialisationAndGeneration() throws TzarException {
     String yaml =
         "static_repetitions : \n" +
-        "  - variables : \n" +
-        "      A : 1\n" +
-        "  - variables : \n" +
-        "      A : 2\n" +
+        "  - A : 1\n" +
+        "  - A : 2\n" +
         "generators : \n" +
         "  - key : B \n" +
         "    generator_type : linear_step \n" +
@@ -104,6 +101,9 @@ public class YamlParserTest extends TestCase {
     Repetitions repetitions = yamlParser.repetitionsFromYaml(yaml);
     assertEquals(LinearStepGenerator.class, repetitions.getGenerators().get(0).getClass());
     assertEquals(NormalDistributionGenerator.class, repetitions.getGenerators().get(1).getClass());
+    assertEquals(1, repetitions.getStaticRepetitions().get(0).asMap().get("A"));
+    assertEquals(2, repetitions.getStaticRepetitions().get(1).asMap().get("A"));
+
     List<Parameters> paramsList = repetitions.getParamsList();
     HashSet<Parameters> set = Sets.newHashSet(paramsList);
     assertEquals(200, paramsList.size());

@@ -2,7 +2,6 @@ package au.edu.rmit.tzar;
 
 import au.edu.rmit.tzar.api.*;
 import au.edu.rmit.tzar.parser.YamlParser;
-import au.edu.rmit.tzar.repository.CodeSourceImpl;
 import com.google.common.collect.ImmutableMap;
 
 import java.io.File;
@@ -87,7 +86,7 @@ public class ExecutableRun {
    * @throws TzarException if an error occurs executing the run
    */
   public boolean execute() throws TzarException {
-    CodeSourceImpl codeSource = run.getCodeSource();
+    CodeSource codeSource = run.getCodeSource();
     File model = codeSource.getCode(baseModelPath);
     try {
       if (outputPath.exists()) {

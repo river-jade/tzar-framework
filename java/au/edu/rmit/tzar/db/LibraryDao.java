@@ -50,6 +50,7 @@ public class LibraryDao {
 
   /**
    * Insert the given library into the libraries table.
+   *
    * @param name name of the library
    * @param repositoryType repo type for the library
    * @param sourceUri uri for the library
@@ -60,7 +61,7 @@ public class LibraryDao {
    * @throws TzarException
    */
   // TODO(river): use Library class when available
-  int insertLibrary(String name, CodeSourceImpl.RepositoryType repositoryType, URI sourceUri, String revision,
+  int insertLibrary(String name, CodeSource.RepositoryType repositoryType, URI sourceUri, String revision,
       Connection connection) throws SQLException, TzarException {
 
     PreparedStatement statement = connection.prepareStatement(
@@ -79,6 +80,7 @@ public class LibraryDao {
 
   /**
    * Find a library matching the given parameters.
+   *
    * @param connection db connection
    * @param repoType repo type of the library to find
    * @param uri uri of the library to find
@@ -88,7 +90,7 @@ public class LibraryDao {
    * @return an optional library. will be empty if none found
    * @throws SQLException
    */
-  Optional<Library> findLibrary(Connection connection, CodeSourceImpl.RepositoryType repoType, URI uri, String name,
+  Optional<Library> findLibrary(Connection connection, CodeSource.RepositoryType repoType, URI uri, String name,
       String revision) throws SQLException {
     PreparedStatement statement = connection.prepareStatement("SELECT library_id, repo_type, uri, name, revision " +
         "FROM libraries WHERE repo_type=? AND uri=? AND name=? AND revision=?");
@@ -122,7 +124,7 @@ public class LibraryDao {
       try {
         Library library = libraryFromResultSet(resultSet);
         CodeSource libCodeSource = new CodeSourceImpl(new URI(library.uri),
-            CodeSourceImpl.RepositoryType.valueOf(library.repoType.toUpperCase()), library.revision);
+            CodeSourceImpl.RepositoryTypeImpl.valueOf(library.repoType.toUpperCase()), library.revision);
         builder.put(library.name, libCodeSource);
       } catch (URISyntaxException e) {
         throw new TzarException(String.format("Invalid URI in database record. Run Id: %s", runId), e);

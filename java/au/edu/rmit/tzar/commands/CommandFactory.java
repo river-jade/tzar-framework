@@ -1,8 +1,8 @@
 package au.edu.rmit.tzar.commands;
 
-import au.edu.rmit.tzar.Constants;
 import au.edu.rmit.tzar.RunFactory;
 import au.edu.rmit.tzar.RunnerFactory;
+import au.edu.rmit.tzar.api.Constants;
 import au.edu.rmit.tzar.api.ProjectSpec;
 import au.edu.rmit.tzar.api.TzarException;
 import au.edu.rmit.tzar.db.DaoFactory;
@@ -46,7 +46,7 @@ class CommandFactory {
 
   public Command newExecLocalRuns() throws IOException, TzarException, ParseException {
     String revision = CREATE_RUNS_FLAGS.getRevision();
-    CodeSourceImpl.RepositoryType repositoryType = CREATE_RUNS_FLAGS.getRepositoryType();
+    CodeSourceImpl.RepositoryTypeImpl repositoryType = CREATE_RUNS_FLAGS.getRepositoryType();
     URI projectUri = CREATE_RUNS_FLAGS.getProjectUri();
     File baseModelPath = RUNNER_FLAGS.getBaseModelPath();
 
@@ -111,8 +111,8 @@ class CommandFactory {
     DaoFactory daoFactory = new DaoFactory(getDbUrl());
 
 
-    CodeSourceImpl.RepositoryType repositoryType = CREATE_RUNS_FLAGS.getRepositoryType();
-    if (repositoryType == CodeSourceImpl.RepositoryType.LOCAL_FILE) {
+    CodeSourceImpl.RepositoryTypeImpl repositoryType = CREATE_RUNS_FLAGS.getRepositoryType();
+    if (repositoryType == CodeSourceImpl.RepositoryTypeImpl.LOCAL_FILE) {
       throw new ParseException("Repository type: LOCAL_FILE is not valid when scheduling remote runs. " +
           "Please choose a different repository type.");
     }
@@ -128,7 +128,7 @@ class CommandFactory {
     return new ScheduleRuns(daoFactory.createRunDao(), CREATE_RUNS_FLAGS.getNumRuns(), runFactory);
   }
 
-  private static CodeSourceImpl createCodeSource(String revision, CodeSourceImpl.RepositoryType repositoryType,
+  private static CodeSourceImpl createCodeSource(String revision, CodeSourceImpl.RepositoryTypeImpl repositoryType,
       URI sourceUri, File baseModelPath) throws TzarException {
     if (revision.equals("head")) {
       revision = repositoryType.createRepository(sourceUri, baseModelPath).getHeadRevision();
