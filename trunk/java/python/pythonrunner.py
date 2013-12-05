@@ -30,7 +30,7 @@ def main(args):
         runid = options.runid
         inputpath = os.path.join(modelpath, options.inputdir)
 
-        params = Parameters(json.load(file(options.paramfile)))
+        params = json.load(file(options.paramfile))
 
         sys.path.insert(0, modelpath)
 
@@ -102,37 +102,6 @@ class Logger(object):
 
     def setLevel(self, level):
         self.logger.setLevel(level)
-
-class Parameters(object):
-    def __init__(self, json):
-        self.variables = json['variables']
-        self.inputfiles = json['inputFiles']
-        self.outputfiles = json['outputFiles']
-
-    def getVariables(self):
-        return self.variables
-
-    def getInputFiles(self):
-        return self.inputfiles
-
-    def getOutputFiles(self):
-        return self.outputfiles
-
-    def get_size(self):
-        return len(outputfiles) + len(inputfiles) + len(variables)
-
-    def getQualifiedParams(self, baseInputPath, baseOutputPath):
-        ret = {}
-        ret.update(self.variables)
-        ret.update(dict([(x, os.path.join(baseInputPath, y)) for (x, y) in self.inputfiles.iteritems()]))
-        ret.update(dict([(x, os.path.join(baseOutputPath, y)) for (x, y) in self.outputfiles.iteritems()]))
-        return ret
-
-    def merge_parameters(self, overrideParameters):
-        Pass
-        
-    def merge_parameters(variables, inputFiles, outputFiles):
-        Pass
 
 if __name__ == "__main__":
     sys.exit(main(sys.argv))

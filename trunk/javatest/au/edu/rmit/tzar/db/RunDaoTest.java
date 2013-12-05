@@ -68,7 +68,8 @@ public class RunDaoTest extends TestCase {
     when(mockParametersDao.createBatchInserter(mockConnection)).thenReturn(mockBatchInserter);
     runDao = new RunDao(mockConnectionFactory, mockParametersDao, mockLibraryDao);
 
-    CodeSourceImpl codeSource = new CodeSourceImpl(new URI(MODEL_URL), CodeSourceImpl.RepositoryType.SVN, CODE_VERSION);
+    CodeSourceImpl codeSource = new CodeSourceImpl(new URI(MODEL_URL), CodeSourceImpl.RepositoryTypeImpl.SVN,
+        CODE_VERSION);
     ImmutableMap<String, CodeSource> library = ImmutableMap.of();
     projectInfo = new Run.ProjectInfo(PROJECT_NAME, codeSource, library, RUNNER_CLASS, RUNNER_FLAGS);
   }
@@ -109,7 +110,7 @@ public class RunDaoTest extends TestCase {
 
     runs.add(run);
 
-    CodeSourceImpl codeSource2 = new CodeSourceImpl(new URI(MODEL_URL), CodeSourceImpl.RepositoryType.LOCAL_FILE,
+    CodeSourceImpl codeSource2 = new CodeSourceImpl(new URI(MODEL_URL), CodeSourceImpl.RepositoryTypeImpl.LOCAL_FILE,
         CODE_VERSION + 1);
     Run.ProjectInfo projectInfo2 = new Run.ProjectInfo(PROJECT_NAME, codeSource2, null, RUNNER_CLASS, RUNNER_FLAGS);
     run = new Run(projectInfo2, SCENARIO_NAME + 1)
@@ -148,7 +149,7 @@ public class RunDaoTest extends TestCase {
     inOrder.verify(insertRun).setInt(1, FIRST_RUN_ID + 1);
     inOrder.verify(insertRun).setString(2, "in_progress");
     inOrder.verify(insertRun).setString(3, MODEL_URL);
-    inOrder.verify(insertRun).setString(4, CodeSourceImpl.RepositoryType.LOCAL_FILE.name());
+    inOrder.verify(insertRun).setString(4, CodeSourceImpl.RepositoryTypeImpl.LOCAL_FILE.name());
     inOrder.verify(insertRun).setString(5, CODE_VERSION + 1);
     inOrder.verify(insertRun).setString(6, PROJECT_NAME);
     inOrder.verify(insertRun).setString(7, SCENARIO_NAME + "1");
@@ -163,9 +164,7 @@ public class RunDaoTest extends TestCase {
     List<Run> runs = Lists.newArrayList();
 
     Parameters parameters = Parameters.createParameters(
-        ImmutableMap.<String, String>of("var1", "varval1"),
-        ImmutableMap.<String, String>of("in1", "inval1"),
-        ImmutableMap.<String, String>of("out1", "outval1")
+        ImmutableMap.<String, String>of("var1", "varval1")
     );
     Run run = new Run(projectInfo, SCENARIO_NAME)
         .setRunId(RUN_ID)

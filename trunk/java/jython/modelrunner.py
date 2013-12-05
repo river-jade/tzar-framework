@@ -55,7 +55,7 @@ class ModelRunner(Runner):
         decimals get passed as java.math.BigDecimal, which can't be used with '*')
         """
         return dict((k, decimal.Decimal(str(v)) if type(v) is java.math.BigDecimal else v) for k, v in
-            dict(params.getVariables()).iteritems())
+            dict(params.asMap()).iteritems())
 
     def parse_flags(self, parser, flags):
         """Configures the command-line flag parser.

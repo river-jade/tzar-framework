@@ -1,7 +1,7 @@
 package au.edu.rmit.tzar.commands;
 
 
-import au.edu.rmit.tzar.Constants;
+import au.edu.rmit.tzar.api.Constants;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.beust.jcommander.converters.FileConverter;

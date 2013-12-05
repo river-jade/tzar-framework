@@ -8,13 +8,11 @@ class Model(basemodel.BaseModel):
         # if the --verbose flag is specified, all logging will also go to the console.
         self.logger.fine("I'm in model.py!!")
 
-        # get parameters qualified by input and output file paths
-        # This is only required if you want to read / write input / output files from python.
-        qualifiedparams = runparams.getQualifiedParams(self.inputpath, self.outputpath)
-
         # gets the variables, with (java) decimal values converted to python decimals
         # this is useful if you want to use arithmetic operations within python.
         variables = self.get_decimal_params(runparams)
 
         self.logger.fine("\nRandom.seed is %s" % variables['random.seed'])
         self.logger.fine("\nTest variable 4 is the string: %s" % variables['test.variable.4'])
+        self.logger.fine("\nPAR.testing.output.filename is: %s" % variables['PAR.testing.output.filename'])
+        self.logger.fine("\nPAR.testing.output.filename2 is: %s" % variables['PAR.testing.output.filename2'])

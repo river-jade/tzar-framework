@@ -33,7 +33,7 @@ public class RunFactoryTest extends TestCase {
     sourceUrl = new URI("/path/to/code");
     mockProjectSpec = mock(ProjectSpec.class);
     mockRepetitions = mock(Repetitions.class);
-    codeSource = new CodeSourceImpl(sourceUrl, CodeSourceImpl.RepositoryType.LOCAL_FILE, REVISION);
+    codeSource = new CodeSourceImpl(sourceUrl, CodeSourceImpl.RepositoryTypeImpl.LOCAL_FILE, REVISION);
   }
 
   /**
@@ -45,23 +45,18 @@ public class RunFactoryTest extends TestCase {
     RunFactory runFactory = new RunFactory(codeSource, RUNSET, CLUSTER_NAME, mockProjectSpec);
 
     when(mockProjectSpec.getBaseParams()).thenReturn(
-        Parameters.createParameters(ImmutableMap.of("A", 0, "B", 0, "C", 0, "D", -1),
-            ImmutableMap.<String, String>of(), ImmutableMap.<String, String>of()));
+        Parameters.createParameters(ImmutableMap.of("A", 0, "B", 0, "C", 0, "D", -1)));
 
     when(mockProjectSpec.getRepetitions()).thenReturn(mockRepetitions);
 
     List<Scenario> scenarios = ImmutableList.of(
-        new Scenario("scenario1", Parameters.createParameters(ImmutableMap.of("A", 1, "B", 1, "C", 1),
-        ImmutableMap.<String, String>of(), ImmutableMap.<String, String>of())),
-        new Scenario("scenario1", Parameters.createParameters(ImmutableMap.of("A", 2, "B", 2, "C", 2),
-            ImmutableMap.<String, String>of(), ImmutableMap.<String, String>of())));
+        new Scenario("scenario1", Parameters.createParameters(ImmutableMap.of("A", 1, "B", 1, "C", 1))),
+        new Scenario("scenario1", Parameters.createParameters(ImmutableMap.of("A", 2, "B", 2, "C", 2))));
     when(mockProjectSpec.getScenarios()).thenReturn(scenarios);
 
     List<Parameters> repetitionsParams = new ArrayList<Parameters>();
-    repetitionsParams.add(Parameters.createParameters(ImmutableMap.of("A", 3, "B", 4),
-        ImmutableMap.<String, String>of(), ImmutableMap.<String, String>of()));
-    repetitionsParams.add(Parameters.createParameters(ImmutableMap.of("A", 5, "B", 6),
-        ImmutableMap.<String, String>of(), ImmutableMap.<String, String>of()));
+    repetitionsParams.add(Parameters.createParameters(ImmutableMap.of("A", 3, "B", 4)));
+    repetitionsParams.add(Parameters.createParameters(ImmutableMap.of("A", 5, "B", 6)));
     when(mockRepetitions.getParamsList()).thenReturn(repetitionsParams);
 
     List<Run> runs = runFactory.createRuns(2);
@@ -80,7 +75,7 @@ public class RunFactoryTest extends TestCase {
     );
 
     for (Run run : runs) {
-      ImmutableMap<String, Object> variables = run.getParameters().getVariables();
+      ImmutableMap<String, Object> variables = run.getParameters().asMap();
       assertTrue(expected.remove(ImmutableList.of(
           (Integer)variables.get("A"),
           (Integer)variables.get("B"),

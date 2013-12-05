@@ -163,7 +163,7 @@ public class RunDao {
         connection.prepareStatement("SET CONSTRAINTS run_libraries_run_id_fkey DEFERRED").execute();
         ParametersDao.BatchInserter batchInserter = parametersDao.createBatchInserter(connection);
         for (Run run : runs) {
-          CodeSourceImpl codeSource = run.getCodeSource();
+          CodeSource codeSource = run.getCodeSource();
           run.setRunId(nextRunId);
           insertRun.setInt(1, nextRunId);
           insertRun.setString(2, run.getState().name().toLowerCase());
@@ -297,7 +297,7 @@ public class RunDao {
           modelUrlString + ". Error was: " + e.getMessage());
     }
     CodeSourceImpl codeSource = new CodeSourceImpl(modelUri,
-        CodeSourceImpl.RepositoryType.valueOf(resultSet.getString("model_repo_type").toUpperCase()),
+        CodeSourceImpl.RepositoryTypeImpl.valueOf(resultSet.getString("model_repo_type").toUpperCase()),
         resultSet.getString("model_revision"));
 
     Run.ProjectInfo projectInfo = new Run.ProjectInfo(resultSet.getString("project_name"), codeSource,

@@ -1,7 +1,5 @@
 package au.edu.rmit.tzar.api;
 
-import au.edu.rmit.tzar.Constants;
-import au.edu.rmit.tzar.repository.CodeSourceImpl;
 import com.google.common.base.Objects;
 
 import java.io.File;
@@ -67,7 +65,7 @@ public class Run {
     return this;
   }
 
-  public CodeSourceImpl getCodeSource() {
+  public CodeSource getCodeSource() {
     return projectInfo.codeSource;
   }
 
@@ -230,12 +228,12 @@ public class Run {
 
   public static class ProjectInfo {
     private final String projectName;
-    private final CodeSourceImpl codeSource;
+    private final CodeSource codeSource;
     private final Map<String, ? extends CodeSource> libraries;
     private final String runnerClass;
     private final String runnerFlags;
 
-    public ProjectInfo(String projectName, CodeSourceImpl codeSource, Map<String, ? extends CodeSource> libraries,
+    public ProjectInfo(String projectName, CodeSource codeSource, Map<String, ? extends CodeSource> libraries,
         String runnerClass, String runnerFlags) {
       this.projectName = projectName;
       this.codeSource = codeSource;
@@ -259,7 +257,8 @@ public class Run {
       }
       final ProjectInfo other = (ProjectInfo) obj;
       return Objects.equal(this.projectName, other.projectName) && Objects.equal(this.codeSource,
-          other.codeSource) && Objects.equal(this.libraries, other.libraries) && Objects.equal(this.runnerClass, other.runnerClass) && Objects.equal(this.runnerFlags, other.runnerFlags);
+          other.codeSource) && Objects.equal(this.libraries, other.libraries) && Objects.equal(this.runnerClass,
+          other.runnerClass) && Objects.equal(this.runnerFlags, other.runnerFlags);
     }
 
     @Override

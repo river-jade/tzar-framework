@@ -40,7 +40,7 @@ class RRunner(Runner):
     def write_run_params_to_r(self, params, outputpath):
         routfile = open(os.path.join(self.rpath, "variables.R"), 'w')
 
-        for key, val in dict(params.getQualifiedParams(self.inputpath, outputpath)).items():
+        for key, val in dict(params.asMap()).items():
             if type(val) == bool:
                 val = str(val).upper()
             elif type(val) == unicode or type(val) == str:

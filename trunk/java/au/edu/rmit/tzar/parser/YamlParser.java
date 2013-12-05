@@ -38,22 +38,8 @@ public class YamlParser {
     options.setAllowReadOnlyProperties(true);
   }
 
-  /**
-   * Loads parameters from a YAML file containing just parameters.
-   *
-   * @param file the yaml file
-   * @return a newly constructed and populated Parameters object
-   * @throws java.io.FileNotFoundException if the file does not exist
-   * @throws TzarException          if the file cannot be parsed
-   */
-  public Parameters parametersFromYaml(File file) throws FileNotFoundException, TzarException {
-    Preconditions.checkNotNull(file);
-    Yaml yaml = new Yaml(new ProjectSpecConstructor());
-    return objectFromYaml(file, ParametersBean.class, yaml).toParameters();
-  }
-
   public void parametersToYaml(Parameters parameters, File file) throws IOException {
-    objectToYaml(ParametersBean.fromParameters(parameters), file);
+    objectToYaml(parameters.asMap(), file);
   }
 
   /**
@@ -140,7 +126,7 @@ public class YamlParser {
   }
 
   private static class ProjectSpecBean {
-    private ParametersBean base_params;
+    private Map<String, Object> base_params;
     private List<ScenarioBean> scenarios;
     private String project_name;
     private String runner_class;
@@ -150,7 +136,7 @@ public class YamlParser {
 
     public static ProjectSpecBean fromProjectSpec(ProjectSpecImpl spec) {
       ProjectSpecBean bean = new ProjectSpecBean();
-      bean.base_params = ParametersBean.fromParameters(spec.getBaseParams());
+      bean.base_params = spec.getBaseParams().asMap();
       bean.scenarios = ScenarioBean.fromScenarios(spec.getScenarios());
       bean.project_name = spec.getProjectName();
       bean.runner_class = spec.getRunnerClass();
@@ -180,38 +166,13 @@ public class YamlParser {
       }
 
       return new ProjectSpecImpl(project_name, runner_class, Strings.nullToEmpty(runner_flags),
-          base_params.toParameters(), ScenarioBean.toScenarios(scenarios), reps, libs);
-    }
-  }
-
-  private static class ParametersBean {
-    private Map<String, Object> variables;
-    private Map<String, String> input_files;
-    private Map<String, String> output_files;
-
-    public static ParametersBean fromParameters(Parameters parameters) {
-      ParametersBean bean = new ParametersBean();
-      bean.input_files = parameters.getInputFiles();
-      bean.output_files = parameters.getOutputFiles();
-      bean.variables = parameters.getVariables();
-      return bean;
-    }
-
-    public Parameters toParameters() {
-      try {
-        return Parameters.createParameters(
-            variables == null ? ImmutableMap.<String, Object>of() : variables,
-            input_files == null ? ImmutableMap.<String, String>of() : input_files,
-            output_files == null ? ImmutableMap.<String, String>of() : output_files);
-      } catch (TzarException e) {
-        throw new YAMLException("Couldn't parse parameters.", e);
-      }
+          Parameters.createParameters(base_params), ScenarioBean.toScenarios(scenarios), reps, libs);
     }
   }
 
   private static class ScenarioBean {
     private String name;
-    private ParametersBean parameters;
+    private Map<String, Object> parameters;
     
     public static List<ScenarioBean> fromScenarios(List<Scenario> scenarios) {
       List<ScenarioBean> beans = Lists.newArrayList();
@@ -224,7 +185,7 @@ public class YamlParser {
     public static ScenarioBean fromScenario(Scenario scenario) {
       ScenarioBean bean = new ScenarioBean();
       bean.name = scenario.getName();
-      bean.parameters = ParametersBean.fromParameters(scenario.getParameters());
+      bean.parameters = scenario.getParameters().asMap();
       return bean;
     }
 
@@ -240,7 +201,8 @@ public class YamlParser {
     }
 
     private Scenario toScenario() {
-      return new Scenario(name, parameters.toParameters());
+      return new Scenario(name, parameters == null ? Parameters.EMPTY_PARAMETERS :
+          Parameters.createParameters(parameters));
     }
   }
 
@@ -279,7 +241,7 @@ public class YamlParser {
     private CodeSourceImpl toCodeSource() {
       try {
         return new CodeSourceImpl(Utils.makeAbsoluteUri(uri),
-            CodeSourceImpl.RepositoryType.valueOf(repo_type.toUpperCase()), revision);
+            CodeSourceImpl.RepositoryTypeImpl.valueOf(repo_type.toUpperCase()), revision);
       } catch (URISyntaxException e) {
         throw new YAMLException("Library code source URL (" + uri + ") was not a valid URI: " + e.getMessage());
       }
@@ -287,7 +249,7 @@ public class YamlParser {
   }
 
   private static class RepetitionsBean {
-    private List<ParametersBean> static_repetitions;
+    private List<Map<String, Object>> static_repetitions;
     private List<RepetitionGeneratorBean> generators;
     
     public Repetitions toRepetitions() {
@@ -296,8 +258,8 @@ public class YamlParser {
         parametersList = ImmutableList.of();
       } else {
         ImmutableList.Builder<Parameters> builder = ImmutableList.builder();
-        for (ParametersBean bean : static_repetitions) {
-          builder.add(bean.toParameters());
+        for (Map<String, Object> bean : static_repetitions) {
+          builder.add(Parameters.createParameters(bean));
         }
         parametersList = builder.build();
       }
@@ -317,9 +279,10 @@ public class YamlParser {
 
     public static RepetitionsBean fromRepetitions(Repetitions repetitions) {
       RepetitionsBean bean = new RepetitionsBean();
-      bean.static_repetitions = new ArrayList<ParametersBean>();
+      bean.static_repetitions = new ArrayList<Map<String, Object>>();
       for (Parameters parameters : repetitions.getStaticRepetitions()) {
-        bean.static_repetitions.add(ParametersBean.fromParameters(parameters));
+        Map<String, Object> map = parameters.asMap();
+        bean.static_repetitions.add(map);
       }
       bean.generators = new ArrayList<RepetitionGeneratorBean>();
       for (RepetitionGenerator<?> generator : repetitions.getGenerators()) {

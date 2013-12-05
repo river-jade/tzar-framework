@@ -1,4 +1,4 @@
-package au.edu.rmit.tzar;
+package au.edu.rmit.tzar.api;
 
 import java.io.File;
 
@@ -38,4 +38,8 @@ public class Constants {
   // rotate pollandrun spinner on stdout every 1 sec.
   public static final int SPINNER_ROTATION_INTERVAL_MS = 1000;
   public static final String STOP_FILE_NAME = "stop.now";
+
+  // default name of the project yaml file, which contains a projects configuration
+  // and parameters
+  public static final String PROJECT_YAML = "project.yaml";
 }
