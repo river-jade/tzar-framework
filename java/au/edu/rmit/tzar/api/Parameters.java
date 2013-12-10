@@ -115,7 +115,9 @@ public class Parameters {
         while (matcher.find()) {
           String wildcard = matcher.group(1);
           if (wildcards.containsKey(wildcard)) {
-            value = matcher.replaceFirst(wildcards.get(wildcard));
+            // we need to escape $ and \ because these are treated as special characters in the replacement string
+            String replacement = wildcards.get(wildcard).replace("\\", "\\\\").replace("$", "\\$");
+            value = matcher.replaceFirst(replacement);
             matcher.reset(value);
           } else {
             LOG.warning("Found unmatched wildcard '" + wildcard + "' in parameters");
