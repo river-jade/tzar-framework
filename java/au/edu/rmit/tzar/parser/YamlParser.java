@@ -21,7 +21,6 @@ import org.yaml.snakeyaml.nodes.Tag;
 
 import java.io.*;
 import java.math.BigDecimal;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -239,12 +238,8 @@ public class YamlParser {
     }
 
     private CodeSourceImpl toCodeSource() {
-      try {
-        return new CodeSourceImpl(Utils.makeAbsoluteUri(uri),
-            CodeSourceImpl.RepositoryTypeImpl.valueOf(repo_type.toUpperCase()), revision);
-      } catch (URISyntaxException e) {
-        throw new YAMLException("Library code source URL (" + uri + ") was not a valid URI: " + e.getMessage());
-      }
+      return new CodeSourceImpl(Utils.makeAbsoluteUri(uri),
+          CodeSourceImpl.RepositoryTypeImpl.valueOf(repo_type.toUpperCase()), revision);
     }
   }
 

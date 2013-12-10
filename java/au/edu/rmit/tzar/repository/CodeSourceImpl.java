@@ -7,7 +7,6 @@ import au.edu.rmit.tzar.parser.YamlParser;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.URI;
-import java.net.URISyntaxException;
 
 /**
  * Represents a location in a source repository at a given revision number.
@@ -69,13 +68,9 @@ public class CodeSourceImpl implements CodeSource {
 
     if (repositoryType != that.repositoryType) return false;
     if (!revision.equals(that.revision)) return false;
-    try {
-      if (!sourceUri.equals(that.sourceUri) &&
-          (!Utils.makeAbsoluteUri(sourceUri.toString()).equals(Utils.makeAbsoluteUri(that.sourceUri.toString()))))
-        return false;
-    } catch (URISyntaxException e) {
+    if (!sourceUri.equals(that.sourceUri) &&
+        (!Utils.makeAbsoluteUri(sourceUri.toString()).equals(Utils.makeAbsoluteUri(that.sourceUri.toString()))))
       return false;
-    }
 
     return true;
   }
