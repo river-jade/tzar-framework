@@ -57,8 +57,15 @@ public class UtilsTest extends TestCase {
   }
 
   public void testMakeAbsoluteUri() throws URISyntaxException {
-    assertEquals(new URI("file:///abc/def/ghi"), Utils.makeAbsoluteUri("/abc/def/ghi"));
+    // relative path
+    assertEquals(new URI("file:" + new File("abc/def/ghi").getAbsolutePath()), Utils.makeAbsoluteUri("abc/def/ghi"));
+    // absolute path
+    String path = String.format("%1$sabc%1$sdef%1$sghi", File.separator);
+    assertEquals(new URI("file:" + new File(path).getAbsolutePath()),
+        Utils.makeAbsoluteUri(path));
+    // file uri
     assertEquals(new URI("file:///abc/def/ghi"), Utils.makeAbsoluteUri("file:///abc/def/ghi"));
+    // http uri
     assertEquals(new URI("http://abc/def/ghi"), Utils.makeAbsoluteUri("http://abc/def/ghi"));
   }
 

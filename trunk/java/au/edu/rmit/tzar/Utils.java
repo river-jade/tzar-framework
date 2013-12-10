@@ -198,10 +198,15 @@ public class Utils {
    *
    * @param uriString the string to convert to a URI
    * @return a newly created URI object
-   * @throws URISyntaxException if the passed string cannot be parsed as a URI.
    */
-  public static URI makeAbsoluteUri(String uriString) throws URISyntaxException {
-    URI uri = new URI(uriString);
+  public static URI makeAbsoluteUri(String uriString) {
+    final URI uri;
+    try {
+      uri = new URI(uriString);
+    } catch (URISyntaxException e) {
+      // this may be a windows path, so we'll try creating a File object.
+      return new File(uriString).toURI();
+    }
     if (uri.getScheme() == null) { // no scheme (eg http, ftp). assuming it's a file path
       return new File(uriString).toURI();
     } else {

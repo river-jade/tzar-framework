@@ -11,7 +11,6 @@ import com.google.common.collect.ImmutableList;
 
 import java.io.File;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.List;
 
 /**
@@ -103,12 +102,7 @@ class SharedFlags {
     }
 
     public URI getProjectUri() {
-      try {
-        return Utils.makeAbsoluteUri(projectPath.get(0));
-      } catch (URISyntaxException e) {
-        throw new ParseException("Couldn't parse project path: " + projectPath + ". Must be a valid URI, or a file " +
-            "path. Error: " + e.getMessage());
-      }
+      return Utils.makeAbsoluteUri(projectPath.get(0));
     }
 
     public CodeSourceImpl.RepositoryTypeImpl getRepositoryType() {
