@@ -23,12 +23,8 @@ cat('Value for test variable 4 is:', parameters$'test.variable.4', '\n')
 cat('The working dir is', getwd(), '\n')
 cat('test.output.filename=', parameters$'test.output.filename', '\n')
 
-cat('\n\n##The current working dir is', getwd(), '\n\n' )
-
 test.text <- rep(1:10)
 
 write.table(test.text, parameters$'test.output.filename' )
 write.table(x, parameters$'test.output.filename2' )
 str(parameters$'test.output.filename')
-
-str(variables)
