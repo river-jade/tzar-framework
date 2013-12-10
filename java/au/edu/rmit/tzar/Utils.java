@@ -203,8 +203,7 @@ public class Utils {
   public static URI makeAbsoluteUri(String uriString) throws URISyntaxException {
     URI uri = new URI(uriString);
     if (uri.getScheme() == null) { // no scheme (eg http, ftp). assuming it's a file path
-      String absolutePath = new File(uriString).getAbsolutePath();
-      return new URI("file", uri.getHost(), absolutePath, uri.getFragment());
+      return new File(uriString).toURI();
     } else {
       return uri;
     }

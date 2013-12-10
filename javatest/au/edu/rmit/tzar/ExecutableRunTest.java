@@ -10,7 +10,6 @@ import org.python.google.common.collect.Maps;
 
 import java.io.File;
 import java.net.URI;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -28,15 +27,11 @@ public class ExecutableRunTest extends TestCase {
   private static final String REVISION = "12334a";
   private static final File MODEL = new File("/path/to/model");
   private static final String PROJECT_NAME = "project name";
-  private static final Map<String, String> INPUT_FILES = new HashMap<String, String>();
-
-  private static final Map<String, String> OUTPUT_FILES = new HashMap<String, String>();
   private static final String RUNNER_CLASS = "MockRunner";
   private static final String SCENARIO_NAME = "a scenario";
   private static final String RUNSET = "runset_1";
 
   private static final File SOURCE_PATH = new File("/path/to/code");
-  private static final String SOURCE_URL = "file://" + SOURCE_PATH;
   private static final String RUNNER_FLAGS = "--aflag=avalue";
   private Run run;
 
@@ -47,7 +42,6 @@ public class ExecutableRunTest extends TestCase {
   private Map<String, CodeSourceImpl> libraries = ImmutableMap.of();
   private Runner mockRunner = mock(Runner.class);
   private Parameters parameters;
-  private CodeSourceImpl modelSource;
 
   @Override
   public void setUp() throws Exception {
@@ -61,7 +55,8 @@ public class ExecutableRunTest extends TestCase {
     variables.put("libtest", "$$library_path(lib1)$$/2");
 
     parameters = Parameters.createParameters(variables);
-    modelSource = new CodeSourceImpl(new URI(SOURCE_URL), CodeSourceImpl.RepositoryTypeImpl.LOCAL_FILE, REVISION);
+    CodeSourceImpl modelSource = new CodeSourceImpl(SOURCE_PATH.toURI(), CodeSourceImpl.RepositoryTypeImpl.LOCAL_FILE,
+        REVISION);
 
     Run.ProjectInfo projectInfo = new Run.ProjectInfo(PROJECT_NAME, modelSource, libraries, RUNNER_CLASS, RUNNER_FLAGS);
     run = new Run(projectInfo, SCENARIO_NAME)
