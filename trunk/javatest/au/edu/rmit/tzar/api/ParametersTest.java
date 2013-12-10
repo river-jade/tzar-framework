@@ -40,4 +40,12 @@ public class ParametersTest extends TestCase {
     assertEquals(1, replaced.asMap().get("a"));
     assertEquals("hello", replaced.asMap().get("b"));
   }
+
+  public void testReplaceWildcardsWithSpecialCharacters() {
+    variables = ImmutableMap.of("a", 1, "b", "$$foo$$");
+    parameters = Parameters.createParameters(variables);
+    Parameters replaced = parameters.replaceWildcards(ImmutableMap.of("foo", "\\abc$$\\"));
+
+    assertEquals("\\abc$$\\", replaced.asMap().get("b"));
+  }
 }
