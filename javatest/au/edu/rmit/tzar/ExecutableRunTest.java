@@ -115,7 +115,8 @@ public class ExecutableRunTest extends TestCase {
     boolean result = executableRun.execute();
 
     ArgumentCaptor<Parameters> parametersArgumentCaptor = ArgumentCaptor.forClass(Parameters.class);
-    verify(mockRunner).runModel(eq(SOURCE_PATH), eq(new File(outputDir.toString() + Constants.INPROGRESS_SUFFIX)),
+    verify(mockRunner).runModel(eq(SOURCE_PATH.getAbsoluteFile()),
+        eq(new File(outputDir.toString() + Constants.INPROGRESS_SUFFIX)),
         eq(Integer.toString(RUN_ID)), eq(RUNNER_FLAGS),
         parametersArgumentCaptor.capture(), isA(Logger.class));
 
