@@ -19,7 +19,7 @@ import static au.edu.rmit.tzar.commands.SharedFlags.DB_FLAGS;
  * Command to create scheduled runs in the database. Reads a project specification
  * from a local json file, and schedules a run for each scenario in the spec.
  */
-class ScheduleRuns implements Command {
+public class ScheduleRuns implements Command {
   private static final Logger LOG = Logger.getLogger((ScheduleRuns.class.getName()));
   public static final Object[] FLAGS = new Object[]{SCHEDULE_RUNS_FLAGS, CREATE_RUNS_FLAGS, DB_FLAGS};
 

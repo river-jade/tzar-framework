@@ -146,4 +146,10 @@ public class CodeSourceImpl implements CodeSource {
     public abstract CodeRepository createRepository(URI sourceUri, File baseModelPath);
     public abstract boolean isValidRevision(String revision);
   }
+
+  public static class InvalidRevisionException extends Exception {
+    public InvalidRevisionException(String revision, RepositoryType repositoryType) {
+      super(revision + " is not a valid revision for repository type: " + repositoryType);
+    }
+  }
 }
