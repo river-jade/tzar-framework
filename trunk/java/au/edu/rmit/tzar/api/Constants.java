@@ -42,4 +42,6 @@ public class Constants {
   // default name of the project yaml file, which contains a projects configuration
   // and parameters
   public static final String PROJECT_YAML = "project.yaml";
+
+  public static final String HEAD_REVISION = "head";
 }

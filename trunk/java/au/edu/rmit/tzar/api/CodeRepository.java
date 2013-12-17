@@ -26,7 +26,8 @@ public interface CodeRepository {
   File retrieveProjectParams(String projectParamFilename, String revision) throws TzarException;
 
   /**
-   * Gets the revision of current head for this repository.
+   * Gets the revision of current head for this repository. For non-versioned repositories,
+   * this has no semantic meaning and should be the empty string.
    * @return the revision. This will be a number for subversion, but may be a string for other
    * repositories, eg git.
    * @throws TzarException if an error occurs contacting the repository
