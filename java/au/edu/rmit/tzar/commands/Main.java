@@ -2,6 +2,7 @@ package au.edu.rmit.tzar.commands;
 
 import au.edu.rmit.tzar.BriefLogFormatter;
 import au.edu.rmit.tzar.ColorConsoleHandler;
+import au.edu.rmit.tzar.api.TzarException;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
 import com.google.common.base.Joiner;
@@ -67,6 +68,7 @@ public class Main {
     String cmdStr = jCommander.getParsedCommand();
     Optional<CommandFactory.Commands> cmd = CommandFactory.Commands.getCommandByName(cmdStr);
 
+    CommandFactory factory = new CommandFactory(jCommander);
     if (!cmd.isPresent()) {
       if (SharedFlags.COMMON_FLAGS.isVersion()) {
         BufferedReader in = new BufferedReader(
@@ -80,12 +82,22 @@ public class Main {
       if (cmdStr != null) {
         System.out.println("Command: " + cmdStr + " not recognised.");
       }
-      jCommander.usage();
-      System.exit(2);
+
+      // otherwise display the gui
+      try {
+        CommandFactory.Commands.DISPLAY_GUI.instantiate(factory).execute();
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+        System.exit(3);
+      } catch (TzarException e) {
+        e.printStackTrace();
+        System.exit(3);
+      }
+
     } else {
       try {
         setupLogging();
-        Command command = cmd.get().instantiate(new CommandFactory(jCommander));
+        Command command = cmd.get().instantiate(factory);
         if (!command.execute()) {
           System.exit(1);
         }

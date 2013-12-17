@@ -3,8 +3,8 @@ package au.edu.rmit.tzar.commands;
 import au.edu.rmit.tzar.ExecutableRun;
 import au.edu.rmit.tzar.RunFactory;
 import au.edu.rmit.tzar.RunnerFactory;
-import au.edu.rmit.tzar.api.TzarException;
 import au.edu.rmit.tzar.api.Run;
+import au.edu.rmit.tzar.api.TzarException;
 import com.google.common.collect.Lists;
 
 import java.io.File;
@@ -20,7 +20,7 @@ import static au.edu.rmit.tzar.commands.SharedFlags.RUNNER_FLAGS;
 /**
  * Execute a set of runs locally (ie without contacting the runs database).
  */
-class ExecLocalRuns implements Command {
+public class ExecLocalRuns implements Command {
   private static Logger LOG = Logger.getLogger(ExecLocalRuns.class.getName());
   public static final Object[] FLAGS = new Object[]{EXEC_LOCAL_RUNS_FLAGS, CREATE_RUNS_FLAGS, RUNNER_FLAGS};
 

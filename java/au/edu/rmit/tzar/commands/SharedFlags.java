@@ -78,7 +78,7 @@ class SharedFlags {
     @Parameter(names = "--revision", description = "The source control revision of the model code to schedule for " +
         "execution. Must be either an appropriate value for the repository, or 'head' to use the latest version (at " +
         "time of running this command.")
-    private String revision = "head";
+    private String revision = Constants.HEAD_REVISION;
 
 
     @Parameter(names = "--repotype", description = "The type of repository that the project spec and model code " +
