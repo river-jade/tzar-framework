@@ -1,5 +1,6 @@
 package au.edu.rmit.tzar.repository;
 
+import au.edu.rmit.tzar.api.Constants;
 import junit.framework.TestCase;
 
 import java.io.File;
@@ -19,6 +20,6 @@ public class LocalFileRepositoryTest extends TestCase {
     LocalFileRepository repository = new LocalFileRepository(codePathStr);
     assertEquals(codePath, repository.retrieveModel("-1"));
     assertEquals(codePath, repository.retrieveModel("909"));
-    assertEquals(codePath, repository.retrieveModel("head"));
+    assertEquals(codePath, repository.retrieveModel(Constants.HEAD_REVISION));
   }
 }

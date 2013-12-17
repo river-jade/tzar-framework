@@ -1,8 +1,6 @@
 package au.edu.rmit.tzar.repository;
 
-import au.edu.rmit.tzar.api.CodeRepository;
 import au.edu.rmit.tzar.api.TzarException;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.io.Files;
 import org.tmatesoft.svn.core.SVNDepth;
 import org.tmatesoft.svn.core.SVNException;
@@ -19,13 +17,11 @@ import java.util.logging.Logger;
 /**
  * A representation of the repository for different compiled versions of the model code.
  */
-public class SvnRepository implements CodeRepository {
+public class SvnRepository extends UriRepository {
   private static final Logger LOG = Logger.getLogger(SvnRepository.class.getName());
 
   private final SVNUpdateClient updateClient;
   private final SVNWCClient wcClient;
-  private final URI sourceUri;
-  private final File modelsPath;
 
   // TODO(river): these are a hack, and will break under concurrent thread use. Find a nicer /
   // threadsafe way to do this.
@@ -53,8 +49,7 @@ public class SvnRepository implements CodeRepository {
    * @param wcClient       SVNWCClient object (for cleaning up the local svn client)
    */
   SvnRepository(URI sourceUri, File baseModelsPath, SVNUpdateClient updateClient, SVNWCClient wcClient) {
-    this.sourceUri = sourceUri;
-    modelsPath = createModelPath(baseModelsPath, sourceUri);
+    super(baseModelsPath, sourceUri);
     this.updateClient = updateClient;
     this.wcClient = wcClient;
     DAVRepositoryFactory.setup();
@@ -62,24 +57,25 @@ public class SvnRepository implements CodeRepository {
 
   @Override
   public File retrieveModel(String revision) throws TzarException {
-    LOG.info("Retrieving code revision: " + revision + ", to " + modelsPath);
+    LOG.info(String.format("Retrieving code revision: %s, to %s", revision, modelPath));
     try {
       SVNURL url = getUrl();
       SVNRevision svnRevision = parseSvnRevision(revision);
 
       if (svnRevision.equals(lastRevision) && sourceUri.equals(lastSourceUri)) {
-        return modelsPath;
+        LOG.fine(String.format("Model already exists at %s so not downloading", modelPath));
+        return modelPath;
       }
 
       // we do a cleanup here because otherwise, if an update is aborted part way through (by sigkill for instance),
       // the local repository is left in a bad state, and future updates all fail.
-      if (modelsPath.exists()) {
-        wcClient.doCleanup(modelsPath);
+      if (modelPath.exists()) {
+        wcClient.doCleanup(modelPath);
       }
-      updateClient.doCheckout(url, modelsPath, svnRevision, svnRevision, SVNDepth.INFINITY, true);
+      updateClient.doCheckout(url, modelPath, svnRevision, svnRevision, SVNDepth.INFINITY, true);
       lastRevision = svnRevision;
       lastSourceUri = sourceUri;
-      return modelsPath;
+      return modelPath;
     } catch (SVNException e) {
       throw new TzarException("Error retrieving model from SVN", e);
     }
@@ -99,15 +95,6 @@ public class SvnRepository implements CodeRepository {
     } catch (SVNException e) {
       throw new TzarException("Error retrieving projectparams from source control.", e);
     }
-
-  }
-
-  private SVNRevision parseSvnRevision(String revision) throws TzarException {
-    try {
-      return SVNRevision.create(Long.parseLong(revision));
-    } catch (NumberFormatException ex) {
-      throw new TzarException("Revision:" + revision + " was not a number.", ex);
-    }
   }
 
   @Override
@@ -121,12 +108,15 @@ public class SvnRepository implements CodeRepository {
     }
   }
 
-  private SVNURL getUrl() throws SVNException {
-    return SVNURL.parseURIEncoded(sourceUri.toString());
+  private static SVNRevision parseSvnRevision(String revision) throws TzarException {
+    try {
+      return SVNRevision.create(Long.parseLong(revision));
+    } catch (NumberFormatException ex) {
+      throw new TzarException("Revision:" + revision + " was not a number.", ex);
+    }
   }
 
-  @VisibleForTesting
-  static File createModelPath(File baseModelsPath, URI sourceUri) {
-    return new File(baseModelsPath, sourceUri.toString().replaceAll("[/ :]+", "_"));
+  private SVNURL getUrl() throws SVNException {
+    return SVNURL.parseURIEncoded(sourceUri.toString());
   }
 }
