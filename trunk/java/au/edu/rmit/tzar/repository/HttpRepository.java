@@ -25,12 +25,21 @@ import java.util.logging.Logger;
  */
 public class HttpRepository extends UriRepository {
   private static final Logger LOG = Logger.getLogger(HttpRepository.class.getName());
+
+  // some websites give different responses, depending on the user agent. We gamble here
+  // that we'll get the most sane response for something that doesn't look like a browser.
+  // This won't work
+  private static final String USER_AGENT = "Wget/1.12";
+
   @VisibleForTesting
   final CloseableHttpClient client;
 
   public HttpRepository(File baseModelsPath, URI sourceUri) {
     super(baseModelsPath, sourceUri);
-    client = CachingHttpClientBuilder.create().setCacheConfig(CacheConfig.DEFAULT).build();
+    client = CachingHttpClientBuilder.create()
+        .setCacheConfig(CacheConfig.DEFAULT)
+        .setUserAgent(USER_AGENT)
+        .build();
     // the line below should do the same as the line above, but there seems to be a bug which
     // causes a null pointer exception.
     // client = CachingHttpClients.createMemoryBound();
@@ -39,7 +48,7 @@ public class HttpRepository extends UriRepository {
   @Override
   public File retrieveModel(String revision) throws TzarException {
     LOG.info(String.format("Retrieving model from %s",  sourceUri));
-    return retrieveFile(sourceUri);
+    return retrieveFile(modelPath);
   }
 
   @Override
@@ -53,7 +62,7 @@ public class HttpRepository extends UriRepository {
       throw new TzarException(e);
     }
     LOG.info(String.format("Retrieving project.yaml from: %s to local path: %s", uri, tempDir));
-    return retrieveFile(uri);
+    return retrieveFile(modelPath);
   }
 
   @Override
@@ -61,14 +70,12 @@ public class HttpRepository extends UriRepository {
     return "";
   }
 
-  private File retrieveFile(URI sourceUri) throws TzarException {
+  File retrieveFile(File outputFile) throws TzarException {
     try {
       CloseableHttpResponse response = client.execute(new HttpGet(sourceUri));
       boolean exceptionOccurred = true;
       try {
         HttpEntity entity = response.getEntity();
-        modelPath.mkdir();
-        File outputFile = File.createTempFile("httpRepository", null, modelPath);
         FileOutputStream fileOutputStream = new FileOutputStream(outputFile);
         entity.writeTo(fileOutputStream);
         exceptionOccurred = false;
