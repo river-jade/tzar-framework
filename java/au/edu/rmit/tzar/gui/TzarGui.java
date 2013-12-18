@@ -2,7 +2,6 @@ package au.edu.rmit.tzar.gui;
 
 import au.edu.rmit.tzar.RunFactory;
 import au.edu.rmit.tzar.RunnerFactory;
-import au.edu.rmit.tzar.Utils;
 import au.edu.rmit.tzar.api.CodeSource;
 import au.edu.rmit.tzar.api.Constants;
 import au.edu.rmit.tzar.api.ProjectSpec;
@@ -10,7 +9,6 @@ import au.edu.rmit.tzar.api.TzarException;
 import au.edu.rmit.tzar.commands.ExecLocalRuns;
 import au.edu.rmit.tzar.commands.ScheduleRuns;
 import au.edu.rmit.tzar.db.DaoFactory;
-import au.edu.rmit.tzar.parser.YamlParser;
 import au.edu.rmit.tzar.repository.CodeSourceFactory;
 import au.edu.rmit.tzar.repository.CodeSourceImpl;
 import com.google.common.io.Files;
@@ -226,20 +224,21 @@ public class TzarGui {
   private void execLocalRuns() {
     new SwingWorker<Void, Void>() {
       @Override
-      protected Void doInBackground() throws IOException, TzarException, InterruptedException {
-        ProjectSpec projectSpec;
-        String projectPath = pathToProject.getText();
-        projectSpec = new YamlParser().projectSpecFromYaml(new File(projectPath, Constants.PROJECT_YAML));
+      protected Void doInBackground() throws Exception {
+        String projectPath = pathToProject.getText().trim();
         CodeSourceImpl.RepositoryTypeImpl repositoryType = CodeSourceImpl.RepositoryTypeImpl.valueOf(repoType
             .getSelectedItem().toString());
-        CodeSourceImpl codeSource = new CodeSourceImpl(Utils.makeAbsoluteUri(projectPath), repositoryType,
-            revisionNumber.getText());
-        RunFactory runFactory = new RunFactory(codeSource, runsetName.getText(), "", projectSpec);
-        RunnerFactory runnerFactory = new RunnerFactory();
         File tzarBaseDir = new File(baseDirectory.getText());
         File modelPath = new File(tzarBaseDir, Constants.DEFAULT_MODEL_CODE_DIR);
-        ExecLocalRuns execLocalRuns = new ExecLocalRuns((Integer) numRuns.getValue(), runFactory, tzarBaseDir, modelPath,
-            runnerFactory);
+        String revision = revisionNumber.getText().trim();
+        CodeSourceImpl codeSource = CodeSourceFactory.createCodeSource(revision, repositoryType,
+            new URI(projectPath), modelPath);
+        ProjectSpec projectSpec = codeSource.getProjectSpec(Files.createTempDir());
+        String runsetName = TzarGui.this.runsetName.getText().trim();
+        RunFactory runFactory = new RunFactory(codeSource, runsetName, "", projectSpec);
+        RunnerFactory runnerFactory = new RunnerFactory();
+        ExecLocalRuns execLocalRuns = new ExecLocalRuns((Integer) numRuns.getValue(), runFactory, tzarBaseDir,
+            modelPath, runnerFactory);
         execLocalRuns.execute();
         return null;
       }
@@ -252,10 +251,12 @@ public class TzarGui {
           Thread.currentThread().interrupt();
         } catch (ExecutionException e) {
           Throwable cause = e.getCause();
-          if (cause instanceof Error)
+          if (cause instanceof Error) {
             throw (Error) cause;
-          else
+          } else {
+            LOG.log(Level.SEVERE, "An error occurred executing local runs.", e);
             errorDialog.display((Exception) cause);
+          }
         }
       }
     }.execute();
