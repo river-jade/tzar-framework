@@ -141,6 +141,17 @@ public class CodeSourceImpl implements CodeSource {
       public boolean isValidRevision(String revision) {
         return true;
       }
+    },
+    HTTP_ZIP {
+      @Override
+      public CodeRepository createRepository(URI sourceUri, File baseModelPath) {
+        return new HttpZipRepository(baseModelPath, sourceUri);
+      }
+
+      @Override
+      public boolean isValidRevision(String revision) {
+        return true;
+      }
     };
 
     public abstract CodeRepository createRepository(URI sourceUri, File baseModelPath);
