@@ -2,6 +2,7 @@ package au.edu.rmit.tzar.gui;
 
 import au.edu.rmit.tzar.RunFactory;
 import au.edu.rmit.tzar.RunnerFactory;
+import au.edu.rmit.tzar.Utils;
 import au.edu.rmit.tzar.api.CodeSource;
 import au.edu.rmit.tzar.api.Constants;
 import au.edu.rmit.tzar.api.ProjectSpec;
@@ -225,14 +226,16 @@ public class TzarGui {
     new SwingWorker<Void, Void>() {
       @Override
       protected Void doInBackground() throws Exception {
-        String projectPath = pathToProject.getText().trim();
         CodeSourceImpl.RepositoryTypeImpl repositoryType = CodeSourceImpl.RepositoryTypeImpl.valueOf(repoType
             .getSelectedItem().toString());
+
         File tzarBaseDir = new File(baseDirectory.getText());
         File modelPath = new File(tzarBaseDir, Constants.DEFAULT_MODEL_CODE_DIR);
         String revision = revisionNumber.getText().trim();
+        String projectPath = pathToProject.getText().trim();
         CodeSourceImpl codeSource = CodeSourceFactory.createCodeSource(revision, repositoryType,
-            new URI(projectPath), modelPath);
+            Utils.makeAbsoluteUri(projectPath), modelPath);
+
         ProjectSpec projectSpec = codeSource.getProjectSpec(Files.createTempDir());
         String runsetName = TzarGui.this.runsetName.getText().trim();
         RunFactory runFactory = new RunFactory(codeSource, runsetName, "", projectSpec);
