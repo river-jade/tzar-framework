@@ -123,11 +123,11 @@ cat( column.names, '\n', file=parameters$output.statistics.file)
 cat( line.to.paste, file=parameters$output.statistics.file, append=TRUE)
 
 
-glob.output.file <- paste( parameters$global.output.dir, '/', parameters$global.output.filename, sep='')
-if(  !file.exists(glob.output.file ) ) {
-    cat( column.names, '\n', file=glob.output.file, append=TRUE)
-}
-cat( line.to.paste, '\n', file=glob.output.file, append=TRUE)
+#glob.output.file <- paste( parameters$global.output.dir, '/', parameters$global.output.filename, sep='')
+#if(  !file.exists(glob.output.file ) ) {
+#    cat( column.names, '\n', file=glob.output.file, append=TRUE)
+#}
+#cat( line.to.paste, '\n', file=glob.output.file, append=TRUE)
 
 cat ("\n\n run no = ", parameters$run.id )
 
