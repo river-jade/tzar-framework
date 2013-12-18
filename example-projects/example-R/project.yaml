@@ -4,7 +4,7 @@ runner_class: RRunner
 libraries:
     -  name: R-libraries
        repo_type: svn
-       uri: http://rdv-framework.googlecode.com/svn/trunk/R
+       url: http://rdv-framework.googlecode.com/svn/trunk/R
        revision: 343
 
 base_params:

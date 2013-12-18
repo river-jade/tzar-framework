@@ -208,7 +208,7 @@ public class YamlParser {
   private static class LibraryBean {
     private String name;
     private String repo_type;
-    private String uri;
+    private String url;
     private String revision;
     
     public static List<LibraryBean> fromLibraries(Map<String, CodeSourceImpl> libraries) {
@@ -225,7 +225,7 @@ public class YamlParser {
       CodeSourceImpl source = library.getValue();
       bean.repo_type = source.getRepositoryType().name().toLowerCase();
       bean.revision = source.getRevision();
-      bean.uri = source.getSourceUri().toString();
+      bean.url = source.getSourceUri().toString();
       return bean;
     }
 
@@ -238,7 +238,7 @@ public class YamlParser {
     }
 
     private CodeSourceImpl toCodeSource() {
-      return new CodeSourceImpl(Utils.makeAbsoluteUri(uri),
+      return new CodeSourceImpl(Utils.makeAbsoluteUri(url),
           CodeSourceImpl.RepositoryTypeImpl.valueOf(repo_type.toUpperCase()), revision);
     }
   }
