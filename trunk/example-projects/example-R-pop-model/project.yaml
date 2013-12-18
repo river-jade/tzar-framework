@@ -14,7 +14,8 @@ base_params:
     global.output.filename: pop.traj.all.txt
 
     output.plot : $$output_path$$poptraj
-    output.dump : $$output_path$$projtraj.R
+    output.R.dump.file: $$output_path$$projtraj.R
+    output.statistics.file: $$output_path$$poptraj_output_stats.txt
 
 scenarios:
     - name: S1 50 reps
