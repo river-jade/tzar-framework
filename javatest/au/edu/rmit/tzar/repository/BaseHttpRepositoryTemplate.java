@@ -11,7 +11,7 @@ import java.net.URI;
 /**
  * Base class for Http and HttpZip repository tests.
  */
-public abstract class BaseHttpRepositoryTest extends TestCase {
+public abstract class BaseHttpRepositoryTemplate extends TestCase {
   public static final String REVISION = "";
   protected HttpRepository repository;
   protected URI sourceUri;

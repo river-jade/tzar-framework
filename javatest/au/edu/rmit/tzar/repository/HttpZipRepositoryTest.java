@@ -10,7 +10,7 @@ import java.net.URI;
 /**
  * Tests for the HttpRepository
  */
-public class HttpZipRepositoryTest extends BaseHttpRepositoryTest {
+public class HttpZipRepositoryTest extends BaseHttpRepositoryTemplate {
   @Override
   public void setUp() throws Exception {
     sourceUri = new URI("http://tzar-framework.googlecode.com/svn-history/r206/trunk/javatest/test.zip");
