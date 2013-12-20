@@ -12,9 +12,9 @@ import java.util.List;
  * and "count" elements.
  */
 public class LinearStepGenerator extends RepetitionGenerator<BigDecimal> {
-  final BigDecimal start;
-  final int count;
-  final BigDecimal stepSize;
+  private final BigDecimal start;
+  private final int count;
+  private final BigDecimal stepSize;
 
   public LinearStepGenerator(String key, BigDecimal start, int count, BigDecimal stepSize) {
     super(key);
@@ -30,6 +30,18 @@ public class LinearStepGenerator extends RepetitionGenerator<BigDecimal> {
       results.add(start.add(stepSize.multiply(BigDecimal.valueOf(i))));
     }
     return results;
+  }
+
+  public BigDecimal getStart() {
+    return start;
+  }
+
+  public int getCount() {
+    return count;
+  }
+
+  public BigDecimal getStepSize() {
+    return stepSize;
   }
 
   @Override

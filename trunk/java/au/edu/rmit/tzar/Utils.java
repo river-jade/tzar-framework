@@ -1,5 +1,6 @@
 package au.edu.rmit.tzar;
 
+import au.edu.rmit.tzar.api.PathUtils;
 import au.edu.rmit.tzar.api.TzarException;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
@@ -7,7 +8,6 @@ import com.google.common.io.Files;
 
 import java.io.*;
 import java.net.*;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -222,6 +222,14 @@ public class Utils {
     return currentVal;
   }
 
+  /**
+   * Generates the output path for the runset, based on the tzar output path (the base output path for
+   * all run data), the project name, and the runset name.
+   */
+  public static File createRunsetOutputPath(File tzarOutputPath, String projectName, String runset) {
+    return new File(tzarOutputPath, PathUtils.combineAndReplaceWhitespace("_", projectName, runset));
+  }
+
   public interface RenamingStrategy {
     /**
      * Given a run and a (relative) file source path, returns a (relative)
@@ -299,36 +307,6 @@ public class Utils {
       }
       Matcher matcher = filenamePattern.get().matcher(file.toString());
       return matcher.matches();
-    }
-  }
-
-  public static class Path {
-    /**
-     * Combine a list of String paths in a platform independent way.
-     * @param paths
-     * @return
-     */
-    public static String combine(String... paths) {
-      return reduce(Arrays.asList(paths), new Function<Pair<File, String>, File>() {
-        public File apply(Pair<File, String> input) {
-          return new File(input.first, input.second);
-        }
-      }, null).getPath();
-    }
-
-    /**
-     * Combine a list of String paths in a platform independent way, also replacing any whitespace
-     * in the provided paths with the provided replacement character.
-     * @param paths the paths to join
-     * @param replacementChar the character to use to replace any whitespace characters
-     * @return
-     */
-    public static String combineAndReplaceWhitespace(final String replacementChar, String... paths) {
-      return reduce(Arrays.asList(paths), new Function<Pair<File, String>, File>() {
-        public File apply(Pair<File, String> input) {
-          return new File(input.first, input.second.replaceAll("\\W", replacementChar));
-        }
-      }, null).getPath();
     }
   }
 

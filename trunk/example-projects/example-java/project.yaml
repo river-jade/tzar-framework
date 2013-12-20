@@ -23,3 +23,12 @@ scenarios:
     - name: Example scenario 2
       parameters: 
         test.variable.1: 789
+
+mapreduce:
+  mapper_class: FileSelector
+  mapper_flags:
+    filenames: logging.log
+  reducer_class: Concatenator
+  reducer_flags:
+    skipfirstrow: true
+

@@ -47,6 +47,13 @@ public class Run {
     return projectInfo.projectName + (scenarioName == null ? "" : "_" + scenarioName);
   }
 
+  /**
+   * Gets the name of the directory for the output of this run.
+   */
+  public String getRunDirectoryName() {
+    return PathUtils.combineAndReplaceWhitespace("_", getRunId() + "_" + getScenarioName());
+  }
+
   public Date getStartTime() {
     return startTime;
   }

@@ -5,6 +5,7 @@ import au.edu.rmit.tzar.api.ProjectSpec;
 import au.edu.rmit.tzar.api.Repetitions;
 import au.edu.rmit.tzar.api.Scenario;
 import au.edu.rmit.tzar.repository.CodeSourceImpl;
+import au.edu.rmit.tzar.runners.mapreduce.MapReduce;
 
 import java.util.List;
 import java.util.Map;
@@ -21,11 +22,12 @@ public class ProjectSpecImpl implements ProjectSpec {
   private final String projectName;
   private final Repetitions repetitions;
   private final Map<String, CodeSourceImpl> libraries;
-  private String runnerClass;
-  private String runnerFlags;
+  private final MapReduce mapReduce;
+  private final String runnerClass;
+  private final String runnerFlags;
 
   public ProjectSpecImpl(String projectName, String runnerClass, String runnerFlags, Parameters baseParams,
-      List<Scenario> scenarios, Repetitions repetitions, Map<String, CodeSourceImpl> libraries) {
+      List<Scenario> scenarios, Repetitions repetitions, Map<String, CodeSourceImpl> libraries, MapReduce mapReduce) {
     this.projectName = projectName;
     this.runnerClass = runnerClass;
     this.runnerFlags = runnerFlags;
@@ -33,6 +35,7 @@ public class ProjectSpecImpl implements ProjectSpec {
     this.scenarios = scenarios;
     this.repetitions = repetitions;
     this.libraries = libraries;
+    this.mapReduce = mapReduce;
   }
 
   @Override public Parameters getBaseParams() {
@@ -61,6 +64,11 @@ public class ProjectSpecImpl implements ProjectSpec {
 
   @Override public List<Scenario> getScenarios() {
     return scenarios;
+  }
+
+  @Override
+  public MapReduce getMapReduce() {
+    return mapReduce;
   }
 
   @Override

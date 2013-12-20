@@ -13,9 +13,9 @@ import java.util.List;
  * and standard deviation.
  */
 public class NormalDistributionGenerator extends RepetitionGenerator<BigDecimal> {
-  final BigDecimal mean;
-  final int count;
-  final BigDecimal stdDev;
+  private final BigDecimal mean;
+  private final int count;
+  private final BigDecimal stdDev;
 
   public NormalDistributionGenerator(String key, BigDecimal mean, int count, BigDecimal stdDev) {
     super(key);
@@ -31,6 +31,18 @@ public class NormalDistributionGenerator extends RepetitionGenerator<BigDecimal>
       list.add(new BigDecimal(new SecureRandom().nextGaussian()).multiply(stdDev).add(mean));
     }
     return list;
+  }
+
+  public BigDecimal getMean() {
+    return mean;
+  }
+
+  public int getCount() {
+    return count;
+  }
+
+  public BigDecimal getStdDev() {
+    return stdDev;
   }
 
   @Override

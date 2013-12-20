@@ -1,13 +1,13 @@
 package au.edu.rmit.tzar.commands;
 
 import au.edu.rmit.tzar.ExecutableRun;
-import au.edu.rmit.tzar.RunnerFactory;
 import au.edu.rmit.tzar.Utils;
 import au.edu.rmit.tzar.api.Constants;
 import au.edu.rmit.tzar.api.Run;
 import au.edu.rmit.tzar.api.TzarException;
 import au.edu.rmit.tzar.db.RunDao;
 import au.edu.rmit.tzar.resultscopier.ResultsCopier;
+import au.edu.rmit.tzar.runners.RunnerFactory;
 import com.google.common.base.Optional;
 
 import java.io.File;
@@ -36,7 +36,9 @@ class PollAndRun implements Command {
   private final Optional<String> runset;
   private final ResultsCopier resultsCopier;
   private final String clusterName;
-  private final File baseOutputPath;
+
+  // local path for output for all tzar runs
+  private final File tzarOutputPath;
   private final File baseModelPath;
   private final RunnerFactory runnerFactory;
   private final List<String> repositoryUriPrefixes;
@@ -48,14 +50,14 @@ class PollAndRun implements Command {
    * @param resultsCopier to copy the results from this node to permanent storage
    * @param runset name of the runset to poll, or null to poll all runsets
    * @param clusterName name of the cluster which this node is running on
-   * @param baseOutputPath base local path for output of the runs
+   * @param tzarOutputPath base local path for output of the runs
    * @param runnerFactory to create runners
    * @param repositoryUriPrefixes list of allowed repository uri prefixes
    */
   public PollAndRun(RunDao runDao, int pollRateMs, ResultsCopier resultsCopier, Optional<String> runset,
-      String clusterName, File baseOutputPath, File baseModelPath, RunnerFactory runnerFactory,
+      String clusterName, File tzarOutputPath, File baseModelPath, RunnerFactory runnerFactory,
       List<String> repositoryUriPrefixes) {
-    this.baseOutputPath = baseOutputPath;
+    this.tzarOutputPath = tzarOutputPath;
     this.baseModelPath = baseModelPath;
     this.runnerFactory = runnerFactory;
     this.runDao = runDao;
@@ -72,13 +74,13 @@ class PollAndRun implements Command {
    *
    * @param runDao for accessing the database
    * @param resultsCopier to copy the results from this node to permanent storage
-   * @param baseOutputPath base local path for output of the runs
+   * @param tzarOutputPath base local path for output of the runs
    * @param baseModelPath base local path for the model code
    * @param runnerFactory to create runners
    */
   public PollAndRun(RunDao runDao, ResultsCopier resultsCopier,
-      File baseOutputPath, File baseModelPath, RunnerFactory runnerFactory) throws TzarException {
-    this.baseOutputPath = baseOutputPath;
+      File tzarOutputPath, File baseModelPath, RunnerFactory runnerFactory) throws TzarException {
+    this.tzarOutputPath = tzarOutputPath;
     this.runnerFactory = runnerFactory;
     this.runDao = runDao;
     this.baseModelPath = baseModelPath;
@@ -108,7 +110,7 @@ class PollAndRun implements Command {
   }
 
   private void executeRun(final Run run) throws TzarException, InterruptedException {
-    ExecutableRun executableRun = ExecutableRun.createExecutableRun(run, baseOutputPath, baseModelPath, runnerFactory);
+    ExecutableRun executableRun = ExecutableRun.createExecutableRun(run, tzarOutputPath, baseModelPath, runnerFactory);
 
     run.setStartTime(new Date());
     run.setEndTime(null);

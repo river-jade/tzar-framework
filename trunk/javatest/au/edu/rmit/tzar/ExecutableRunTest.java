@@ -2,6 +2,7 @@ package au.edu.rmit.tzar;
 
 import au.edu.rmit.tzar.api.*;
 import au.edu.rmit.tzar.repository.CodeSourceImpl;
+import au.edu.rmit.tzar.runners.RunnerFactory;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Files;
 import junit.framework.TestCase;
@@ -45,8 +46,8 @@ public class ExecutableRunTest extends TestCase {
 
   @Override
   public void setUp() throws Exception {
-    File BASE_OUTPUT_PATH = Files.createTempDir();
-    outputDir = new File(BASE_OUTPUT_PATH, Utils.Path.combineAndReplaceWhitespace("_", PROJECT_NAME, RUNSET,
+    File TZAR_OUTPUT_PATH = Files.createTempDir();
+    outputDir = new File(TZAR_OUTPUT_PATH, PathUtils.combineAndReplaceWhitespace("_", PROJECT_NAME, RUNSET,
         RUN_ID + "_" + SCENARIO_NAME));
 
     variables.put("aaa", "123");
@@ -63,7 +64,7 @@ public class ExecutableRunTest extends TestCase {
         .setRunset(RUNSET)
         .setRunId(RUN_ID)
         .setParameters(parameters);
-    executableRun = ExecutableRun.createExecutableRun(run, BASE_OUTPUT_PATH, MODEL, runnerFactory);
+    executableRun = ExecutableRun.createExecutableRun(run, TZAR_OUTPUT_PATH, MODEL, runnerFactory);
   }
 
   public void testCreateExecutableRun() {
