@@ -2,10 +2,11 @@ package au.edu.rmit.tzar.parser;
 
 import au.edu.rmit.tzar.api.*;
 import au.edu.rmit.tzar.repository.CodeSourceImpl;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
+import au.edu.rmit.tzar.runners.mapreduce.Concatenator;
+import au.edu.rmit.tzar.runners.mapreduce.FileSelector;
+import au.edu.rmit.tzar.runners.mapreduce.MapReduce;
+import au.edu.rmit.tzar.runners.mapreduce.Reducer;
+import com.google.common.collect.*;
 import junit.framework.TestCase;
 
 import java.io.File;
@@ -65,8 +66,13 @@ public class YamlParserTest extends TestCase {
         new LinearStepGenerator("test8", BigDecimal.valueOf(23), 2, BigDecimal.valueOf(2)),
         new NormalDistributionGenerator("test9", BigDecimal.TEN, 3, BigDecimal.ONE));
     Repetitions repetitions = new Repetitions(staticRepetitions, generators);
+    FileSelector mapper = new FileSelector();
+    mapper.setFlags(ImmutableMap.of("filenames", "value1", "flag2", "value2"));
+    Reducer reducer = new Concatenator();
+    reducer.setFlags(ImmutableMap.of("flag3", "value3", "flag4", "value4"));
+    MapReduce mapReduce = new MapReduce(mapper, reducer);
     ProjectSpecImpl projectSpec = new ProjectSpecImpl("test project", RUNNER_CLASS, RUNNER_FLAGS, baseParameters,
-        scenarios, repetitions, libraries);
+        scenarios, repetitions, libraries, mapReduce);
 
     File tempFile = File.createTempFile("yaml_parser_test", null);
     tempFile.delete();

@@ -1,7 +1,6 @@
 package au.edu.rmit.tzar.gui;
 
 import au.edu.rmit.tzar.RunFactory;
-import au.edu.rmit.tzar.RunnerFactory;
 import au.edu.rmit.tzar.Utils;
 import au.edu.rmit.tzar.api.CodeSource;
 import au.edu.rmit.tzar.api.Constants;
@@ -12,6 +11,8 @@ import au.edu.rmit.tzar.commands.ScheduleRuns;
 import au.edu.rmit.tzar.db.DaoFactory;
 import au.edu.rmit.tzar.repository.CodeSourceFactory;
 import au.edu.rmit.tzar.repository.CodeSourceImpl;
+import au.edu.rmit.tzar.runners.RunnerFactory;
+import com.google.common.base.Optional;
 import com.google.common.io.Files;
 
 import javax.swing.*;
@@ -229,8 +230,10 @@ public class TzarGui {
         CodeSourceImpl.RepositoryTypeImpl repositoryType = CodeSourceImpl.RepositoryTypeImpl.valueOf(repoType
             .getSelectedItem().toString());
 
-        File tzarBaseDir = new File(baseDirectory.getText());
-        File modelPath = new File(tzarBaseDir, Constants.DEFAULT_MODEL_CODE_DIR);
+        File tzarBasePath = new File(baseDirectory.getText());
+        File tzarOutputPath = new File(tzarBasePath, Constants.LOCAL_OUTPUT_DATA_DIR);
+
+        File modelPath = new File(tzarBasePath, Constants.DEFAULT_MODEL_CODE_DIR);
         String revision = revisionNumber.getText().trim();
         String projectPath = pathToProject.getText().trim();
         CodeSourceImpl codeSource = CodeSourceFactory.createCodeSource(revision, repositoryType,
@@ -240,8 +243,8 @@ public class TzarGui {
         String runsetName = TzarGui.this.runsetName.getText().trim();
         RunFactory runFactory = new RunFactory(codeSource, runsetName, "", projectSpec);
         RunnerFactory runnerFactory = new RunnerFactory();
-        ExecLocalRuns execLocalRuns = new ExecLocalRuns((Integer) numRuns.getValue(), runFactory, tzarBaseDir,
-            modelPath, runnerFactory);
+        ExecLocalRuns execLocalRuns = new ExecLocalRuns((Integer) numRuns.getValue(), runFactory,
+            tzarOutputPath, modelPath, runnerFactory, Optional.fromNullable(projectSpec.getMapReduce()));
         execLocalRuns.execute();
         return null;
       }

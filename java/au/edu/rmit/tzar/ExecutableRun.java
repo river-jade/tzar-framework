@@ -2,6 +2,7 @@ package au.edu.rmit.tzar;
 
 import au.edu.rmit.tzar.api.*;
 import au.edu.rmit.tzar.parser.YamlParser;
+import au.edu.rmit.tzar.runners.RunnerFactory;
 import com.google.common.collect.ImmutableMap;
 
 import java.io.File;
@@ -27,7 +28,7 @@ public class ExecutableRun {
   private static volatile int nextRunId = 1;
 
   // the output path, not including the status suffix (ie failed, inprogress etc).
-  private final File baseOutputPath;
+  private final File runOutputPath;
   private final File baseModelPath;
   // the output path. ie the relative path on the local machine where results will be written.
   private volatile File outputPath;
@@ -40,43 +41,44 @@ public class ExecutableRun {
    * Factory method.
    *
    * @param run            run to execute
-   * @param baseOutputPath local path for output for this run.
-   * @param baseModelPath
+   * @param tzarOutputPath base directory for all run output
+   * @param tzarModelPath local path for all tzar model code
    * @param runnerFactory  factory to instantiate runner objects
    * @return a newly created executable run
    */
-  public static ExecutableRun createExecutableRun(Run run, File baseOutputPath, File baseModelPath,
+  public static ExecutableRun createExecutableRun(Run run, File tzarOutputPath, File tzarModelPath,
       RunnerFactory runnerFactory) throws TzarException {
 
-    baseOutputPath = new File(baseOutputPath, Path.combineAndReplaceWhitespace("_", run.getProjectName(),
-        run.getRunset()));
+    File runsetOutputPath = Utils.createRunsetOutputPath(tzarOutputPath, run.getProjectName(),
+        run.getRunset());
 
-    // TODO(river): this is a bit dodgy. if some bug cause the run id not to be set, then we would give
+    // TODO(river): this is a bit dodgy. if some bug caused the run id not to be set, then we would give
     // the run a bogus id, and potentially overwrite an existing run in the db. not quite sure how to resolve it
     // though.
     if (run.getRunId() == -1) {
-      run.setRunId(getNextRunId(baseOutputPath));
+      run.setRunId(getNextRunId(runsetOutputPath));
     }
-    // replace whitespace and punctuation in run name with '_' to make a valid path.
-    String dirName = Path.combineAndReplaceWhitespace("_", run.getRunId() + "_" + run.getScenarioName());
+
+    String runDirectoryName = run.getRunDirectoryName();
     LOG.log(Level.FINER, "Creating run: {0}", run);
-    return new ExecutableRun(run, new File(baseOutputPath, dirName), runnerFactory, baseModelPath);
+    File runOutputPath = new File(runsetOutputPath, runDirectoryName);
+    return new ExecutableRun(run, runOutputPath, runnerFactory, tzarModelPath);
   }
 
   /**
    * Constructor.
    *
    * @param run            run to execute
-   * @param baseOutputPath     local path for output for this run.
+   * @param runOutputPath  local path for output for this run
    * @param runnerFactory  factory to create runner instances
    * @param baseModelPath
    */
-  private ExecutableRun(Run run, File baseOutputPath, RunnerFactory runnerFactory, File baseModelPath) {
+  private ExecutableRun(Run run, File runOutputPath, RunnerFactory runnerFactory, File baseModelPath) {
     this.run = run;
     this.runnerFactory = runnerFactory;
-    this.baseOutputPath = baseOutputPath;
+    this.runOutputPath = runOutputPath;
     this.baseModelPath = baseModelPath;
-    this.outputPath = new File(baseOutputPath + Constants.INPROGRESS_SUFFIX);
+    this.outputPath = new File(runOutputPath + Constants.INPROGRESS_SUFFIX);
   }
 
   /**
@@ -130,6 +132,12 @@ public class ExecutableRun {
         handler.close();
         renameOutputDir(success);
       }
+      if (success) {
+        LOG.info("Run " + getRunId() + " succeeded.");
+      } else {
+        LOG.warning("Run " + getRunId() + " failed.");
+      }
+
       return success;
     } catch (IOException e) {
       throw new TzarException(e);
@@ -140,19 +148,19 @@ public class ExecutableRun {
    * Calculates the next available run id from the output path. This is only used for local
    * runs. For database runs, the id must be globally unique and is provided by the database.
    *
-   * @param baseOutputPath the path to look in for prior runs
+   * @param runsetOutputPath the path to look in for prior runs
    * @return an available run id (being 1 greater than the current maximum)
    */
-  private synchronized static int getNextRunId(File baseOutputPath) throws TzarException {
+  private synchronized static int getNextRunId(File runsetOutputPath) throws TzarException {
     int max = nextRunId;
-    if (!baseOutputPath.exists()) {
+    if (!runsetOutputPath.exists()) {
       LOG.info("Outputdir doesn't exist. Creating it (and parents)");
-      baseOutputPath.mkdirs();
+      runsetOutputPath.mkdirs();
     }
     Pattern pattern = Pattern.compile("(\\d+)(_.*)+(?:\\.failed|\\.inprogress)?");
-    File[] files = baseOutputPath.listFiles();
+    File[] files = runsetOutputPath.listFiles();
     if (files == null)
-      throw new TzarException(String.format("Output path: %s is not a directory.", baseOutputPath));
+      throw new TzarException(String.format("Output path: %s is not a directory.", runsetOutputPath));
     for (File file : files) {
       Matcher matcher = pattern.matcher(file.getName());
       if (matcher.matches() && matcher.groupCount() >= 2) {
@@ -196,7 +204,7 @@ public class ExecutableRun {
   }
 
   private void renameOutputDir(boolean success) throws TzarException {
-    File destPath = success ? baseOutputPath : new File(baseOutputPath + Constants.FAILED_SUFFIX);
+    File destPath = success ? runOutputPath : new File(runOutputPath + Constants.FAILED_SUFFIX);
     if (destPath.exists()) {
       try {
         LOG.warning("Path: " + destPath + " already exists. Deleting.");

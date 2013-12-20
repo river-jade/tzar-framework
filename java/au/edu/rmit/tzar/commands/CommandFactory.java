@@ -1,7 +1,6 @@
 package au.edu.rmit.tzar.commands;
 
 import au.edu.rmit.tzar.RunFactory;
-import au.edu.rmit.tzar.RunnerFactory;
 import au.edu.rmit.tzar.api.Constants;
 import au.edu.rmit.tzar.api.ProjectSpec;
 import au.edu.rmit.tzar.api.TzarException;
@@ -10,6 +9,7 @@ import au.edu.rmit.tzar.db.RunDao;
 import au.edu.rmit.tzar.repository.CodeSourceFactory;
 import au.edu.rmit.tzar.repository.CodeSourceImpl;
 import au.edu.rmit.tzar.resultscopier.*;
+import au.edu.rmit.tzar.runners.RunnerFactory;
 import au.edu.rmit.tzar.server.WebServer;
 import com.beust.jcommander.JCommander;
 import com.google.common.base.Optional;
@@ -58,13 +58,17 @@ class CommandFactory {
       throw new ParseException(e.getMessage());
     }
 
+    ProjectSpec projectSpec = modelSource.getProjectSpec(baseModelPath);
     RunFactory runFactory = new RunFactory(modelSource,
-        CREATE_RUNS_FLAGS.getRunset(),"" /* no cluster name for local runs */,
-        modelSource.getProjectSpec(baseModelPath));
+        CREATE_RUNS_FLAGS.getRunset(), "" /* no cluster name for local runs */,
+        projectSpec);
 
-    File baseOutputPath = new File(RUNNER_FLAGS.getTzarBaseDirectory(), Constants.LOCAL_OUTPUT_DATA_DIR);
-    return new ExecLocalRuns(CREATE_RUNS_FLAGS.getNumRuns(), runFactory, baseOutputPath, baseModelPath,
-        new RunnerFactory());
+    File tzarOutputPath = new File(RUNNER_FLAGS.getTzarBaseDirectory(), Constants.LOCAL_OUTPUT_DATA_DIR);
+
+    Optional<au.edu.rmit.tzar.api.MapReduce> mapReduce = Optional.fromNullable(projectSpec.getMapReduce());
+
+    return new ExecLocalRuns(CREATE_RUNS_FLAGS.getNumRuns(), runFactory, tzarOutputPath, baseModelPath,
+        new RunnerFactory(), mapReduce);
   }
 
   public Command newHelp() {

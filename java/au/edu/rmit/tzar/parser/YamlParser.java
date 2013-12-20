@@ -1,19 +1,15 @@
 package au.edu.rmit.tzar.parser;
 
-import au.edu.rmit.tzar.Utils;
-import au.edu.rmit.tzar.api.*;
-import au.edu.rmit.tzar.repository.CodeSourceImpl;
-import com.google.common.base.Joiner;
+import au.edu.rmit.tzar.api.Parameters;
+import au.edu.rmit.tzar.api.ProjectSpec;
+import au.edu.rmit.tzar.api.Repetitions;
+import au.edu.rmit.tzar.api.TzarException;
+import au.edu.rmit.tzar.parser.beans.ProjectSpecBean;
+import au.edu.rmit.tzar.parser.beans.RepetitionsBean;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
-import org.yaml.snakeyaml.error.YAMLException;
 import org.yaml.snakeyaml.introspector.BeanAccess;
 import org.yaml.snakeyaml.nodes.Node;
 import org.yaml.snakeyaml.nodes.ScalarNode;
@@ -21,9 +17,6 @@ import org.yaml.snakeyaml.nodes.Tag;
 
 import java.io.*;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Yaml parser / writer. Handles loading project specifications from yaml files, and writing yaml files
@@ -124,211 +117,4 @@ public class YamlParser {
     }
   }
 
-  private static class ProjectSpecBean {
-    private Map<String, Object> base_params;
-    private List<ScenarioBean> scenarios;
-    private String project_name;
-    private String runner_class;
-    private String runner_flags;
-    private List<LibraryBean> libraries;
-    private RepetitionsBean repetitions;
-
-    public static ProjectSpecBean fromProjectSpec(ProjectSpecImpl spec) {
-      ProjectSpecBean bean = new ProjectSpecBean();
-      bean.base_params = spec.getBaseParams().asMap();
-      bean.scenarios = ScenarioBean.fromScenarios(spec.getScenarios());
-      bean.project_name = spec.getProjectName();
-      bean.runner_class = spec.getRunnerClass();
-      bean.runner_flags = spec.getRunnerFlags();
-      bean.libraries = LibraryBean.fromLibraries(spec.getLibraries());
-      bean.repetitions = RepetitionsBean.fromRepetitions(spec.getRepetitions());
-      return bean;
-    }
-
-    public ProjectSpecImpl toProjectSpec() throws TzarException {
-      Repetitions reps = (repetitions == null ? Repetitions.EMPTY_REPETITIONS : repetitions.toRepetitions());
-      Map<String, CodeSourceImpl> libs = (libraries == null ? ImmutableMap.<String, CodeSourceImpl>of() :
-          LibraryBean.toLibraries(libraries));
-
-      List<String> errors = Lists.newArrayList();
-      if (base_params == null) {
-        errors.add("Base parameters must be set.");
-      }
-      if (project_name == null) {
-        errors.add("Project name must be set.");
-      }
-      if (runner_class == null) {
-        errors.add("Runner class must be set.");
-      }
-      if (!errors.isEmpty()) {
-        throw new TzarException(String.format("Errors parsing project spec: [\n%s\n]", Joiner.on("\n").join(errors)));
-      }
-
-      return new ProjectSpecImpl(project_name, runner_class, Strings.nullToEmpty(runner_flags),
-          Parameters.createParameters(base_params), ScenarioBean.toScenarios(scenarios), reps, libs);
-    }
-  }
-
-  private static class ScenarioBean {
-    private String name;
-    private Map<String, Object> parameters;
-    
-    public static List<ScenarioBean> fromScenarios(List<Scenario> scenarios) {
-      List<ScenarioBean> beans = Lists.newArrayList();
-      for (Scenario scenario : scenarios) {
-        beans.add(ScenarioBean.fromScenario(scenario));
-      }
-      return beans;
-    }
-
-    public static ScenarioBean fromScenario(Scenario scenario) {
-      ScenarioBean bean = new ScenarioBean();
-      bean.name = scenario.getName();
-      bean.parameters = scenario.getParameters().asMap();
-      return bean;
-    }
-
-    public static List<Scenario> toScenarios(List<ScenarioBean> beans) {
-      if (beans == null) {
-        return ImmutableList.of();
-      }
-      ImmutableList.Builder<Scenario> scenarios = ImmutableList.builder();
-      for (ScenarioBean bean : beans) {
-        scenarios.add(bean.toScenario());
-      }
-      return scenarios.build();
-    }
-
-    private Scenario toScenario() {
-      return new Scenario(name, parameters == null ? Parameters.EMPTY_PARAMETERS :
-          Parameters.createParameters(parameters));
-    }
-  }
-
-  private static class LibraryBean {
-    private String name;
-    private String repo_type;
-    private String url;
-    private String revision;
-    
-    public static List<LibraryBean> fromLibraries(Map<String, CodeSourceImpl> libraries) {
-      List<LibraryBean> beans = Lists.newArrayList();
-      for (Map.Entry<String, CodeSourceImpl> library : libraries.entrySet()) {
-        beans.add(LibraryBean.fromLibrary(library));
-      }
-      return beans;
-    }
-
-    public static LibraryBean fromLibrary(Map.Entry<String, CodeSourceImpl> library) {
-      LibraryBean bean = new LibraryBean();
-      bean.name = library.getKey();
-      CodeSourceImpl source = library.getValue();
-      bean.repo_type = source.getRepositoryType().name().toLowerCase();
-      bean.revision = source.getRevision();
-      bean.url = source.getSourceUri().toString();
-      return bean;
-    }
-
-    public static Map<String, CodeSourceImpl> toLibraries(List<LibraryBean> libraryBeans) {
-      Map<String, CodeSourceImpl> libraries = Maps.newHashMap();
-      for (LibraryBean bean : libraryBeans) {
-        libraries.put(bean.name, bean.toCodeSource());
-      }
-      return libraries;
-    }
-
-    private CodeSourceImpl toCodeSource() {
-      return new CodeSourceImpl(Utils.makeAbsoluteUri(url),
-          CodeSourceImpl.RepositoryTypeImpl.valueOf(repo_type.toUpperCase()), revision);
-    }
-  }
-
-  private static class RepetitionsBean {
-    private List<Map<String, Object>> static_repetitions;
-    private List<RepetitionGeneratorBean> generators;
-    
-    public Repetitions toRepetitions() {
-      List<Parameters> parametersList;
-      if (static_repetitions == null) {
-        parametersList = ImmutableList.of();
-      } else {
-        ImmutableList.Builder<Parameters> builder = ImmutableList.builder();
-        for (Map<String, Object> bean : static_repetitions) {
-          builder.add(Parameters.createParameters(bean));
-        }
-        parametersList = builder.build();
-      }
-
-      List<RepetitionGenerator<?>> repetitionGenerators;
-      if (generators == null) {
-        repetitionGenerators = ImmutableList.of();
-      } else {
-        ImmutableList.Builder<RepetitionGenerator<?>> builder = ImmutableList.builder();
-        for (RepetitionGeneratorBean bean : generators) {
-          builder.add(bean.toGenerator());
-        }
-        repetitionGenerators = builder.build();
-      }
-      return new Repetitions(parametersList, repetitionGenerators);
-    }
-
-    public static RepetitionsBean fromRepetitions(Repetitions repetitions) {
-      RepetitionsBean bean = new RepetitionsBean();
-      bean.static_repetitions = new ArrayList<Map<String, Object>>();
-      for (Parameters parameters : repetitions.getStaticRepetitions()) {
-        Map<String, Object> map = parameters.asMap();
-        bean.static_repetitions.add(map);
-      }
-      bean.generators = new ArrayList<RepetitionGeneratorBean>();
-      for (RepetitionGenerator<?> generator : repetitions.getGenerators()) {
-        bean.generators.add(RepetitionGeneratorBean.fromGenerators(generator));
-      }
-      return bean;
-    }
-  }
-
-  private static class RepetitionGeneratorBean {
-    private String generator_type;
-    private String key;
-    private BigDecimal start;
-    private int count;
-    private BigDecimal step_size;
-    private BigDecimal mean;
-    private BigDecimal std_dev;
-
-    public RepetitionGenerator<?> toGenerator() {
-      switch (RepetitionGenerator.GeneratorType.TYPES.get(generator_type)) {
-        case LINEAR_STEP:
-          return new LinearStepGenerator(key, start, count, step_size);
-        case NORMAL_DISTRIBUTION:
-          return new NormalDistributionGenerator(key, mean, count, std_dev);
-        default:
-          throw new YAMLException("Generator type: " + generator_type + " not recognised.");
-      }
-    }
-
-    public static RepetitionGeneratorBean fromGenerators(RepetitionGenerator<?> generator) {
-      Class<? extends RepetitionGenerator> generatorClass = generator.getClass();
-      final RepetitionGenerator.GeneratorType type;
-      RepetitionGeneratorBean bean = new RepetitionGeneratorBean();
-      if (generatorClass == LinearStepGenerator.class) {
-        type = RepetitionGenerator.GeneratorType.LINEAR_STEP;
-        LinearStepGenerator linearStepGenerator = (LinearStepGenerator) generator;
-        bean.count = linearStepGenerator.count;
-        bean.start = linearStepGenerator.start;
-        bean.step_size = linearStepGenerator.stepSize;
-      } else if (generatorClass == NormalDistributionGenerator.class) {
-        type = RepetitionGenerator.GeneratorType.NORMAL_DISTRIBUTION;
-        NormalDistributionGenerator normalDistributionGenerator = (NormalDistributionGenerator) generator;
-        bean.count = normalDistributionGenerator.count;
-        bean.mean = normalDistributionGenerator.mean;
-        bean.std_dev = normalDistributionGenerator.stdDev;
-      } else {
-        throw new YAMLException("Generator type: " + generatorClass + " not recognised.");
-      }
-      bean.generator_type = type.toString().toLowerCase();
-      bean.key = generator.getKey();
-      return bean;
-    }
-  }
 }

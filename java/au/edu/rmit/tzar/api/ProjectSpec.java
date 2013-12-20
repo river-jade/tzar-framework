@@ -27,4 +27,11 @@ public interface ProjectSpec {
    * @return
    */
   List<Scenario> getScenarios();
+
+  /**
+   * Gets the map-reduce specified for this project, or null if there
+   * is no map reduce specified.
+   * @return
+   */
+  MapReduce getMapReduce();
 }

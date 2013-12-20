@@ -1,9 +1,10 @@
 package au.edu.rmit.tzar;
 
 import au.edu.rmit.tzar.api.Parameters;
-import au.edu.rmit.tzar.api.TzarException;
 import au.edu.rmit.tzar.api.Runner;
+import au.edu.rmit.tzar.api.TzarException;
 import au.edu.rmit.tzar.runners.NullRunner;
+import au.edu.rmit.tzar.runners.RunnerFactory;
 import junit.framework.TestCase;
 
 import java.io.File;

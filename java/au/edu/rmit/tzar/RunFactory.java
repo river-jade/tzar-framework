@@ -74,4 +74,12 @@ public class RunFactory {
         .setRunset(runset)
         .setClusterName(clusterName);
   }
+
+  public String getProjectName() {
+    return projectSpec.getProjectName();
+  }
+
+  public String getRunset() {
+    return runset;
+  }
 }

@@ -1,13 +1,16 @@
 package au.edu.rmit.tzar;
 
 import au.edu.rmit.tzar.api.TzarException;
-import au.edu.rmit.tzar.api.Runner;
 
 /**
- * Factory to create runners by classname. This class currently just wraps
- * the call to newInstance to hide the exception handling.
+ * Creates an instance of a class by class name.
  */
-public class RunnerFactory {
+public class DynamicObjectFactory<T> {
+  @SuppressWarnings("unchecked")
+  private Class<T> cast(Class aClass) {
+    return (Class<T>) aClass;
+  }
+
   /**
    * Loads the specified class from the classpath and instantiate it. The specified
    * class must be an implementation of au.edu.rmit.tzar.api.Runner. This method
@@ -16,16 +19,16 @@ public class RunnerFactory {
    *
    * The class must have a no-args constructor.
    *
-   * @param runnerClass name of a class in the au.edu.rmit.tzar.runners package, or
+   * @param className name of a class in the au.edu.rmit.tzar.runners package, or
    * fully qualified classname available to this class's classloader.
    *
    * @return an instance of the provided Runner implementation
    *
-   * @throws TzarException if the class can not be found, or is not an instance of
+   * @throws au.edu.rmit.tzar.api.TzarException if the class can not be found, or is not an instance of
    * Runner.class, or can not be instantiated.
    */
-  public Runner getRunner(String runnerClass) throws TzarException {
-    Class<Runner> clazz = loadClass(runnerClass);
+  public T getInstance(String className) throws TzarException {
+    Class<T> clazz = loadClass(className);
     try {
       return clazz.newInstance();
     } catch (InstantiationException e) {
@@ -35,7 +38,7 @@ public class RunnerFactory {
     }
   }
 
-  private Class<Runner> loadClass(String className) throws TzarException {
+  private Class<T> loadClass(String className) throws TzarException {
     Class<?> aClass;
     try {
       aClass = getClass().getClassLoader().loadClass(className);
@@ -44,17 +47,9 @@ public class RunnerFactory {
         aClass = getClass().getClassLoader().loadClass("au.edu.rmit.tzar.runners." + className);
       } catch (ClassNotFoundException e1) {
         //noinspection ThrowInsideCatchBlockWhichIgnoresCaughtException
-        throw new TzarException("Unable to load Runner class: " + className);
+        throw new TzarException("Unable to load class: " + className);
       }
     }
-    if (!Runner.class.isAssignableFrom(aClass)) {
-      throw new TzarException("Specified class: " + className + " was not an instance of " + Runner.class);
-    }
     return cast(aClass);
-  }
-
-  @SuppressWarnings("unchecked")
-  private static Class<Runner> cast(Class aClass) {
-    return (Class<Runner>) aClass;
   }
 }
