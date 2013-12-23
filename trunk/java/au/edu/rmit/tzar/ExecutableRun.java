@@ -7,6 +7,8 @@ import com.google.common.collect.ImmutableMap;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.DateFormat;
+import java.util.Date;
 import java.util.Map;
 import java.util.logging.FileHandler;
 import java.util.logging.Level;
@@ -25,14 +27,15 @@ public class ExecutableRun {
   // this is the Logger that will be used by runner to write to the console and logfiles
   private static final Logger RUNNER_LOGGER = Logger.getLogger("au.edu.rmit.tzar.ModelRunnerLogger");
 
-  private static volatile int nextRunId = 1;
+  public static final DateFormat DATE_FORMAT = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.MEDIUM);
 
+  private static volatile int nextRunId = 1;
   // the output path, not including the status suffix (ie failed, inprogress etc).
   private final File runOutputPath;
   private final File baseModelPath;
+
   // the output path. ie the relative path on the local machine where results will be written.
   private volatile File outputPath;
-
   private final Run run;
   private final RunnerFactory runnerFactory;
   private final YamlParser yamlParser = new YamlParser();
@@ -118,6 +121,7 @@ public class ExecutableRun {
 
       FileHandler handler = setupLogFileHandler(outputPath);
       RUNNER_LOGGER.addHandler(handler);
+      RUNNER_LOGGER.log(Level.INFO, DATE_FORMAT.format(new Date()));
       RUNNER_LOGGER.log(Level.INFO, "Executing run with revision: {0}, from project: {1}",
           new Object[]{defaultIfEmpty(codeSource.getRevision(), "none"), codeSource.getSourceUri()});
       File parametersFile = new File(outputPath, "parameters.yaml");
