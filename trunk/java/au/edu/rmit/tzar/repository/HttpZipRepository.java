@@ -28,7 +28,7 @@ public class HttpZipRepository extends HttpRepository {
   }
 
   @Override
-  public File retrieveModel(String revision) throws TzarException {
+  public File retrieveModel(String revision, String name) throws TzarException {
     File tempOutputFile;
     try {
       tempOutputFile = File.createTempFile("httpziprepository", ".zip");
@@ -36,6 +36,7 @@ public class HttpZipRepository extends HttpRepository {
       throw new TzarException("Couldn't create temp file to download zip file into.", e);
     }
     File zipFile = httpRepository.retrieveFile(tempOutputFile);
+    File modelPath = createModelPath(name);
     try {
       ZipFile zip = new ZipFile(zipFile);
       zip.extractAll(modelPath.getAbsolutePath());

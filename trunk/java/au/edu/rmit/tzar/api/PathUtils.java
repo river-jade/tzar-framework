@@ -37,4 +37,13 @@ public class PathUtils {
       }
     }, null).getPath();
   }
+
+  /**
+   * Replaces non-alpha-numeric characters with underscore.
+   * @param filename
+   * @return
+   */
+  public static String sanitiseFilename(String filename) {
+    return filename.replaceAll("[\\W_]", "_");
+  }
 }

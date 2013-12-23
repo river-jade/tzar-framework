@@ -1,6 +1,5 @@
 package au.edu.rmit.tzar;
 
-import au.edu.rmit.tzar.api.PathUtils;
 import com.google.common.base.Optional;
 import junit.framework.TestCase;
 import org.python.google.common.io.Files;
@@ -68,15 +67,5 @@ public class UtilsTest extends TestCase {
     assertEquals(new URI("file:///abc/def/ghi"), Utils.makeAbsoluteUri("file:///abc/def/ghi"));
     // http uri
     assertEquals(new URI("http://abc/def/ghi"), Utils.makeAbsoluteUri("http://abc/def/ghi"));
-  }
-
-  public void testPathCombine() {
-    assertEquals("aaa" + File.separator + "bbb" + File.separator + "ccc",
-        PathUtils.combine("aaa", "bbb", "ccc"));
-  }
-
-  public void testPathCombineAndReplace() {
-    assertEquals("a_a_a" + File.separator + "b_b_b" + File.separator + "ccc",
-        PathUtils.combineAndReplaceWhitespace("_", "a a a", "b b b", "ccc"));
   }
 }

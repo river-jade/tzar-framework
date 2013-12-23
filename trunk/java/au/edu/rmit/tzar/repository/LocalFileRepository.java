@@ -21,7 +21,7 @@ public class LocalFileRepository implements CodeRepository {
   }
 
   @Override
-  public File retrieveModel(String revision) {
+  public File retrieveModel(String revision, String name) {
     return modelPath;
   }
 

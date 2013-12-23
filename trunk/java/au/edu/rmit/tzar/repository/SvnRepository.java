@@ -17,7 +17,7 @@ import java.util.logging.Logger;
 /**
  * A representation of the repository for different compiled versions of the model code.
  */
-public class SvnRepository extends UriRepository {
+public class SvnRepository extends UrlRepository {
   private static final Logger LOG = Logger.getLogger(SvnRepository.class.getName());
 
   private final SVNUpdateClient updateClient;
@@ -56,7 +56,8 @@ public class SvnRepository extends UriRepository {
   }
 
   @Override
-  public File retrieveModel(String revision) throws TzarException {
+  public File retrieveModel(String revision, String name) throws TzarException {
+    File modelPath = createModelPath(name);
     LOG.info(String.format("Retrieving code revision: %s, to %s", revision, modelPath));
     try {
       SVNURL url = getUrl();

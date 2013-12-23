@@ -29,8 +29,8 @@ public class CodeSourceImpl implements CodeSource {
   }
 
   @Override
-  public File getCode(File baseModelPath) throws TzarException {
-    return getRepository(baseModelPath).retrieveModel(revision);
+  public File getCode(File baseModelPath, String name) throws TzarException {
+    return getRepository(baseModelPath).retrieveModel(revision, name);
   }
 
   @Override

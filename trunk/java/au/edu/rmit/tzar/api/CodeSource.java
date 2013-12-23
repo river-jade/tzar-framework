@@ -10,11 +10,13 @@ import java.net.URI;
 public interface CodeSource {
   /**
    * Retrieves the project's model code from the repository and writes it to baseModelPath.
+   *
    * @param baseModelPath the local file path at which to write the downloaded data
+   * @param name a name for this code source that has some meaning for the user
    * @return the path to the downloaded code
    * @throws TzarException
    */
-  File getCode(File baseModelPath) throws TzarException;
+  File getCode(File baseModelPath, String name) throws TzarException;
 
   /**
    * Retrieves the project's specification from the repository and writes it to baseModelPath.
