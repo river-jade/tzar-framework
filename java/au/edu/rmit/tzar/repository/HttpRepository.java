@@ -23,7 +23,7 @@ import java.util.logging.Logger;
  * Represents a resource stored on an http server. As http is not
  * a versioned protocol, revision parameters are ignored.
  */
-public class HttpRepository extends UriRepository {
+public class HttpRepository extends UrlRepository {
   private static final Logger LOG = Logger.getLogger(HttpRepository.class.getName());
 
   // some websites give different responses, depending on the user agent. We gamble here
@@ -46,9 +46,9 @@ public class HttpRepository extends UriRepository {
   }
 
   @Override
-  public File retrieveModel(String revision) throws TzarException {
+  public File retrieveModel(String revision, String name) throws TzarException {
     LOG.info(String.format("Retrieving model from %s",  sourceUri));
-    return retrieveFile(modelPath);
+    return retrieveFile(createModelPath(name));
   }
 
   @Override
@@ -62,7 +62,7 @@ public class HttpRepository extends UriRepository {
       throw new TzarException(e);
     }
     LOG.info(String.format("Retrieving project.yaml from: %s to local path: %s", uri, tempDir));
-    return retrieveFile(modelPath);
+    return retrieveFile(createModelPath("project_params"));
   }
 
   @Override

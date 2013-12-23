@@ -11,10 +11,12 @@ public interface CodeRepository {
    * Checks out the model code from code repository into a local directory at the provided revision.
    *
    * @param revision the version of the model / framework to load
+   * @param name a user-meaningful name for this library (this will be used to name the
+   *             directory where it is saved
    * @return the path to the cached model / framework code
    * @throws TzarException if an error occurs contacting the repository
    */
-  File retrieveModel(String revision) throws TzarException;
+  File retrieveModel(String revision, String name) throws TzarException;
 
   /**
    * Checks out the project params file from the repository at the given revision.

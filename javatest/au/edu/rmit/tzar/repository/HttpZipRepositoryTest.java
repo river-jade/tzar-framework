@@ -19,7 +19,7 @@ public class HttpZipRepositoryTest extends BaseHttpRepositoryTemplate {
   }
 
   public void testRetrieveModel() throws Exception {
-    File model = repository.retrieveModel(REVISION);
+    File model = repository.retrieveModel(REVISION, "module_name");
     assertTrue(model.exists());
     assertTrue(model.isDirectory());
     assertEquals(baseModelPath, model.getParentFile());

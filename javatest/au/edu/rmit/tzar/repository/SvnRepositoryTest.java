@@ -38,9 +38,10 @@ public class SvnRepositoryTest extends TestCase {
   public void testGetModel() throws SVNException, TzarException, URISyntaxException {
     String revision = "1000";
 
-    File expectedPath = SvnRepository.createModelPath(BASE_MODEL_PATH, new URI(TEST_URL));
+    String moduleName = "a_project";
+    File expectedPath = repository.createModelPath(moduleName);
 
-    File modelPath = repository.retrieveModel(revision);
+    File modelPath = repository.retrieveModel(revision, moduleName);
 
     SVNRevision svnRevision = SVNRevision.create(Long.parseLong(revision));
     verify(mockClient).doCheckout(SVNURL.parseURIEncoded(TEST_URL), expectedPath, svnRevision,
@@ -50,7 +51,7 @@ public class SvnRepositoryTest extends TestCase {
 
   public void testGetModelBadRevision() {
     try {
-      repository.retrieveModel("foo");
+      repository.retrieveModel("foo", "a_project");
       fail("Expected TzarException to be thrown.");
     } catch (TzarException e) {
     }

@@ -18,8 +18,9 @@ public class LocalFileRepositoryTest extends TestCase {
     URI codePathStr = new URI("file", null, "/some/path", null);
     File codePath = new File(codePathStr);
     LocalFileRepository repository = new LocalFileRepository(codePathStr);
-    assertEquals(codePath, repository.retrieveModel("-1"));
-    assertEquals(codePath, repository.retrieveModel("909"));
-    assertEquals(codePath, repository.retrieveModel(Constants.HEAD_REVISION));
+    String projectName = "project_name";
+    assertEquals(codePath, repository.retrieveModel("-1", projectName));
+    assertEquals(codePath, repository.retrieveModel("909", projectName));
+    assertEquals(codePath, repository.retrieveModel(Constants.HEAD_REVISION, projectName));
   }
 }

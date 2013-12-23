@@ -89,7 +89,7 @@ public class ExecutableRun {
    */
   public boolean execute() throws TzarException {
     CodeSource codeSource = run.getCodeSource();
-    File model = codeSource.getCode(baseModelPath);
+    File model = codeSource.getCode(baseModelPath, run.getProjectName());
     try {
       if (outputPath.exists()) {
         LOG.warning("Temp output path: " + outputPath + " already exists. Deleting.");
@@ -108,8 +108,9 @@ public class ExecutableRun {
           .put("model_path", model.getAbsolutePath() + File.separator)
           .put("output_path", outputPath.getAbsolutePath() + File.separator);
       for (Map.Entry<String, ? extends CodeSource> entry : run.getLibraries().entrySet()) {
-        builder.put(String.format("library_path(%s)", entry.getKey()),
-            entry.getValue().getCode(baseModelPath).toString());
+        String libraryName = entry.getKey();
+        builder.put(String.format("library_path(%s)", libraryName),
+            entry.getValue().getCode(baseModelPath, libraryName).toString());
       }
 
       Map<String, String> wildcards = builder.build();

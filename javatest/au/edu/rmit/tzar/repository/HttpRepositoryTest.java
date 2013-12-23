@@ -19,7 +19,7 @@ public class HttpRepositoryTest extends BaseHttpRepositoryTemplate {
   }
 
   public void testRetrieveModel() throws Exception {
-    File model = repository.retrieveModel(REVISION);
+    File model = repository.retrieveModel(REVISION, "project_name");
     assertTrue(model.exists());
     assertTrue(model.isFile());
     assertEquals(baseModelPath, model.getParentFile());
