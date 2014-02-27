@@ -167,6 +167,9 @@ public class ExecutableRun {
     if (files == null)
       throw new TzarException(String.format("Output path: %s is not a directory.", runsetOutputPath));
     for (File file : files) {
+      if (!file.isDirectory()) {
+        continue;
+      }
       Matcher matcher = pattern.matcher(file.getName());
       if (matcher.matches() && matcher.groupCount() >= 2) {
         try {

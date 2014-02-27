@@ -15,7 +15,7 @@ public class HttpRepositoryTest extends BaseHttpRepositoryTemplate {
   public void setUp() throws Exception {
     sourceUri = new URI("http://tzar-framework.googlecode.com/svn/trunk/java/version.properties?spec=svn201&r=193");
     baseModelPath = Files.createTempDir();
-    repository = new HttpRepository(baseModelPath, sourceUri);
+    repository = new HttpRepository(baseModelPath, sourceUri, true);
   }
 
   public void testRetrieveModel() throws Exception {
