@@ -134,7 +134,7 @@ public class CodeSourceImpl implements CodeSource {
     HTTP_FILE {
       @Override
       public CodeRepository createRepository(URI sourceUri, File baseModelPath) {
-        return new HttpRepository(baseModelPath, sourceUri);
+        return new HttpRepository(baseModelPath, sourceUri, true);
       }
 
       @Override
@@ -145,7 +145,7 @@ public class CodeSourceImpl implements CodeSource {
     HTTP_ZIP {
       @Override
       public CodeRepository createRepository(URI sourceUri, File baseModelPath) {
-        return new HttpZipRepository(baseModelPath, sourceUri);
+        return new HttpZipRepository(baseModelPath, sourceUri, true);
       }
 
       @Override

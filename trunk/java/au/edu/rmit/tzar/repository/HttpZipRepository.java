@@ -14,46 +14,32 @@ import java.net.URI;
  * returning the path to the extracted contents.
  */
 public class HttpZipRepository extends HttpRepository {
-  private final HttpRepository httpRepository;
-
   /**
    * Constructor.
    * @param baseModelsPath the path in which to create the directory containing the
    *                       extracted model files
    * @param sourceUri the URL pointing to the zip file to download
+   * @param skipIfExists don't download the zip file if the expanded library already exists
    */
-  public HttpZipRepository(File baseModelsPath, URI sourceUri) {
-    super(baseModelsPath, sourceUri);
-    httpRepository = new HttpRepository(baseModelsPath, sourceUri);
+  public HttpZipRepository(File baseModelsPath, URI sourceUri, boolean skipIfExists) {
+    super(baseModelsPath, sourceUri, skipIfExists);
   }
 
   @Override
-  public File retrieveModel(String revision, String name) throws TzarException {
-    File tempOutputFile;
+  void retrieveFile(File outputFile) throws TzarException {
+    File zipFile;
     try {
-      tempOutputFile = File.createTempFile("httpziprepository", ".zip");
+      zipFile = File.createTempFile("httpziprepository", ".zip");
     } catch (IOException e) {
       throw new TzarException("Couldn't create temp file to download zip file into.", e);
     }
-    File zipFile = httpRepository.retrieveFile(tempOutputFile);
-    File modelPath = createModelPath(name);
+    super.retrieveFile(zipFile);
     try {
       ZipFile zip = new ZipFile(zipFile);
-      zip.extractAll(modelPath.getAbsolutePath());
+      zip.extractAll(outputFile.getAbsolutePath());
     } catch (ZipException e) {
       throw new TzarException(String.format("Error occurred extracting files from zip file. Perhaps the URL (%s) " +
           "doesn't point to an actual zip file.", sourceUri), e);
     }
-    return modelPath;
-  }
-
-  @Override
-  public File retrieveProjectParams(String projectParamFilename, String revision) throws TzarException {
-    return httpRepository.retrieveProjectParams(projectParamFilename, revision);
-  }
-
-  @Override
-  public String getHeadRevision() throws TzarException {
-    return httpRepository.getHeadRevision();
   }
 }

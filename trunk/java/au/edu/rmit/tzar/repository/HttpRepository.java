@@ -28,14 +28,21 @@ public class HttpRepository extends UrlRepository {
 
   // some websites give different responses, depending on the user agent. We gamble here
   // that we'll get the most sane response for something that doesn't look like a browser.
-  // This won't work
   private static final String USER_AGENT = "Wget/1.12";
 
+  private final boolean skipIfExists;
   @VisibleForTesting
   final CloseableHttpClient client;
 
-  public HttpRepository(File baseModelsPath, URI sourceUri) {
+  /**
+   *
+   * @param baseModelsPath the base path to download the library into
+   * @param sourceUri the URL to download from
+   * @param skipIfExists don't redownload the library if we already have it
+   */
+  public HttpRepository(File baseModelsPath, URI sourceUri, boolean skipIfExists) {
     super(baseModelsPath, sourceUri);
+    this.skipIfExists = skipIfExists;
     client = CachingHttpClientBuilder.create()
         .setCacheConfig(CacheConfig.DEFAULT)
         .setUserAgent(USER_AGENT)
@@ -47,8 +54,14 @@ public class HttpRepository extends UrlRepository {
 
   @Override
   public File retrieveModel(String revision, String name) throws TzarException {
-    LOG.info(String.format("Retrieving model from %s",  sourceUri));
-    return retrieveFile(createModelPath(name));
+    File modelPath = createModelPath(name, baseModelsPath, sourceUri);
+    LOG.info(String.format("Retrieving model from %s to %s",  sourceUri, modelPath));
+    if (skipIfExists && modelPath.exists()) {
+      LOG.fine(String.format("Library already exists at %s so not downloading", modelPath));
+    } else {
+      retrieveFile(modelPath);
+    }
+    return modelPath;
   }
 
   @Override
@@ -62,7 +75,9 @@ public class HttpRepository extends UrlRepository {
       throw new TzarException(e);
     }
     LOG.info(String.format("Retrieving project.yaml from: %s to local path: %s", uri, tempDir));
-    return retrieveFile(createModelPath("project_params"));
+    File path = createModelPath("project_params", baseModelsPath, sourceUri);
+    retrieveFile(path);
+    return path;
   }
 
   @Override
@@ -70,7 +85,7 @@ public class HttpRepository extends UrlRepository {
     return "";
   }
 
-  File retrieveFile(File outputFile) throws TzarException {
+  void retrieveFile(File outputFile) throws TzarException {
     try {
       CloseableHttpResponse response = client.execute(new HttpGet(sourceUri));
       boolean exceptionOccurred = true;
@@ -79,7 +94,6 @@ public class HttpRepository extends UrlRepository {
         FileOutputStream fileOutputStream = new FileOutputStream(outputFile);
         entity.writeTo(fileOutputStream);
         exceptionOccurred = false;
-        return outputFile;
       } finally {
         Closeables.close(response, exceptionOccurred);
       }
