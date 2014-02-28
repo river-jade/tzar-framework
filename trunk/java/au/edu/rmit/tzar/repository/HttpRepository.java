@@ -46,6 +46,7 @@ public class HttpRepository extends UrlRepository {
     client = CachingHttpClientBuilder.create()
         .setCacheConfig(CacheConfig.DEFAULT)
         .setUserAgent(USER_AGENT)
+        .useSystemProperties()
         .build();
     // the line below should do the same as the line above, but there seems to be a bug which
     // causes a null pointer exception.

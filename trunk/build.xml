@@ -124,6 +124,7 @@
                haltonfailure="false"
                failureproperty="tests.failed"
                errorproperty="tests.failed"
+               clonevm="true"
                fork="true"
                outputtoformatters="false">
             <classpath>
