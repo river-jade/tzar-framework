@@ -10,6 +10,7 @@ base_params:
     test.variable.2: 456
     test.variable.3: xyz
     test.variable.4: abc
+    test.variable.5: [1, 2, 3, 4, 5]
     
     output.filename: $$output_path$$test_output_file.txt
     output.filename2: $$output_path$$test_output_file2.txt
@@ -34,10 +35,10 @@ repetitions:
         generator_type: linear_step
         start: 0
         step_size: 1
-        count: 3
+        count: 2
 
       - key: test.variable.4
         generator_type: normal_distribution
         mean: 5
         std_dev: 1
-        count: 3
+        count: 2

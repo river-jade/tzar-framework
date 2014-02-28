@@ -18,6 +18,9 @@ class Model(basemodel.BaseModel):
         self.logger.fine("test.variable.2: %s" % params["test.variable.2"])
         self.logger.fine("test.variable.3: %s" % params["test.variable.3"])
         self.logger.fine("test.variable.4: %s" % params["test.variable.4"])
+        self.logger.fine("test.variable.5: %s" % params["test.variable.5"])
+        self.logger.fine("test.variable.5 size: %s" % len(params["test.variable.5"]))
+        self.logger.fine("test.variable.5 type: %s" % type(params["test.variable.5"]))
 
         # write some variables to output files
         with open(params["output.filename"], 'w') as f1:
