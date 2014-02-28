@@ -8,12 +8,6 @@
     <property name="tst.dir" value="javatest"/>
     <property name="api.jar.name" value="tzar-api.jar"/>
 
-    <ivy:cachepath pathid="javac2.classpath" conf="tzar" log="download-only"/>
-
-    <!--We define a specal task for compiling using the intellij wrapper. This is required
-    for compiling the Swing GUI. -->
-    <taskdef name="javac2" classname="com.intellij.ant.Javac2" classpathref="javac2.classpath"/>
-
     <target name="dist" depends="test, dist-tzar"/>
 
 <!--*****************************
@@ -24,7 +18,7 @@
         <delete dir="${build.dir}"/>
     </target>
 
-    <target name="javac" depends="checkjar, clean, init-ivy" unless="jar.uptodate">
+    <target name="compile" depends="checkjar, clean, init-ivy, javac2" unless="jar.uptodate">
         <ivy:cachepath pathid="tzar.classpath" conf="tzar" log="download-only"/>
         <mkdir dir="${build.dir}"/>
         <javac2 srcdir="${src.dir}" destdir="${build.dir}" target="1.6" source="1.6" includeantruntime="false"
@@ -38,7 +32,7 @@
         </javac2>
     </target>
 
-    <target name="dist-tzar" depends="checkjar, javac, init-ivy" unless="jar.uptodate">
+    <target name="dist-tzar" depends="checkjar, compile, init-ivy" unless="jar.uptodate">
         <!-- Copy any properties files from source tree to build dir -->
         <copy todir="${build.dir}">
             <fileset dir="${src.dir}">
@@ -91,7 +85,7 @@
     <!--******************************
        API jar compile and dist
    ****************************** -->
-    <target name="javac-api" depends="checkjar, clean, init-ivy" unless="jar.uptodate">
+    <target name="compile-api" depends="checkjar, clean, init-ivy" unless="jar.uptodate">
         <mkdir dir="${build.dir}"/>
         <ivy:cachepath pathid="api.classpath" conf="api" log="download-only"/>
         <javac2 srcdir="${src.dir}" destdir="${build.dir}" target="1.6" source="1.6" includeantruntime="false"
@@ -100,7 +94,7 @@
         </javac2>
     </target>
 
-    <target name="dist-api" depends="javac-api">
+    <target name="dist-api" depends="compile-api">
         <!-- Build the jar -->
         <jar destfile="${api.jar.name}" basedir="${build.dir}"
              includes="au/edu/rmit/tzar/api/**"/>
@@ -114,7 +108,7 @@
         <delete dir="${test.build.dir}"/>
     </target>
 
-    <target name="javac-test" depends="javac">
+    <target name="compile-test" depends="compile">
     	<ivy:cachepath pathid="test.classpath" conf="test" log="download-only"/>
         <mkdir dir="${test.build.dir}"/>
         <javac2 srcdir="${tst.dir}" destdir="${test.build.dir}" target="1.6" source="1.6" includeantruntime="false">
@@ -125,7 +119,7 @@
         </javac2>
     </target>
 
-    <target name="test" depends="clean-test, javac-test" unless="no.test">
+    <target name="test" depends="clean-test, compile-test" unless="no.test">
         <junit haltonerror="true"
                haltonfailure="false"
                failureproperty="tests.failed"
@@ -161,6 +155,15 @@
         <uptodate property="jar.uptodate" targetfile="${jar.name}">
             <srcfiles dir="." includes="**"/>
         </uptodate>
+    </target>
+
+    <!-- defines the target for creating the task for compiling using intellij's javac wrapper. This is
+    required for intellij form designer :( -->
+    <target name="javac2">
+        <ivy:cachepath pathid="javac2.classpath" conf="tzar" log="download-only"/>
+        <!--We define a specal task for compiling using the intellij wrapper. This is required
+        for compiling the Swing GUI. -->
+        <taskdef name="javac2" classname="com.intellij.ant.Javac2" classpathref="javac2.classpath"/>
     </target>
 
     <!--****************************************************
