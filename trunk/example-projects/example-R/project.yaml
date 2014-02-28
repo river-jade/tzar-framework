@@ -12,6 +12,8 @@ base_params:
     test.variable.2: 456
     test.variable.3: xyz
     test.variable.4: abc
+    test.variable.5: [1, 2, 3, 4, 5]
+
     path.to.example.script: $$library_path(R-libraries)$$/example.R
 
     test.output.filename: $$output_path$$test_output_file.txt
