@@ -39,7 +39,7 @@ public class SvnRepositoryTest extends TestCase {
     String revision = "1000";
 
     String moduleName = "a_project";
-    File expectedPath = repository.createModelPath(moduleName, repository.baseModelsPath, repository.sourceUri);
+    File expectedPath = repository.createModelPath(moduleName);
 
     File modelPath = repository.retrieveModel(revision, moduleName);
 

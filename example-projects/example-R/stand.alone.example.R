@@ -1,7 +1,7 @@
 # R file for testing the output during dry runs
 
 # an example of sourcing another R doc
-source( "w.R" )
+source( "R/w.R" ) 
 
 for (i in 1:20) {
   cat('A sample output line: ', i, '\n') 

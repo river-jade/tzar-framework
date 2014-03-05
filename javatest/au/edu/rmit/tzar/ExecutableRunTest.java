@@ -97,7 +97,7 @@ public class ExecutableRunTest extends TestCase {
     setUp();
     Map<String, Object> variables = Maps.newHashMap(parameters.asMap());
     variables.put("aac", "124" + RUN_ID + "123"); // because the id wildcard will be replaced
-    variables.put("libtest", new File("/source/code/1") + "/2");
+    variables.put("libtest", "/source/code/1/2");
 
     testExecute(true, variables);
     assertTrue(outputDir.exists());

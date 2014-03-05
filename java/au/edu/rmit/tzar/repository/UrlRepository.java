@@ -9,9 +9,6 @@ import java.net.URI;
 /**
  * Abstract base class for URL base code repositories.
  */
-// TODO(river): This would be nicer as an interface with a static method,
-// but that won't be available until java 8.
-
 abstract class UrlRepository implements CodeRepository {
   protected final File baseModelsPath;
   protected final URI sourceUri;
@@ -21,7 +18,7 @@ abstract class UrlRepository implements CodeRepository {
     this.sourceUri = sourceUri;
   }
 
-  protected static File createModelPath(String name, File baseModelsPath, URI sourceUri) {
+  protected File createModelPath(String name) {
     return new File(baseModelsPath, PathUtils.sanitiseFilename(name) + "_" + Math.abs(sourceUri.hashCode()));
   }
 }

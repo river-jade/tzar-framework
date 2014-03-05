@@ -15,7 +15,7 @@ public class HttpZipRepositoryTest extends BaseHttpRepositoryTemplate {
   public void setUp() throws Exception {
     sourceUri = new URI("http://tzar-framework.googlecode.com/svn-history/r206/trunk/javatest/test.zip");
     baseModelPath = Files.createTempDir();
-    repository = new HttpZipRepository(baseModelPath, sourceUri, true);
+    repository = new HttpZipRepository(baseModelPath, sourceUri);
   }
 
   public void testRetrieveModel() throws Exception {

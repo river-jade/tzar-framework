@@ -128,7 +128,7 @@ public class RunDao {
     updateRun.setString(4, run.getHostname());
     updateRun.setString(5, run.getHostIp());
     File outputPath = run.getRemoteOutputPath();
-    updateRun.setString(6, outputPath == null ? null : outputPath.getAbsolutePath());
+    updateRun.setString(6, outputPath == null ? null : outputPath.getPath());
     updateRun.setString(7, run.getOutputHost());
     updateRun.setInt(8, run.getRunId()); // this is for the where clause, we don't update this field.
     updateRun.executeUpdate();
