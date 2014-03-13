@@ -22,6 +22,8 @@ cat('Value for test variable 4 is:', parameters$'test.variable.4', '\n')
 cat('Value for test variable 5 is:', parameters$'test.variable.5', '\n')
 cat('Length of test variable 5 is:', length(parameters$'test.variable.5'), '\n')
 cat('Is test variable 5 a vector?:', is.vector(parameters$'test.variable.5'), '\n')
+cat('Is test variable 5 numeric?:', is.numeric(parameters$'test.variable.5'), '\n')
+cat('Is test variable 5 character?:', is.character(parameters$'test.variable.5'), '\n')
 
 cat('The working dir is', getwd(), '\n')
 cat('test.output.filename=', parameters$'test.output.filename', '\n')
