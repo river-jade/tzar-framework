@@ -19,13 +19,20 @@ cat('Value for test variable 1 is:', parameters$'test.variable.1', '\n')
 cat('Value for test variable 2 is:', parameters$'test.variable.2', '\n')
 cat('Value for test variable 3 is:', parameters$'test.variable.3', '\n')
 cat('Value for test variable 4 is:', parameters$'test.variable.4', '\n')
-cat('Value for test variable 5 is:', parameters$'test.variable.5', '\n')
-cat('Length of test variable 5 is:', length(parameters$'test.variable.5'), '\n')
+
+cat('\nValue for test variable 5 is:', parameters$'test.variable.5', '\n')
+cat('Length of inline array test variable 5 is:', length(parameters$'test.variable.5'), '\n')
 cat('Is test variable 5 a vector?:', is.vector(parameters$'test.variable.5'), '\n')
 cat('Is test variable 5 numeric?:', is.numeric(parameters$'test.variable.5'), '\n')
 cat('Is test variable 5 character?:', is.character(parameters$'test.variable.5'), '\n')
 
-cat('The working dir is', getwd(), '\n')
+cat('\nValue for indented array test variable 6 is:', parameters$'test.variable.6', '\n')
+cat('Length of test variable 6 is:', length(parameters$'test.variable.6'), '\n')
+cat('Is test variable 6 a vector?:', is.vector(parameters$'test.variable.6'), '\n')
+cat('Is test variable 6 numeric?:', is.numeric(parameters$'test.variable.6'), '\n')
+cat('Is test variable 6 character?:', is.character(parameters$'test.variable.6'), '\n')
+
+cat('\nThe working dir is', getwd(), '\n')
 cat('test.output.filename=', parameters$'test.output.filename', '\n')
 
 test.text <- rep(1:10)
