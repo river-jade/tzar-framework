@@ -107,7 +107,7 @@ BEGIN
 
     CREATE INDEX fki_run_libraries_run_id_fk ON run_libraries USING btree (library_id);
     -- Make each library record unique
-    ALTER TABLE libraries ADD UNIQUE (repo_type, uri, name);
+    ALTER TABLE libraries ADD UNIQUE (repo_type, uri, name, revision);
 
     ALTER TABLE ONLY run_libraries
         ADD CONSTRAINT run_libraries_library_id_fkey FOREIGN KEY (library_id) REFERENCES libraries(library_id)
