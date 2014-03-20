@@ -75,7 +75,7 @@ ALTER TABLE public.libraries_library_id_seq OWNER TO postgres;
 ALTER SEQUENCE libraries_library_id_seq OWNED BY libraries.library_id;
 
 -- Make each library record unique
-ALTER TABLE libraries ADD UNIQUE (repo_type, uri, name);
+ALTER TABLE libraries ADD UNIQUE (repo_type, uri, name, revision);
 
 --
 -- Name: run_libraries; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
