@@ -3,6 +3,9 @@ package au.edu.rmit.tzar.db;
 import au.edu.rmit.tzar.api.Parameters;
 import au.edu.rmit.tzar.api.TzarException;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import java.math.BigDecimal;
@@ -10,9 +13,12 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Data access object for Parameters. Provides functionality for parameters to be loaded from
@@ -87,6 +93,8 @@ public class ParametersDao {
     PreparedStatement loadParams = connection.prepareStatement(LOAD_PARAMS_SQL);
     loadParams.setInt(1, runId);
     ResultSet resultSet = loadParams.executeQuery();
+    // TODO(river): remove the redundant references to inputFiles and outputFiles, now that we don't
+    // use these.
     Map<String, Object> variables = Maps.newLinkedHashMap();
     Map<String, String> inputFiles = Maps.newLinkedHashMap();
     Map<String, String> outputFiles = Maps.newLinkedHashMap();
@@ -154,6 +162,22 @@ public class ParametersDao {
       public Object newInstance(String value) {
         return Boolean.valueOf(value);
       }
+    },
+    LIST("list") {
+      @Override
+      public List<String> newInstance(String value) throws TzarException {
+        Matcher matcher = LIST_PATTERN.matcher(value);
+        if (!matcher.matches()) {
+          throw new TzarException("List data was not in expected format.");
+        }
+        String commaDelimited = matcher.group(1);
+        return Lists.newArrayList(SPLITTER.split(commaDelimited));
+      }
+
+      @Override
+      public String toString(Object value) {
+        return "[" + JOINER.join((Iterable) value) + "]";
+      }
     };
 
     private final String name;
@@ -164,6 +188,10 @@ public class ParametersDao {
         map.put(dataType.name, dataType);
       }
     }
+
+    private static final Pattern LIST_PATTERN = Pattern.compile("^\\[(.*)\\]$");
+    private static final Joiner JOINER = Joiner.on(',');
+    private static final Splitter SPLITTER = Splitter.on(',');
 
     private DataType(String name) {
       this.name = name;
@@ -176,12 +204,18 @@ public class ParametersDao {
         return BOOL;
       } else if (value instanceof Double || value instanceof Float || value instanceof BigDecimal) {
         return FLOAT;
+      } else if (value instanceof Iterable) {
+        return LIST;
       } else {
         return STRING;
       }
     }
 
-    public abstract Object newInstance(String value);
+    public abstract Object newInstance(String value) throws TzarException;
+
+    public String toString(Object value) {
+      return value.toString();
+    }
 
     public static DataType fromName(String name) {
       if (!map.containsKey(name)) {
@@ -207,12 +241,13 @@ public class ParametersDao {
 
     public void insertParams(int runId, Parameters parameters) throws SQLException {
       for (Map.Entry<String, ?> entry : parameters.asMap().entrySet()) {
+        Object value = entry.getValue();
+        DataType type = DataType.getType(value);
         insertParam.setInt(1, runId);
         insertParam.setString(2, entry.getKey());
-        Object value = entry.getValue();
-        insertParam.setString(3, value.toString());
+        insertParam.setString(3, type.toString(value));
         insertParam.setString(4, "variable");
-        insertParam.setString(5, DataType.getType(value).name);
+        insertParam.setString(5, type.name);
         insertParam.addBatch();
       }
     }
