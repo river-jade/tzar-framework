@@ -53,7 +53,7 @@ repetitions:
 mapreduce:
   mapper_class: FileSelector
   mapper_flags:
-    filenames: results.summary.txt
+    filenames: all.results.summary.txt
   reducer_class: Concatenator
   reducer_flags:
     skipfirstrow: true
