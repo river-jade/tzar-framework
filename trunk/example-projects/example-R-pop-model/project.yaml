@@ -10,12 +10,11 @@ base_params:
     sd: 0.1
     run.id: $$run_id$$
     timeToEvalPopStats: 30
-    global.output.dir: /Users/ascelin/tzar/global_output
-    global.output.filename: pop.traj.all.txt
 
+    # Outputs
+    summary.filename: $$output_path$$results.summary.txt
     output.plot : $$output_path$$poptraj
-    output.R.dump.file: $$output_path$$projtraj.R
-    output.statistics.file: $$output_path$$poptraj_output_stats.txt
+    output.dump : $$output_path$$projtraj.R
 
 scenarios:
     - name: S1 50 reps
@@ -31,25 +30,31 @@ scenarios:
 # Note that this file does all repetitions on scen 1, then on scen 2 etc...
 # Note that also the original value of the variable is not used.
 
-# repetitions:
-#       generators:
-#        - key: sd
-#          generator_type: linear_step
-#          start: 0.05
-#          step_size: 0.01
-#          count: 11
+repetitions:
+       generators:
+        - key: sd
+          generator_type: linear_step
+          start: 0.05
+          step_size: 0.01
+          count: 11
 
 #        - key: mu
 #          generator_type: linear_step
 #          start: -0.15
 #          step_size: 0.01
 #          count: 11
-
+#
 #        - key: init.pop.size
 #          generator_type: linear_step
 #          start: 800
 #          step_size: 50
 #          count: 9
 
-
+mapreduce:
+  mapper_class: FileSelector
+  mapper_flags:
+    filenames: results.summary.txt
+  reducer_class: Concatenator
+  reducer_flags:
+    skipfirstrow: true
 
