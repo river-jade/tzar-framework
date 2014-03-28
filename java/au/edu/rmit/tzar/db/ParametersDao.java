@@ -1,13 +1,18 @@
 package au.edu.rmit.tzar.db;
 
+import au.com.bytecode.opencsv.CSVReader;
+import au.com.bytecode.opencsv.CSVWriter;
 import au.edu.rmit.tzar.api.Parameters;
 import au.edu.rmit.tzar.api.TzarException;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Joiner;
-import com.google.common.base.Splitter;
+import com.google.common.base.Function;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
+import java.io.IOException;
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -17,8 +22,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.logging.Logger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Data access object for Parameters. Provides functionality for parameters to be loaded from
@@ -138,7 +141,8 @@ public class ParametersDao {
     paramMap.put(resultSet.getString("param_name"), param);
   }
 
-  private enum DataType {
+  @VisibleForTesting
+  enum DataType {
     FLOAT("float") {
       @Override
       public Object newInstance(String value) {
@@ -165,18 +169,65 @@ public class ParametersDao {
     },
     LIST("list") {
       @Override
-      public List<String> newInstance(String value) throws TzarException {
-        Matcher matcher = LIST_PATTERN.matcher(value);
-        if (!matcher.matches()) {
-          throw new TzarException("List data was not in expected format.");
+      public Iterable<Object> newInstance(String value) throws TzarException {
+        // Lists are encoded in the database as a single row of comma separated values.
+        // Because values may contain commas and/or line breaks, we use a CSV parsing
+        // library to split them.
+        CSVReader reader = new CSVReader(new StringReader(value));
+        List<String> stringList;
+        try {
+          stringList = Lists.newArrayList(reader.readNext());
+        } catch (IOException e) {
+          throw new RuntimeException(e);
         }
-        String commaDelimited = matcher.group(1);
-        return Lists.newArrayList(SPLITTER.split(commaDelimited));
+        // For each string in the list, we attempt to coerce it into a "native"
+        // type, eg Float, Integer, Boolean. If it isn't one of these, we just
+        // make it a String.
+        Iterable<Object> iterable = Iterables.transform(stringList, new Function<String, Object>() {
+          public Object apply(String s) {
+            return stringToObject(s);
+          }
+        });
+        return Lists.newArrayList(iterable);
       }
 
+      private Object stringToObject(String s) {
+        try {
+          return Integer.parseInt(s);
+        } catch (NumberFormatException e) {}
+        try {
+          return Double.parseDouble(s);
+        } catch (NumberFormatException e) {}
+        if (("true".equalsIgnoreCase(s) || "false".equalsIgnoreCase(s))) {
+          return Boolean.parseBoolean(s);
+        }
+        return s;
+      }
+
+      /**
+       * Converts a List<Object> into a String in a format to be stored in the database.
+       * The format for the database is a comma separated list, with quotes and commas escaped.
+       * Note that this method is not typesafe. It will throw an exception if it is not
+       * passed an Iterable<Object>.
+       * @param value
+       * @return
+       */
       @Override
       public String toString(Object value) {
-        return "[" + JOINER.join((Iterable) value) + "]";
+        StringWriter sw = new StringWriter();
+        CSVWriter csvWriter = new CSVWriter(sw);
+        Iterable<String> strings = Iterables.transform((Iterable<Object>) value, new Function<Object, String>() {
+          public String apply(Object o) {
+            return o.toString();
+          }
+        });
+        csvWriter.writeNext(Iterables.toArray(strings, String.class));
+        try {
+          csvWriter.flush();
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+        return sw.toString();
       }
     };
 
@@ -188,10 +239,6 @@ public class ParametersDao {
         map.put(dataType.name, dataType);
       }
     }
-
-    private static final Pattern LIST_PATTERN = Pattern.compile("^\\[(.*)\\]$");
-    private static final Joiner JOINER = Joiner.on(',');
-    private static final Splitter SPLITTER = Splitter.on(',');
 
     private DataType(String name) {
       this.name = name;
