@@ -23,6 +23,8 @@ base_params:
         - "/Users/Another/file.2"
         - "OneMoreFile.nam"
     test.variable.8: ["D:/a/long/path/to/a/filename.1", "/Users/Another/file.2", "OneMoreFile.nam"]
+    test.variable.9: ["a string", 15, 3.2, "another string", 2]
+    test.variable.10: [21.3, "string 1", "3.5", 4, "yet another string"]
 
     path.to.example.script: $$library_path(R-libraries)$$/example.R
 
