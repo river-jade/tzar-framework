@@ -44,6 +44,18 @@ cat('Is test variable 8 a vector?:', is.vector(parameters$'test.variable.8'), '\
 cat('Is test variable 8 numeric?:', is.numeric(parameters$'test.variable.8'), '\n')
 cat('Is test variable 8 character?:', is.character(parameters$'test.variable.8'), '\n')
 
+cat('\nValue for inline string array test variable 9 is:', parameters$'test.variable.9', '\n')
+cat('Length of test variable 9 is:', length(parameters$'test.variable.9'), '\n')
+cat('Is test variable 9 a vector?:', is.vector(parameters$'test.variable.9'), '\n')
+cat('Is test variable 9 numeric?:', is.numeric(parameters$'test.variable.9'), '\n')
+cat('Is test variable 9 character?:', is.character(parameters$'test.variable.9'), '\n')
+
+cat('\nValue for inline string array test variable 10 is:', parameters$'test.variable.10', '\n')
+cat('Length of test variable 10 is:', length(parameters$'test.variable.10'), '\n')
+cat('Is test variable 10 a vector?:', is.vector(parameters$'test.variable.10'), '\n')
+cat('Is test variable 10 numeric?:', is.numeric(parameters$'test.variable.10'), '\n')
+cat('Is test variable 10 character?:', is.character(parameters$'test.variable.10'), '\n')
+
 cat('\nThe working dir is', getwd(), '\n')
 cat('test.output.filename=', parameters$'test.output.filename', '\n')
 
