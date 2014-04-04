@@ -11,45 +11,46 @@ import java.util.logging.Logger;
 /**
  * A reducer which concatenates output files together, optionally skipping the first row (for
  * the case of csv files with heading row).
- * TODO(river): optionally use the heading row from the first file.
  */
 public class Concatenator implements Reducer {
   private static final Logger LOG = Logger.getLogger(Concatenator.class.getName());
-  private boolean skipFirstRow;
+  private boolean headingRow;
   private Map<String, String> flags;
 
   @Override
-  public Set<File> reduce(Set<File> accumulated, Set<File> update, File outputDirectory) throws TzarException {
+  public File reduce(Set<File> input, File outputPath, String filename) throws TzarException {
     try {
-      for (File updateFile : update) {
+      File outputFile = new File(outputPath, filename);
+      boolean fileExists = outputFile.exists();
+
+      if (fileExists) {
+        LOG.warning(String.format("Concatenator output file %s exists from previous job. Appending.", outputFile));
+      } else {
+        if (!outputFile.createNewFile()) {
+          throw new IOException("Couldn't create new file: " + outputFile);
+        }
+      }
+
+      boolean newFile = !fileExists;
+      for (File updateFile : input) {
         // TODO(river): note that using updateFile.getName means we'll flatten the output hierarchy. Unfortunately,
         // this is hard to avoid. Once we move to java 7, we'll have access to Path.relativize, which will mean
         // we can fix this more easily. For now, we just deal with the limitation, which should be fine for most cases.
-        File outputFile = new File(outputDirectory, updateFile.getName());
-        boolean newFile = accumulated.add(outputFile);
 
-        if (outputFile.exists()) {
-          if (newFile) {
-            LOG.warning(String.format("Concatenator output file %s exists from previous job. Appending.", outputFile));
-          }
-        } else {
-          if (!outputFile.createNewFile()) {
-            throw new IOException("Couldn't create new file: " + outputFile);
-          }
-        }
-        appendFile(outputFile, updateFile);
+        appendFile(outputFile, updateFile, newFile);
+        newFile = false;
       }
+
+      return outputFile;
     } catch (IOException e) {
       throw new TzarException(e);
     }
-
-    return accumulated;
   }
 
   @Override
   public void setFlags(Map<String, String> flags) {
     this.flags = flags;
-    skipFirstRow = Boolean.parseBoolean(flags.get("skipfirstrow"));
+    headingRow = Boolean.parseBoolean(flags.get("heading_row"));
   }
 
   @Override
@@ -57,22 +58,24 @@ public class Concatenator implements Reducer {
     return flags;
   }
 
-  private void appendFile(File accumulated, File update) throws IOException {
+  private void appendFile(File outputFile, File inputFile, boolean newFile) throws IOException {
     Closer closer = Closer.create();
     try {
-      BufferedWriter writer = new BufferedWriter(new FileWriter(accumulated, true));
-      BufferedReader reader = new BufferedReader(new FileReader(update));
+      BufferedWriter writer = new BufferedWriter(new FileWriter(outputFile, true));
+      BufferedReader reader = new BufferedReader(new FileReader(inputFile));
       closer.register(writer);
       closer.register(reader);
 
       String line;
       boolean firstRow = true;
       while ((line = reader.readLine()) != null) {
-        if (!(firstRow && skipFirstRow)) {
-          writer.write(line);
-          writer.newLine();
+        if (firstRow && headingRow && !newFile) {
+          // there's a heading row, and this isn't a new file so skip the first row
+          continue;
         }
         firstRow = false;
+        writer.write(line);
+        writer.newLine();
       }
     } catch (Throwable t) {
       throw closer.rethrow(t);

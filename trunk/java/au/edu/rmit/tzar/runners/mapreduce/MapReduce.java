@@ -2,9 +2,14 @@ package au.edu.rmit.tzar.runners.mapreduce;
 
 import au.edu.rmit.tzar.api.Run;
 import au.edu.rmit.tzar.api.TzarException;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 
 import java.io.File;
+import java.util.Collection;
+import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
@@ -24,13 +29,22 @@ public class MapReduce implements au.edu.rmit.tzar.api.MapReduce {
 
   @Override
   public Set<File> execute(Iterable<Run> runs, File runsetOutputPath) throws TzarException {
-    Set<File> accumulated = Sets.newHashSet();
+    // this multimap maps filenames to the list of files (one from each run) for that filename.
+    Multimap<String, File> multiMap = ArrayListMultimap.create();
 
     for (Run run : runs) {
       Set<File> mappedFiles = mapper.map(new File(runsetOutputPath, run.getRunDirectoryName()));
-      accumulated = reducer.reduce(accumulated, mappedFiles, runsetOutputPath);
+      for (File file : mappedFiles) {
+        multiMap.put(file.getName(), file);
+      }
     }
-    return accumulated;
+
+    // outputFiles is a set of files, one for each of the uniquely named input files
+    Set<File> outputFiles = Sets.newHashSet();
+    for (Map.Entry<String, Collection<File>> entry : multiMap.asMap().entrySet()) {
+      outputFiles.add(reducer.reduce(ImmutableSet.copyOf(entry.getValue()), runsetOutputPath, entry.getKey()));
+    }
+    return outputFiles;
   }
 
   public Mapper getMapper() {

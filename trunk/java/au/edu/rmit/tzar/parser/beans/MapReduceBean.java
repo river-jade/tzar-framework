@@ -18,10 +18,8 @@ public class MapReduceBean {
   private Map<String, String> reducer_flags;
 
   public MapReduce toMapReduce() throws TzarException {
-    Mapper mapper = new DynamicObjectFactory<Mapper>().getInstance(Mapper.class.getPackage().getName() + "." +
-        mapper_class);
-    Reducer reducer = new DynamicObjectFactory<Reducer>().getInstance(Reducer.class.getPackage().getName() + "." +
-        reducer_class);
+    Mapper mapper = new DynamicObjectFactory<Mapper>().getInstance(mapper_class);
+    Reducer reducer = new DynamicObjectFactory<Reducer>().getInstance(reducer_class);
     mapper.setFlags(mapper_flags);
     reducer.setFlags(reducer_flags);
     return new MapReduce(mapper, reducer);

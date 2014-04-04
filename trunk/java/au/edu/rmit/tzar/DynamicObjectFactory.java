@@ -40,16 +40,27 @@ public class DynamicObjectFactory<T> {
 
   private Class<T> loadClass(String className) throws TzarException {
     Class<?> aClass;
+
+    // try to load it based on the fully qualified classname
+    aClass = tryLoadClass(className);
+    if (aClass != null) return cast(aClass);
+
+    // ok, let's try loading it from the runners package
+    aClass = tryLoadClass("au.edu.rmit.tzar.runners." + className);
+    if (aClass != null) return cast(aClass);
+
+    // last chance, let's try loading it from the mapreduce package
+    aClass = tryLoadClass("au.edu.rmit.tzar.runners.mapreduce." + className);
+    if (aClass != null) return cast(aClass);
+
+    throw new TzarException("Unable to load class: " + className);
+  }
+
+  private Class<?> tryLoadClass(String className) {
     try {
-      aClass = getClass().getClassLoader().loadClass(className);
+      return getClass().getClassLoader().loadClass(className);
     } catch (ClassNotFoundException e) {
-      try {
-        aClass = getClass().getClassLoader().loadClass("au.edu.rmit.tzar.runners." + className);
-      } catch (ClassNotFoundException e1) {
-        //noinspection ThrowInsideCatchBlockWhichIgnoresCaughtException
-        throw new TzarException("Unable to load class: " + className);
-      }
+      return null;
     }
-    return cast(aClass);
   }
 }
