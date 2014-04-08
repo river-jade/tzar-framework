@@ -16,6 +16,15 @@ import java.util.Set;
 public class FileCopier implements Mapper {
   private Map<String, String> flags;
   private String sourceFile;
+
+  public FileCopier() {
+  }
+
+  public FileCopier(String sourceFile, String destFile) {
+    this.sourceFile = sourceFile;
+    this.destFile = destFile;
+  }
+
   private String destFile;
 
   @Override

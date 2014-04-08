@@ -24,12 +24,18 @@ scenarios:
       parameters: 
         test.variable.1: 789
 
-mapreduce:
-  mapper_class: FileCopier
-  mapper_flags:
-    source_filename: single_result.csv
-    dest_filename: all_results.csv
-  reducer_class: Concatenator
-  reducer_flags:
-    heading_row: true
+#mapreduce:
+#  mapper_class: FileCopier
+#  mapper_flags:
+#    source_filename: single_result.csv
+#    dest_filename: all_results.csv
+#  reducer_class: Concatenator
+#  reducer_flags:
+#    heading_row: true
 
+# This stanza is equivalent to the one above, but is simpler
+# to understand.
+concatenate:
+  heading_row: true
+  input_filename: single_result.csv
+  output_filename: all_results2.csv
