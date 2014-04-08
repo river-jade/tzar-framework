@@ -16,6 +16,7 @@ class ConnectionFactory {
   private final BoneCP connectionPool;
 
   public ConnectionFactory(String dbString) throws TzarException {
+    // we write out the DB string to the log, but blank out the db password for security reasons.
     LOG.info("Creating connection to DB: " + dbString.replaceAll("password=.*?(&|$)", "password=xxxxxx"));
     try {
       Class.forName("org.postgresql.Driver"); 	// load the DB driver
