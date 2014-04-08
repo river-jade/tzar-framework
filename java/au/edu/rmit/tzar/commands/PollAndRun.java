@@ -297,6 +297,7 @@ class PollAndRun implements Command {
 
     public Spinner pause() {
       renderSpinner = false;
+      first = true;
       return this;
     }
 
@@ -310,6 +311,7 @@ class PollAndRun implements Command {
       if (renderSpinner) {
         System.out.print((first ? "" : BACKSPACE) + SYMBOL[spinCounter++ % 4]);
         System.out.flush();
+        first = false;
       }
     }
   }
