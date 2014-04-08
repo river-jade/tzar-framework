@@ -24,6 +24,7 @@ public class ProjectSpecBean {
   private String runner_class;
   private String runner_flags;
   private MapReduceBean mapreduce;
+  private ConcatenateBean concatenate;
   private List<LibraryBean> libraries;
   private RepetitionsBean repetitions;
 
@@ -45,7 +46,12 @@ public class ProjectSpecBean {
     Map<String, CodeSourceImpl> libs = (libraries == null ? ImmutableMap.<String, CodeSourceImpl>of() :
         LibraryBean.toLibraries(libraries));
 
-    MapReduce mapReduce = (mapreduce == null ? null : mapreduce.toMapReduce());
+    MapReduce mapReduce = null;
+    if (mapreduce != null) {
+      mapReduce = mapreduce.toMapReduce();
+    } else if (concatenate != null) {
+      mapReduce = concatenate.toMapReduce();
+    }
 
     List<String> errors = Lists.newArrayList();
     if (base_params == null) {

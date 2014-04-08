@@ -17,6 +17,13 @@ public class Concatenator implements Reducer {
   private boolean headingRow;
   private Map<String, String> flags;
 
+  public Concatenator() {
+  }
+
+  public Concatenator(boolean headingRow) {
+    this.headingRow = headingRow;
+  }
+
   @Override
   public File reduce(Set<File> input, File outputPath, String filename) throws TzarException {
     try {
@@ -69,11 +76,13 @@ public class Concatenator implements Reducer {
       String line;
       boolean firstRow = true;
       while ((line = reader.readLine()) != null) {
-        if (firstRow && headingRow && !newFile) {
-          // there's a heading row, and this isn't a new file so skip the first row
-          continue;
+        if (firstRow) {
+          firstRow = false;
+          if (headingRow && !newFile) {
+            // there's a heading row, and this isn't a new file so skip the first row
+            continue;
+          }
         }
-        firstRow = false;
         writer.write(line);
         writer.newLine();
       }
