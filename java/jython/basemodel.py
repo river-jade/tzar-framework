@@ -26,13 +26,9 @@ class BaseModel(object):
         return dict((k, decimal.Decimal(str(v)) if type(v) is java.math.BigDecimal else v) for k, v in
             dict(params.asMap()).iteritems())
 
-    def run_r_code(self, rscript, params, variables=None, inputfiles=None,
-                   outputfiles=None):
+    def run_r_code(self, rscript, params, variables=None):
         myparams = params
-        if (variables or inputfiles or outputfiles):
-            if not variables: variables = {}
-            if not inputfiles: inputfiles = {}
-            if not outputfiles: outputfiles = {}
-            myparams = params.mergeParameters(variables, inputfiles, outputfiles)
+        if variables:
+    	    myparams = params.mergeParameters(variables)
         flags = [rscript]
         self.rrunner.runModel(None, self.outputpath, self.runid, flags, myparams, self.logger)

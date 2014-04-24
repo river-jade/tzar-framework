@@ -3,6 +3,8 @@ import os
 
 import basemodel
 
+from au.edu.rmit.tzar.api import Parameters
+
 class Model(basemodel.BaseModel):
     def execute(self, runparams):
         # the logging levels are (in descending order): severe, warning, info, config, fine,
@@ -21,4 +23,5 @@ class Model(basemodel.BaseModel):
         # NOTE: this run_r_code fucntion calls the example on the R
         # directory ie R/example.R
 
-        self.run_r_code("example.R", runparams)
+        overrides = {'test.variable.1': 'overridden'}
+        self.run_r_code("example.R", runparams, Parameters.createParameters(overrides))
