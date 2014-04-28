@@ -1,8 +1,9 @@
 import decimal
-import os
-import glob
 
 import java.math.BigDecimal
+
+from au.edu.rmit.tzar.api import Parameters
+
 
 class BaseModel(object):
     """Base class for models."""
@@ -29,6 +30,6 @@ class BaseModel(object):
     def run_r_code(self, rscript, params, variables=None):
         myparams = params
         if variables:
-    	    myparams = params.mergeParameters(variables)
+    	    myparams = params.mergeParameters(Parameters.createParameters(variables))
         flags = [rscript]
         self.rrunner.runModel(None, self.outputpath, self.runid, flags, myparams, self.logger)
