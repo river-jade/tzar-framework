@@ -1,9 +1,4 @@
-import glob
-import os
-
 import basemodel
-
-from au.edu.rmit.tzar.api import Parameters
 
 class Model(basemodel.BaseModel):
     def execute(self, runparams):
@@ -20,8 +15,8 @@ class Model(basemodel.BaseModel):
         # this is useful if you want to use arithmetic operations within python.
         variables = self.get_decimal_params(runparams)
 
-        # NOTE: this run_r_code fucntion calls the example on the R
+        # NOTE: this run_r_code function calls the example on the R
         # directory ie R/example.R
 
         overrides = {'test.variable.1': 'overridden'}
-        self.run_r_code("example.R", runparams, Parameters.createParameters(overrides))
+        self.run_r_code("example.R", runparams, overrides)
