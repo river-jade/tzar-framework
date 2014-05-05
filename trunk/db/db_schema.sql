@@ -29,7 +29,7 @@ SET default_tablespace = '';
 SET default_with_oids = false;
 
 --
--- Name: constants; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
+-- Name: constants; Type: TABLE; Schema: public; Owner: tzar; Tablespace: 
 --
 
 CREATE TABLE constants (
@@ -37,10 +37,10 @@ CREATE TABLE constants (
 );
 
 
-ALTER TABLE public.constants OWNER TO postgres;
+ALTER TABLE public.constants OWNER TO tzar;
 
 --
--- Name: libraries; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
+-- Name: libraries; Type: TABLE; Schema: public; Owner: tzar; Tablespace: 
 --
 
 CREATE TABLE libraries (
@@ -52,10 +52,10 @@ CREATE TABLE libraries (
 );
 
 
-ALTER TABLE public.libraries OWNER TO postgres;
+ALTER TABLE public.libraries OWNER TO tzar;
 
 --
--- Name: libraries_library_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: libraries_library_id_seq; Type: SEQUENCE; Schema: public; Owner: tzar
 --
 
 CREATE SEQUENCE libraries_library_id_seq
@@ -66,10 +66,10 @@ CREATE SEQUENCE libraries_library_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.libraries_library_id_seq OWNER TO postgres;
+ALTER TABLE public.libraries_library_id_seq OWNER TO tzar;
 
 --
--- Name: libraries_library_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: libraries_library_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: tzar
 --
 
 ALTER SEQUENCE libraries_library_id_seq OWNED BY libraries.library_id;
@@ -78,7 +78,7 @@ ALTER SEQUENCE libraries_library_id_seq OWNED BY libraries.library_id;
 ALTER TABLE libraries ADD UNIQUE (repo_type, uri, name, revision);
 
 --
--- Name: run_libraries; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
+-- Name: run_libraries; Type: TABLE; Schema: public; Owner: tzar; Tablespace: 
 --
 
 CREATE TABLE run_libraries (
@@ -87,10 +87,10 @@ CREATE TABLE run_libraries (
 );
 
 
-ALTER TABLE public.run_libraries OWNER TO postgres;
+ALTER TABLE public.run_libraries OWNER TO tzar;
 
 --
--- Name: run_params; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
+-- Name: run_params; Type: TABLE; Schema: public; Owner: tzar; Tablespace: 
 --
 
 CREATE TABLE run_params (
@@ -103,10 +103,10 @@ CREATE TABLE run_params (
 );
 
 
-ALTER TABLE public.run_params OWNER TO postgres;
+ALTER TABLE public.run_params OWNER TO tzar;
 
 --
--- Name: run_params_run_param_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: run_params_run_param_id_seq; Type: SEQUENCE; Schema: public; Owner: tzar
 --
 
 CREATE SEQUENCE run_params_run_param_id_seq
@@ -117,17 +117,17 @@ CREATE SEQUENCE run_params_run_param_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.run_params_run_param_id_seq OWNER TO postgres;
+ALTER TABLE public.run_params_run_param_id_seq OWNER TO tzar;
 
 --
--- Name: run_params_run_param_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: run_params_run_param_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: tzar
 --
 
 ALTER SEQUENCE run_params_run_param_id_seq OWNED BY run_params.run_param_id;
 
 
 --
--- Name: runs; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
+-- Name: runs; Type: TABLE; Schema: public; Owner: tzar; Tablespace: 
 --
 
 CREATE TABLE runs (
@@ -153,31 +153,31 @@ CREATE TABLE runs (
 );
 
 
-ALTER TABLE public.runs OWNER TO postgres;
+ALTER TABLE public.runs OWNER TO tzar;
 
 --
--- Name: COLUMN runs.model_revision; Type: COMMENT; Schema: public; Owner: postgres
+-- Name: COLUMN runs.model_revision; Type: COMMENT; Schema: public; Owner: tzar
 --
 
 COMMENT ON COLUMN runs.model_revision IS 'The subversion revision number of the code used to execute the run.';
 
 
 --
--- Name: COLUMN runs.run_start_time; Type: COMMENT; Schema: public; Owner: postgres
+-- Name: COLUMN runs.run_start_time; Type: COMMENT; Schema: public; Owner: tzar
 --
 
 COMMENT ON COLUMN runs.run_start_time IS 'Time run began (UTC)';
 
 
 --
--- Name: COLUMN runs.run_end_time; Type: COMMENT; Schema: public; Owner: postgres
+-- Name: COLUMN runs.run_end_time; Type: COMMENT; Schema: public; Owner: tzar
 --
 
 COMMENT ON COLUMN runs.run_end_time IS 'Time run finished (UTC)';
 
 
 --
--- Name: runs_run_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: runs_run_id_seq; Type: SEQUENCE; Schema: public; Owner: tzar
 --
 
 CREATE SEQUENCE runs_run_id_seq
@@ -188,45 +188,45 @@ CREATE SEQUENCE runs_run_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.runs_run_id_seq OWNER TO postgres;
+ALTER TABLE public.runs_run_id_seq OWNER TO tzar;
 
 --
--- Name: runs_run_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: runs_run_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: tzar
 --
 
 ALTER SEQUENCE runs_run_id_seq OWNED BY runs.run_id;
 
 
 --
--- Name: library_id; Type: DEFAULT; Schema: public; Owner: postgres
+-- Name: library_id; Type: DEFAULT; Schema: public; Owner: tzar
 --
 
 ALTER TABLE ONLY libraries ALTER COLUMN library_id SET DEFAULT nextval('libraries_library_id_seq'::regclass);
 
 
 --
--- Name: run_param_id; Type: DEFAULT; Schema: public; Owner: postgres
+-- Name: run_param_id; Type: DEFAULT; Schema: public; Owner: tzar
 --
 
 ALTER TABLE ONLY run_params ALTER COLUMN run_param_id SET DEFAULT nextval('run_params_run_param_id_seq'::regclass);
 
 
 --
--- Name: run_id; Type: DEFAULT; Schema: public; Owner: postgres
+-- Name: run_id; Type: DEFAULT; Schema: public; Owner: tzar
 --
 
 ALTER TABLE ONLY runs ALTER COLUMN run_id SET DEFAULT nextval('runs_run_id_seq'::regclass);
 
 
 --
--- Name: seed; Type: DEFAULT; Schema: public; Owner: postgres
+-- Name: seed; Type: DEFAULT; Schema: public; Owner: tzar
 --
 
 ALTER TABLE ONLY runs ALTER COLUMN seed SET DEFAULT currval('runs_run_id_seq'::regclass);
 
 
 --
--- Name: PK; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
+-- Name: PK; Type: CONSTRAINT; Schema: public; Owner: tzar; Tablespace: 
 --
 
 ALTER TABLE ONLY runs
@@ -234,7 +234,7 @@ ALTER TABLE ONLY runs
 
 
 --
--- Name: libraries_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
+-- Name: libraries_pkey; Type: CONSTRAINT; Schema: public; Owner: tzar; Tablespace: 
 --
 
 ALTER TABLE ONLY libraries
@@ -242,7 +242,7 @@ ALTER TABLE ONLY libraries
 
 
 --
--- Name: run_params_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
+-- Name: run_params_pkey; Type: CONSTRAINT; Schema: public; Owner: tzar; Tablespace: 
 --
 
 ALTER TABLE ONLY run_params
@@ -250,7 +250,7 @@ ALTER TABLE ONLY run_params
 
 
 --
--- Name: run_params_run_id_key; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
+-- Name: run_params_run_id_key; Type: CONSTRAINT; Schema: public; Owner: tzar; Tablespace: 
 --
 
 ALTER TABLE ONLY run_params
@@ -258,21 +258,21 @@ ALTER TABLE ONLY run_params
 
 
 --
--- Name: fki_run_id; Type: INDEX; Schema: public; Owner: postgres; Tablespace: 
+-- Name: fki_run_id; Type: INDEX; Schema: public; Owner: tzar; Tablespace: 
 --
 
 CREATE INDEX fki_run_id ON run_params USING btree (run_id);
 
 
 --
--- Name: fki_run_libraries_run_id_fk; Type: INDEX; Schema: public; Owner: postgres; Tablespace: 
+-- Name: fki_run_libraries_run_id_fk; Type: INDEX; Schema: public; Owner: tzar; Tablespace: 
 --
 
 CREATE INDEX fki_run_libraries_run_id_fk ON run_libraries USING btree (library_id);
 
 
 --
--- Name: run_id; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: run_id; Type: FK CONSTRAINT; Schema: public; Owner: tzar
 --
 
 ALTER TABLE ONLY run_params
@@ -280,7 +280,7 @@ ALTER TABLE ONLY run_params
 
 
 --
--- Name: run_libraries_library_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: run_libraries_library_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: tzar
 --
 
 ALTER TABLE ONLY run_libraries
@@ -289,7 +289,7 @@ ALTER TABLE ONLY run_libraries
 
 
 --
--- Name: run_libraries_run_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: run_libraries_run_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: tzar
 --
 
 ALTER TABLE ONLY run_libraries
@@ -298,12 +298,10 @@ ALTER TABLE ONLY run_libraries
 
 
 --
--- Name: public; Type: ACL; Schema: -; Owner: postgres
+-- Name: public; Type: ACL; Schema: -; Owner: tzar
 --
 
-REVOKE ALL ON SCHEMA public FROM PUBLIC;
-REVOKE ALL ON SCHEMA public FROM postgres;
-GRANT ALL ON SCHEMA public TO postgres;
+GRANT ALL ON SCHEMA public TO tzar;
 GRANT ALL ON SCHEMA public TO PUBLIC;
 
 
