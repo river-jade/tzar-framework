@@ -39,20 +39,9 @@
                 <include name="**.properties"/>
             </fileset>
         </copy>
-        <copy todir="${build.dir}/python">
-        <!-- Add the python source -->
-            <fileset dir="java/python">
-                <include name="**"/>
-            </fileset>
-        </copy>
-        <copy todir="${build.dir}/jython">
-            <fileset dir="java/jython">
-                <include name="**"/>
-            </fileset>
-        </copy>
-        <copy todir="${build.dir}/R">
-        <!-- Add the python source -->
-            <fileset dir="java/R">
+        <copy todir="${build.dir}">
+        <!-- copy external runners to the build dir, so that they get included in the jar -->
+            <fileset dir="external_runners">
                 <include name="**"/>
             </fileset>
         </copy>
