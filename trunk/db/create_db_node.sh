@@ -9,7 +9,7 @@ password=${1:?Need to pass the password for the tzar db user as the first parame
 yes | sudo apt-get update && yes | sudo apt-get install postgresql
 
 # download schema
-wget https://tzar-framework.googlecode.com/svn/trunk/db/db_schema.sqls
+wget https://tzar-framework.googlecode.com/svn/trunk/db/db_schema.sql
 
 # become postgres user
 sudo su postgres
