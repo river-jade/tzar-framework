@@ -1,15 +1,15 @@
 #!/bin/bash
 set -e # -e means exit on any error
 set -u # -u means treat unset variables as errors
-# set -o pipefail # handles corner case where pipe destination command fails
+set -o pipefail # handles corner case where pipe destination command fails
 
 password=${1:?Need to pass the password for the tzar db user as the first parameter}
 
 # install postgresql
-sudo apt-get update && yes | sudo apt-get install postgresql
+sudo apt-get update && sudo apt-get -y install postgresql
 
 # download schema
-wget https://tzar-framework.googlecode.com/svn/trunk/db/db_schema.sql
+wget https://tzar-framework.googlecode.com/svn/trunk/db/db_schema.sql /tmp/db_schema.sql
 
 sudo su postgres <<EOF
 
@@ -38,6 +38,6 @@ sed '/^#listen_addresses/a\
 /etc/init.d/postgresql restart
 
 #Execute db creation script
-psql -f ~ubuntu/db_schema.sql tzar -U tzar
+psql -f /tmp/db_schema.sql tzar -U tzar
 
 EOF
