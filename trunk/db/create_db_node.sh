@@ -5,10 +5,8 @@ set -o pipefail # handles corner case where pipe destination command fails
 
 password=${1:?Need to pass the password for the tzar db user as the first parameter}
 
-echo $password
-echo hello
 # install postgresql
-sudo apt-get update && sudo apt-get install postgresql
+yes | sudo apt-get update && yes | sudo apt-get install postgresql
 
 # download schema
 wget https://tzar-framework.googlecode.com/svn/trunk/db/db_schema.sqls
