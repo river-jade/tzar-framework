@@ -1,11 +1,12 @@
 #!/bin/bash
+set -e # -e means exit on any error
+set -u # -u means treat unset variables as errors
+set -o pipefail # handles corner case where pipe destination command fails
 
-password=$1
+password=${1:?Need to pass the password for the tzar db user as the first parameter}
 
-if [ -e $password]; then
-  echo "Need to pass a password as the first parameter"
-  exit -1
-fi
+echo $password
+echo hello
 # install postgresql
 sudo apt-get update && sudo apt-get install postgresql
 
@@ -42,5 +43,3 @@ sed '/^#listen_addresses/a\
 #Execute db creation script
 psql -f ~ubuntu/db_schema.sql tzar -U tzar
 
-# exit su shell
-exit
