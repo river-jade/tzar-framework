@@ -3,7 +3,7 @@ package au.edu.rmit.tzar;
 import au.edu.rmit.tzar.api.*;
 import au.edu.rmit.tzar.parser.YamlParser;
 import au.edu.rmit.tzar.runners.RunnerFactory;
-import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 
 import java.io.File;
 import java.io.IOException;
@@ -106,18 +106,8 @@ public class ExecutableRun {
       LOG.info(String.format("Running model: %s, run_id: %d, Project name: %s, Scenario name: %s, " +
           "Flags: %s", model, getRunId(), run.getProjectName(), run.getScenarioName(), run.getRunnerFlags()));
 
-      ImmutableMap.Builder<String, String> builder = ImmutableMap.<String, String>builder()
-          .put("run_id", Integer.toString(getRunId()))
-          .put("model_path", model.getAbsolutePath() + File.separator)
-          .put("output_path", outputPath.getAbsolutePath() + File.separator);
-      for (Map.Entry<String, ? extends CodeSource> entry : run.getLibraries().entrySet()) {
-        String libraryName = entry.getKey();
-        builder.put(String.format("library_path(%s)", libraryName),
-            entry.getValue().getCode(baseModelPath, libraryName).toString());
-      }
-
-      Map<String, String> wildcards = builder.build();
-      Parameters parameters = run.getParameters().replaceWildcards(wildcards);
+      WildcardReplacer.Context context = new WildcardReplacer.Context(getRunId(), model, loadLibraries(), outputPath);
+      Parameters parameters = new WildcardReplacer().replaceWildcards(run.getParameters(), context);
 
       FileHandler handler = setupLogFileHandler(outputPath);
       RUNNER_LOGGER.addHandler(handler);
@@ -147,6 +137,21 @@ public class ExecutableRun {
     } catch (IOException e) {
       throw new TzarException(e);
     }
+  }
+
+  /**
+   * Loads user libraries, and returns a map of library names to paths containing the downloaded
+   * library code.
+   * @return
+   * @throws TzarException
+   */
+  private Map<String, File> loadLibraries() throws TzarException {
+    Map<String, File> map = Maps.newHashMap();
+    for (Map.Entry<String, ? extends CodeSource> entry : run.getLibraries().entrySet()) {
+      String libraryName = entry.getKey();
+      map.put(libraryName, entry.getValue().getCode(baseModelPath, libraryName));
+    }
+    return map;
   }
 
   /**

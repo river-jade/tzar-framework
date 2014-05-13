@@ -9,12 +9,11 @@ import java.util.Map;
  * Test cases for Parameters class.
  */
 public class ParametersTest extends TestCase {
-  private Map<String, ?> variables;
   private Parameters parameters;
 
   @Override
   public void setUp() throws Exception {
-    variables = ImmutableMap.of("a", 1, "b", 2);
+    Map<String, ?> variables = ImmutableMap.of("a", 1, "b", 2);
     parameters = Parameters.createParameters(variables);
   }
 
@@ -30,22 +29,5 @@ public class ParametersTest extends TestCase {
     assertEquals("Merging parameters via overload method should give same result.", result1, result2);
     assertEquals(3, result1.asMap().get("a"));
     assertEquals(2, result1.asMap().get("b"));
-  }
-
-  public void testReplaceWildcards() throws TzarException {
-    variables = ImmutableMap.of("a", 1, "b", "$$foo$$");
-    parameters = Parameters.createParameters(variables);
-    Parameters replaced = parameters.replaceWildcards(ImmutableMap.of("foo", "hello", "gif", "png"));
-
-    assertEquals(1, replaced.asMap().get("a"));
-    assertEquals("hello", replaced.asMap().get("b"));
-  }
-
-  public void testReplaceWildcardsWithSpecialCharacters() {
-    variables = ImmutableMap.of("a", 1, "b", "$$foo$$");
-    parameters = Parameters.createParameters(variables);
-    Parameters replaced = parameters.replaceWildcards(ImmutableMap.of("foo", "\\abc$$\\"));
-
-    assertEquals("\\abc$$\\", replaced.asMap().get("b"));
   }
 }
