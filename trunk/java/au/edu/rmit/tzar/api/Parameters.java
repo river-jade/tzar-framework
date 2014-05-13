@@ -7,8 +7,6 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Represents a set of parameters for a run.
@@ -86,50 +84,6 @@ public class Parameters {
   public Parameters mergeParameters(Parameters overrideParameters) throws TzarException {
     Map<String, Object> parameters = mergeParameterMaps(asMap(), overrideParameters.asMap());
     return createParameters(parameters);
-  }
-
-  /**
-   * Replaces any of the provided wildcard keys (as delimited by $$<param name>$$) with
-   * the provided values.
-   * <p/>
-   * For example, if we pass in a wildcards Map containing key:base_path, and value:
-   * "/foo", then if one of the parameter values of this object has name base_path
-   * and value, "$$path$$/somewhere", then this method will return a Parameters
-   * object containing a parameter with name: base_path, value: "/foo/somewhere".
-   *
-   * @param wildcards a map of wildcard names to their corresponding values
-   * @return a new Parameters object with all wildcard values (in variables, inputFiles
-   *         and outputFiles) replaced by the provided values.
-   */
-  public Parameters replaceWildcards(Map<String, String> wildcards) {
-    return Parameters.createParameters(replaceWildcards(parameters, wildcards));
-  }
-
-  private static <T> Map<String, T> replaceWildcards(ImmutableMap<String, T> inputMap, Map<String, String> wildcards) {
-    Map<String, T> map = Maps.newHashMap(inputMap);
-    Pattern pattern = Pattern.compile("\\$\\$(.*?)\\$\\$");
-    for (Map.Entry<String, T> entry : map.entrySet()) {
-      if (entry.getValue() instanceof String) {
-        String value = (String) entry.getValue();
-        Matcher matcher = pattern.matcher(value);
-        while (matcher.find()) {
-          String wildcard = matcher.group(1);
-          if (wildcards.containsKey(wildcard)) {
-            // we need to escape $ and \ because these are treated as special characters in the replacement string
-            String replacement = wildcards.get(wildcard).replace("\\", "\\\\").replace("$", "\\$");
-            value = matcher.replaceFirst(replacement);
-            matcher.reset(value);
-          } else {
-            LOG.warning("Found unmatched wildcard '" + wildcard + "' in parameters");
-          }
-        }
-        // This cast to T is unavoidable, but safe because we only get here if T is castable to String.
-        // We isolate it in a method so that we can suppress the warnings just on the statement containing
-        // the cast.
-        castAndPut(map, entry.getKey(), value);
-      }
-    }
-    return map;
   }
 
   @SuppressWarnings("unchecked")

@@ -39,22 +39,23 @@ public class ExecutableRunTest extends TestCase {
   private Map<String, Object> variables = Maps.newHashMap();
   private File outputDir;
   private RunnerFactory runnerFactory = mock(RunnerFactory.class);
-  private ExecutableRun executableRun;
   private Map<String, CodeSourceImpl> libraries = ImmutableMap.of();
   private Runner mockRunner = mock(Runner.class);
   private Parameters parameters;
+  private File tzarOutputPath;
 
   @Override
   public void setUp() throws Exception {
-    File TZAR_OUTPUT_PATH = Files.createTempDir();
-    outputDir = new File(TZAR_OUTPUT_PATH, PathUtils.combineAndReplaceWhitespace("_", PROJECT_NAME, RUNSET,
+    tzarOutputPath = Files.createTempDir();
+    outputDir = new File(tzarOutputPath, PathUtils.combineAndReplaceWhitespace("_", PROJECT_NAME, RUNSET,
         RUN_ID + "_" + SCENARIO_NAME));
 
     variables.put("aaa", "123");
     variables.put("aab", "124");
     variables.put("aac", "124$$run_id$$123");
-    variables.put("libtest", "$$library_path(lib1)$$/2");
+  }
 
+  private ExecutableRun createExecutableRun(File TZAR_OUTPUT_PATH) throws TzarException {
     parameters = Parameters.createParameters(variables);
     CodeSourceImpl modelSource = new CodeSourceImpl(SOURCE_PATH.toURI(), CodeSourceImpl.RepositoryTypeImpl.LOCAL_FILE,
         REVISION);
@@ -64,10 +65,11 @@ public class ExecutableRunTest extends TestCase {
         .setRunset(RUNSET)
         .setRunId(RUN_ID)
         .setParameters(parameters);
-    executableRun = ExecutableRun.createExecutableRun(run, TZAR_OUTPUT_PATH, MODEL, runnerFactory);
+    return ExecutableRun.createExecutableRun(run, TZAR_OUTPUT_PATH, MODEL, runnerFactory);
   }
 
-  public void testCreateExecutableRun() {
+  public void testCreateExecutableRun() throws TzarException {
+    ExecutableRun executableRun = createExecutableRun(tzarOutputPath);
     assertEquals(outputDir + Constants.INPROGRESS_SUFFIX, executableRun.getOutputPath().toString());
     assertEquals(RUN_ID, executableRun.getRunId());
     assertEquals(run, executableRun.getRun());
@@ -95,21 +97,26 @@ public class ExecutableRunTest extends TestCase {
 
     // we rerun setup to recreate the objects that depend on library. a bit dodgy though.
     setUp();
-    Map<String, Object> variables = Maps.newHashMap(parameters.asMap());
-    variables.put("aac", "124" + RUN_ID + "123"); // because the id wildcard will be replaced
-    variables.put("libtest", new File("/source/code/1") + "/2");
+    variables.put("libtest", "$$library_path(lib1)$$2");
+    createExecutableRun(tzarOutputPath);
 
-    testExecute(true, variables);
+    Map<String, Object> changedVariables = Maps.newHashMap(parameters.asMap());
+    changedVariables.put("aac", "124" + RUN_ID + "123"); // because the id wildcard will be replaced
+    changedVariables.put("libtest", new File("/source/code/1") + "/2");
+
+    testExecute(true, changedVariables);
     assertTrue(outputDir.exists());
   }
 
   private void testExecute(boolean success) throws TzarException {
-    Map<String, Object> variables = Maps.newHashMap(parameters.asMap());
-    variables.put("aac", "124" + RUN_ID + "123"); // because the id wildcard will be replaced
-    testExecute(success, variables);
+    Map<String, Object> expectedVariables = Maps.newHashMap();
+    expectedVariables.put("aac", "124" + RUN_ID + "123"); // because the id wildcard will be replaced
+    testExecute(success, expectedVariables);
   }
 
-  private void testExecute(boolean success, Map<String, Object> variables) throws TzarException {
+  private void testExecute(boolean success, Map<String, Object> expectedVariables) throws TzarException {
+    ExecutableRun executableRun = createExecutableRun(tzarOutputPath);
+
     when(runnerFactory.getRunner(RUNNER_CLASS)).thenReturn(mockRunner);
     when(mockRunner.runModel(any(File.class), any(File.class), anyString(), anyString(), any(Parameters.class),
         any(Logger.class))).thenReturn(success);
@@ -121,7 +128,7 @@ public class ExecutableRunTest extends TestCase {
         eq(Integer.toString(RUN_ID)), eq(RUNNER_FLAGS),
         parametersArgumentCaptor.capture(), isA(Logger.class));
 
-    Parameters expected = parameters.mergeParameters(Parameters.createParameters(variables));
+    Parameters expected = parameters.mergeParameters(Parameters.createParameters(expectedVariables));
 
     assertEquals(expected, parametersArgumentCaptor.getValue());
     assertEquals(success, result);
