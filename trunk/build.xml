@@ -2,7 +2,6 @@
 <project xmlns:ivy="antlib:org.apache.ivy.ant" default="dist" basedir=".">
     <property name="build.dir" location="build"/>
     <property name="test.build.dir" location="build.test"/>
-    <property name="lib.dir" location="lib"/>
     <property name="jar.name" value="tzar.jar"/>
     <property name="src.dir" value="java"/>
     <property name="tst.dir" value="javatest"/>
@@ -25,9 +24,6 @@
                debug="true">
             <classpath>
                 <path refid="tzar.classpath"/>
-                <fileset dir="${lib.dir}">
-                    <include name="*.jar"/>
-                </fileset>
             </classpath>
         </javac2>
     </target>
@@ -55,8 +51,6 @@
          -->
         <jar jarfile="external-libs.jar" keepcompression="false">
             <zipgroupfileset refid="libs.fileset"/>
-            <!-- Add the non-ivy libs -->
-            <zipgroupfileset dir="${lib.dir}" includes="*.jar"/>
         </jar>
         <!-- Build the jar -->
         <jar destfile="${jar.name}" basedir="${build.dir}" keepcompression="false">
