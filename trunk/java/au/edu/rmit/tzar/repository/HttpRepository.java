@@ -56,7 +56,7 @@ public class HttpRepository extends UrlRepository {
   @Override
   public File retrieveModel(String revision, String name) throws TzarException {
     File modelPath = createModelPath(name, baseModelsPath, sourceUri);
-    LOG.info(String.format("Retrieving model from %s to %s",  sourceUri, modelPath));
+    LOG.fine(String.format("Retrieving model from %s to %s",  sourceUri, modelPath));
     if (skipIfExists && modelPath.exists()) {
       LOG.fine(String.format("Library already exists at %s so not downloading", modelPath));
     } else {
@@ -75,7 +75,7 @@ public class HttpRepository extends UrlRepository {
     } catch (URISyntaxException e) {
       throw new TzarException(e);
     }
-    LOG.info(String.format("Retrieving project.yaml from: %s to local path: %s", uri, tempDir));
+    LOG.fine(String.format("Retrieving project.yaml from: %s to local path: %s", uri, tempDir));
     File path = createModelPath("project_params", baseModelsPath, sourceUri);
     retrieveFile(path);
     return path;
