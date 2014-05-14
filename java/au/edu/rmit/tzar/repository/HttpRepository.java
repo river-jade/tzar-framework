@@ -5,6 +5,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.io.Closeables;
 import com.google.common.io.Files;
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URIBuilder;
@@ -55,8 +56,7 @@ public class HttpRepository extends UrlRepository {
 
   @Override
   public File retrieveModel(String revision, String name) throws TzarException {
-    File modelPath = createModelPath(name, baseModelsPath, sourceUri);
-    LOG.fine(String.format("Retrieving model from %s to %s",  sourceUri, modelPath));
+    File modelPath = createModelPath(name, baseModelsPath, sourceUri); LOG.fine(String.format("Retrieving model from %s to %s", sourceUri, modelPath));
     if (skipIfExists && modelPath.exists()) {
       LOG.fine(String.format("Library already exists at %s so not downloading", modelPath));
     } else {
@@ -92,6 +92,11 @@ public class HttpRepository extends UrlRepository {
       boolean exceptionOccurred = true;
       try {
         HttpEntity entity = response.getEntity();
+        int statusCode = response.getStatusLine().getStatusCode();
+        if (statusCode != HttpStatus.SC_OK) {
+          throw new TzarException(String.format("Http error retrieving file from URL: %s. Error was: %s", sourceUri,
+              response.getStatusLine()));
+        }
         FileOutputStream fileOutputStream = new FileOutputStream(outputFile);
         entity.writeTo(fileOutputStream);
         exceptionOccurred = false;

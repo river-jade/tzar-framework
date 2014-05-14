@@ -85,62 +85,66 @@ public class ExecutableRun {
   }
 
   /**
-   * Execute this run.
+   * Execute this run. Checked exceptions are caught, and result in a failed run.
    *
    * @return true if the run executed successfully, false otherwise
-   * @throws TzarException if an error occurs executing the run
    */
-  public boolean execute() throws TzarException {
-    CodeSource codeSource = run.getCodeSource();
-    File model = codeSource.getCode(baseModelPath, run.getProjectName());
+  public boolean execute() {
     try {
-      if (outputPath.exists()) {
-        LOG.warning("Local output path: " + outputPath + " already exists. Deleting.");
-        deleteRecursively(outputPath);
-      }
-      LOG.fine("Creating local outputdir: " + outputPath);
-      if (!outputPath.mkdirs()) {
-        throw new IOException("Couldn't create local output dir: " + outputPath);
-      }
-      File metadataPath = new File(outputPath, Constants.METADATA_DIRECTORY_NAME);
-      if (!metadataPath.mkdir()) {
-        throw new IOException("Couldn't create local metadata dir: " + metadataPath);
-      }
-
-      LOG.info(String.format("Running model: %s, run_id: %d, Project name: %s, Scenario name: %s, " +
-          "Flags: %s", model, getRunId(), run.getProjectName(), run.getScenarioName(), run.getRunnerFlags()));
-
-      WildcardReplacer.Context context = new WildcardReplacer.Context(getRunId(), model, loadLibraries(), outputPath,
-          metadataPath);
-      Parameters parameters = new WildcardReplacer().replaceWildcards(run.getParameters(), context);
-
-      FileHandler handler = setupLogFileHandler(metadataPath);
-      RUNNER_LOGGER.addHandler(handler);
-      RUNNER_LOGGER.log(Level.FINE, DATE_FORMAT.format(new Date()));
-      RUNNER_LOGGER.log(Level.FINE, "Executing run with revision: {0}, from project: {1}",
-          new Object[]{defaultIfEmpty(codeSource.getRevision(), "none"), codeSource.getSourceUri()});
-      File parametersFile = new File(metadataPath, "parameters.yaml");
-
-      boolean success = false;
+      CodeSource codeSource = run.getCodeSource();
+      File model = codeSource.getCode(baseModelPath, run.getProjectName());
       try {
-        yamlParser.parametersToYaml(parameters, parametersFile);
-        Runner runner = runnerFactory.getRunner(run.getRunnerClass());
-        success = runner.runModel(model, outputPath, Integer.toString(run.getRunId()), run.getRunnerFlags(),
-            parameters, RUNNER_LOGGER);
-      } finally {
-        RUNNER_LOGGER.removeHandler(handler);
-        handler.close();
-        renameOutputDir(success);
-      }
-      if (success) {
-        LOG.info("Run " + getRunId() + " succeeded.");
-      } else {
-        LOG.warning("Run " + getRunId() + " failed.");
-      }
+        if (outputPath.exists()) {
+          LOG.warning("Local output path: " + outputPath + " already exists. Deleting.");
+          deleteRecursively(outputPath);
+        }
+        LOG.fine("Creating local outputdir: " + outputPath);
+        if (!outputPath.mkdirs()) {
+          throw new IOException("Couldn't create local output dir: " + outputPath);
+        }
+        File metadataPath = new File(outputPath, Constants.METADATA_DIRECTORY_NAME);
+        if (!metadataPath.mkdir()) {
+          throw new IOException("Couldn't create local metadata dir: " + metadataPath);
+        }
 
-      return success;
-    } catch (IOException e) {
-      throw new TzarException(e);
+        LOG.info(String.format("Running model: %s, run_id: %d, Project name: %s, Scenario name: %s, " +
+            "Flags: %s", model, getRunId(), run.getProjectName(), run.getScenarioName(), run.getRunnerFlags()));
+
+        WildcardReplacer.Context context = new WildcardReplacer.Context(getRunId(), model, loadLibraries(), outputPath,
+            metadataPath);
+        Parameters parameters = new WildcardReplacer().replaceWildcards(run.getParameters(), context);
+
+        FileHandler handler = setupLogFileHandler(metadataPath);
+        RUNNER_LOGGER.addHandler(handler);
+        RUNNER_LOGGER.log(Level.FINE, DATE_FORMAT.format(new Date()));
+        RUNNER_LOGGER.log(Level.FINE, "Executing run with revision: {0}, from project: {1}",
+            new Object[]{defaultIfEmpty(codeSource.getRevision(), "none"), codeSource.getSourceUri()});
+        File parametersFile = new File(metadataPath, "parameters.yaml");
+
+        boolean success = false;
+        try {
+          yamlParser.parametersToYaml(parameters, parametersFile);
+          Runner runner = runnerFactory.getRunner(run.getRunnerClass());
+          success = runner.runModel(model, outputPath, Integer.toString(run.getRunId()), run.getRunnerFlags(),
+              parameters, RUNNER_LOGGER);
+        } finally {
+          RUNNER_LOGGER.removeHandler(handler);
+          handler.close();
+          renameOutputDir(success);
+        }
+        if (success) {
+          LOG.info("Run " + getRunId() + " succeeded.");
+        } else {
+          LOG.warning("Run " + getRunId() + " failed.");
+        }
+
+        return success;
+      } catch (IOException e) {
+        throw new TzarException(e);
+      }
+    } catch (TzarException e) {
+      LOG.log(Level.SEVERE, "An exception occurred executing the run.", e);
+      return false;
     }
   }
 
