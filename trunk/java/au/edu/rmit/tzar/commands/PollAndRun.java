@@ -168,10 +168,7 @@ class PollAndRun implements Command {
       boolean success = false;
       try {
         success = checkUriPrefixes(run) && executableRun.execute();
-      } catch (TzarException e) { // note: we eat these exceptions because we don't want to kill the thread.
-        LOG.log(Level.SEVERE, "Error occurred executing run: " + run.getRunId(), e);
-        System.out.println("\n");
-      } catch (RuntimeException e) {
+      } catch (RuntimeException e) { // note: we eat these exceptions because we don't want to kill the thread.
         LOG.log(Level.SEVERE, "Runtime exception occurred executing run: " + run.getRunId(), e);
       } finally {
         run.setEndTime(new Date());

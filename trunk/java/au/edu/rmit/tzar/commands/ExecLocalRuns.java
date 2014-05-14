@@ -60,7 +60,11 @@ public class ExecLocalRuns implements Command {
         runFactory.getRunset());
 
     if (mapReduce.isPresent()) {
-      mapReduce.get().execute(runs, runsetOutputPath);
+      if (failedIds.isEmpty()) {
+        mapReduce.get().execute(runs, runsetOutputPath);
+      } else {
+        LOG.warning("Did not execute map-reduce as one or more of the runs failed.");
+      }
     }
 
     int count = runs.size();
