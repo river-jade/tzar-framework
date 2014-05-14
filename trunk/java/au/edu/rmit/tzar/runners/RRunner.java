@@ -1,8 +1,8 @@
 package au.edu.rmit.tzar.runners;
 
 import au.edu.rmit.tzar.api.Parameters;
-import au.edu.rmit.tzar.api.TzarException;
 import au.edu.rmit.tzar.api.Runner;
+import au.edu.rmit.tzar.api.TzarException;
 import com.beust.jcommander.Parameter;
 import com.google.common.collect.ImmutableMap;
 
@@ -16,7 +16,7 @@ import java.util.logging.Logger;
  * are qualified by the input and output paths respectively), executing
  * a wrapper script written in R, which can parse the variables.json file.
  */
-public class RRunner  extends SystemRunner implements Runner {
+public class RRunner extends SystemRunner implements Runner {
   private static Logger LOG = Logger.getLogger(RRunner.class.getName());
 
   @Override
@@ -24,7 +24,7 @@ public class RRunner  extends SystemRunner implements Runner {
       Logger logger) throws TzarException {
     Flags flags = RunnerUtils.parseFlags(runnerFlags.split(" "), new Flags());
 
-    File variablesFile = RunnerUtils.writeVariablesFile(outputPath, parameters);
+    File variablesFile = RunnerUtils.writeTempVariablesFile(parameters);
 
     File rRunnerPath;
     try {

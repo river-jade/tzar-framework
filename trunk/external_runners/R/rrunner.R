@@ -83,10 +83,10 @@ tryCatch(
           #--------------------------------------------------------------
 
         # Write a version of the parameters to a file that can be sourced directly in R 
-        dump( c('parameters'), paste( outputpath, '/parameters.R', sep='') )
+        dump( c('parameters'), paste( outputpath, '/metadata/parameters.R', sep='') )
 
         # Dump the output of R's sessionInfo() command to a file in the output dir
-        si <- paste( outputpath, '/R_sessionInfo.txt', sep='')
+        si <- paste( outputpath, '/metadata/R_sessionInfo.txt', sep='')
         writeLines(capture.output(date(), cat("\n"), sessionInfo()), con=si)
     }
 

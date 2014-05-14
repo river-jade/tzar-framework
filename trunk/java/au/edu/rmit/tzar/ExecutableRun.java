@@ -3,7 +3,7 @@ package au.edu.rmit.tzar;
 import au.edu.rmit.tzar.api.*;
 import au.edu.rmit.tzar.parser.YamlParser;
 import au.edu.rmit.tzar.runners.RunnerFactory;
-import com.google.common.collect.Maps;
+import com.google.common.collect.ImmutableMap;
 
 import java.io.File;
 import java.io.IOException;
@@ -95,26 +95,31 @@ public class ExecutableRun {
     File model = codeSource.getCode(baseModelPath, run.getProjectName());
     try {
       if (outputPath.exists()) {
-        LOG.warning("Temp output path: " + outputPath + " already exists. Deleting.");
+        LOG.warning("Local output path: " + outputPath + " already exists. Deleting.");
         deleteRecursively(outputPath);
       }
-      LOG.info("Creating temporary outputdir: " + outputPath);
+      LOG.fine("Creating local outputdir: " + outputPath);
       if (!outputPath.mkdirs()) {
-        throw new IOException("Couldn't create temp output dir: " + outputPath);
+        throw new IOException("Couldn't create local output dir: " + outputPath);
+      }
+      File metadataPath = new File(outputPath, Constants.METADATA_DIRECTORY_NAME);
+      if (!metadataPath.mkdir()) {
+        throw new IOException("Couldn't create local metadata dir: " + metadataPath);
       }
 
       LOG.info(String.format("Running model: %s, run_id: %d, Project name: %s, Scenario name: %s, " +
           "Flags: %s", model, getRunId(), run.getProjectName(), run.getScenarioName(), run.getRunnerFlags()));
 
-      WildcardReplacer.Context context = new WildcardReplacer.Context(getRunId(), model, loadLibraries(), outputPath);
+      WildcardReplacer.Context context = new WildcardReplacer.Context(getRunId(), model, loadLibraries(), outputPath,
+          metadataPath);
       Parameters parameters = new WildcardReplacer().replaceWildcards(run.getParameters(), context);
 
-      FileHandler handler = setupLogFileHandler(outputPath);
+      FileHandler handler = setupLogFileHandler(metadataPath);
       RUNNER_LOGGER.addHandler(handler);
       RUNNER_LOGGER.log(Level.INFO, DATE_FORMAT.format(new Date()));
       RUNNER_LOGGER.log(Level.INFO, "Executing run with revision: {0}, from project: {1}",
           new Object[]{defaultIfEmpty(codeSource.getRevision(), "none"), codeSource.getSourceUri()});
-      File parametersFile = new File(outputPath, "parameters.yaml");
+      File parametersFile = new File(metadataPath, "parameters.yaml");
 
       boolean success = false;
       try {
@@ -145,13 +150,13 @@ public class ExecutableRun {
    * @return
    * @throws TzarException
    */
-  private Map<String, File> loadLibraries() throws TzarException {
-    Map<String, File> map = Maps.newHashMap();
+  private ImmutableMap<String, File> loadLibraries() throws TzarException {
+    ImmutableMap.Builder<String, File> builder = ImmutableMap.builder();
     for (Map.Entry<String, ? extends CodeSource> entry : run.getLibraries().entrySet()) {
       String libraryName = entry.getKey();
-      map.put(libraryName, entry.getValue().getCode(baseModelPath, libraryName));
+      builder.put(libraryName, entry.getValue().getCode(baseModelPath, libraryName));
     }
-    return map;
+    return builder.build();
   }
 
   /**
@@ -164,7 +169,7 @@ public class ExecutableRun {
   private synchronized static int getNextRunId(File runsetOutputPath) throws TzarException {
     int max = nextRunId;
     if (!runsetOutputPath.exists()) {
-      LOG.info("Outputdir doesn't exist. Creating it (and parents)");
+      LOG.fine("Outputdir doesn't exist. Creating it (and parents)");
       runsetOutputPath.mkdirs();
     }
     Pattern pattern = Pattern.compile("(\\d+)(_.*)+(?:\\.failed|\\.inprogress)?");

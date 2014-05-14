@@ -1,13 +1,13 @@
 package au.edu.rmit.tzar.runners;
 
 import au.edu.rmit.tzar.api.Parameters;
-import au.edu.rmit.tzar.api.TzarException;
 import au.edu.rmit.tzar.api.Runner;
+import au.edu.rmit.tzar.api.TzarException;
 import com.beust.jcommander.Parameter;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Files;
 
-import java.io.*;
+import java.io.File;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -25,7 +25,7 @@ public class PythonRunner extends SystemRunner implements Runner {
                           Logger logger) throws TzarException {
     Flags flags = RunnerUtils.parseFlags(runnerFlags.split(" "), new Flags());
 
-    File variablesFile = RunnerUtils.writeVariablesFile(outputPath, parameters);
+    File variablesFile = RunnerUtils.writeTempVariablesFile(parameters);
 
     File tempDirectory = Files.createTempDir();
     File pythonRunner = RunnerUtils.extractResourceToFile(tempDirectory, "python/", "pythonrunner.py");
