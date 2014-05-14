@@ -14,7 +14,8 @@ import java.util.List;
  */
 public class WildcardReplacerTest extends TestCase {
   private static final int RUN_ID = 1234;
-  public static final File OUTPUT_PATH = new File("/output/path/");
+  private static final File OUTPUT_PATH = new File("/output/path/");
+  private static final File OUTPUT_METADATA_PATH = new File(OUTPUT_PATH, "my_metadata");
 
   private WildcardReplacer wildcardReplacer;
   private Parameters parameters;
@@ -23,7 +24,8 @@ public class WildcardReplacerTest extends TestCase {
   public void setUp() throws Exception {
     wildcardReplacer = new WildcardReplacer();
     parameters = Parameters.createParameters(ImmutableMap.<String, Object>of("param1", "value1", "param2", "value2"));
-    context = new WildcardReplacer.Context(RUN_ID, new File(""), ImmutableMap.<String, File>of(), OUTPUT_PATH);
+    context = new WildcardReplacer.Context(RUN_ID, new File(""), ImmutableMap.<String, File>of(), OUTPUT_PATH,
+        OUTPUT_METADATA_PATH);
   }
 
   public void testNoReplacement() throws TzarException {

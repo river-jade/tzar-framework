@@ -44,4 +44,5 @@ public class Constants {
   public static final String PROJECT_YAML = "project.yaml";
 
   public static final String HEAD_REVISION = "head";
+  public static final String METADATA_DIRECTORY_NAME = "metadata";
 }

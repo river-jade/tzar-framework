@@ -14,18 +14,18 @@ import java.util.Arrays;
  * Static utility methods for use from Runner classes.
  */
 class RunnerUtils {
-  static File writeVariablesFile(File outputPath, Parameters parameters) throws TzarException {
-    Gson gson = new GsonBuilder().setPrettyPrinting().create();
-
-    File variablesFile = new File(outputPath, "parameters.json");
+  static File writeTempVariablesFile(Parameters parameters) throws TzarException {
     try {
-      FileWriter writer = new FileWriter(variablesFile);
+      File outputFile = File.createTempFile("parameters", ".json");
+      Gson gson = new GsonBuilder().setPrettyPrinting().create();
+
+      FileWriter writer = new FileWriter(outputFile);
       gson.toJson(parameters, writer);
       writer.close();
+      return outputFile;
     } catch (IOException e) {
       throw new TzarException(e);
     }
-    return variablesFile;
   }
 
   static <T> T parseFlags(String[] flagString, T flags) throws TzarException {

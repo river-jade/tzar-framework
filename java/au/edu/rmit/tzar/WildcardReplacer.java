@@ -47,6 +47,12 @@ public class WildcardReplacer {
     }
   };
 
+  private static WildcardFunction OUTPUT_METADATA_PATH = new SimpleWildcardFunction() {
+    public String apply(Context context) {
+      return context.outputMetadataPath.getAbsolutePath() + File.separator;
+    }
+  };
+
   private static ImmutableMap<String, WildcardFunction> WILDCARDS = ImmutableMap.<String, WildcardFunction>builder()
       .put("run_id", RUN_ID)
       .put("path", PATH)
@@ -54,6 +60,7 @@ public class WildcardReplacer {
       .put("model_path", MODEL_PATH)
       .put("library_path", LIBRARY_PATH)
       .put("output_path", OUTPUT_PATH)
+      .put("output_metadata_path", OUTPUT_METADATA_PATH)
       .build();
 
   // regex matches $$abc(def)$$ and $$abc$$, capturing 'abc' and 'def' for the first case and 'abc' for the second.
@@ -202,21 +209,25 @@ public class WildcardReplacer {
    */
   public static class Context {
     private final File model;
-    private final Map<String, File> libraries;
+    private final ImmutableMap<String, File> libraries;
     public final int runId;
     public final File outputPath;
+    public final File outputMetadataPath;
 
     /**
      * @param runId the id of the run
      * @param model the path to the model code for the run
      * @param libraries a map of library names to their paths for this run
      * @param outputPath the path for the run output files
+     * @param outputMetadataPath
      */
-    public Context(int runId, File model, Map<String, File> libraries, File outputPath) {
+    public Context(int runId, File model, ImmutableMap<String, File> libraries, File outputPath,
+        File outputMetadataPath) {
       this.runId = runId;
       this.model = model;
       this.libraries = libraries;
       this.outputPath = outputPath;
+      this.outputMetadataPath = outputMetadataPath;
     }
   }
 
