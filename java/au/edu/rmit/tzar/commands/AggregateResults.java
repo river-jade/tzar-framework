@@ -108,10 +108,10 @@ class AggregateResults implements Command {
         String sourceHost = run.getOutputHost();
         File runOutputPath = run.getRemoteOutputPath();
         if (hostname.equals(sourceHost)) {
-          LOG.info("Results are on localhost. Using copy to copy results.");
+          LOG.fine("Results are on localhost. Using copy to copy results.");
           Utils.copyDirectory(runOutputPath, destPath, new RunIdRenamer(run.getRunId()), regexFilter);
         } else {
-          LOG.info("Results are on machine: " + sourceHost + ". Using ssh to copy results.");
+          LOG.fine("Results are on machine: " + sourceHost + ". Using ssh to copy results.");
           SCPFileTransfer scpFileTransfer;
           try {
             scpFileTransfer = connections.get(sourceHost).newSCPFileTransfer();

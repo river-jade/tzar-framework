@@ -120,7 +120,7 @@ public class Utils {
    * @throws TzarException if the file / directory cannot be renamed.
    */
   public static void fileRename(File source, File dest) throws TzarException {
-    LOG.info("Renaming \"" + source + "\" to \"" + dest + "\"");
+    LOG.fine("Renaming \"" + source + "\" to \"" + dest + "\"");
     for (int i = 0; i < 10; i++) {
       if (source.renameTo(dest)) { // success!
         return;

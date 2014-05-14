@@ -116,8 +116,8 @@ public class ExecutableRun {
 
       FileHandler handler = setupLogFileHandler(metadataPath);
       RUNNER_LOGGER.addHandler(handler);
-      RUNNER_LOGGER.log(Level.INFO, DATE_FORMAT.format(new Date()));
-      RUNNER_LOGGER.log(Level.INFO, "Executing run with revision: {0}, from project: {1}",
+      RUNNER_LOGGER.log(Level.FINE, DATE_FORMAT.format(new Date()));
+      RUNNER_LOGGER.log(Level.FINE, "Executing run with revision: {0}, from project: {1}",
           new Object[]{defaultIfEmpty(codeSource.getRevision(), "none"), codeSource.getSourceUri()});
       File parametersFile = new File(metadataPath, "parameters.yaml");
 

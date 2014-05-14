@@ -58,7 +58,7 @@ public class SvnRepository extends UrlRepository {
   @Override
   public File retrieveModel(String revision, String name) throws TzarException {
     File modelPath = createModelPath(name, baseModelsPath, sourceUri);
-    LOG.info(String.format("Retrieving code revision: %s, to %s", revision, modelPath));
+    LOG.fine(String.format("Retrieving code revision: %s, to %s", revision, modelPath));
     try {
       SVNURL url = getUrl();
       SVNRevision svnRevision = parseSvnRevision(revision);
@@ -85,7 +85,7 @@ public class SvnRepository extends UrlRepository {
   @Override
   public File retrieveProjectParams(String projectParamFilename, String revision) throws TzarException {
     File tempDir = Files.createTempDir();
-    LOG.info("Retrieving project params at revision: " + revision + ", to local path:" + tempDir);
+    LOG.fine("Retrieving project params at revision: " + revision + ", to local path:" + tempDir);
 
     try {
       SVNURL url = getUrl();
