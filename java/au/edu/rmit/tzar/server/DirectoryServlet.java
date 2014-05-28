@@ -26,7 +26,7 @@ public class DirectoryServlet implements HttpHandler {
     String path = uri.getPath();
     File file = new File(baseDir, path).getCanonicalFile();
     if (!file.getPath().startsWith(baseDir.getCanonicalPath())) {
-      // Suspected path traversal attack: reject with 403 error.
+      // Possible path traversal attack: reject with 403 error.
       String response = "403 (Forbidden)\n";
       t.sendResponseHeaders(403, response.length());
       OutputStream os = t.getResponseBody();
