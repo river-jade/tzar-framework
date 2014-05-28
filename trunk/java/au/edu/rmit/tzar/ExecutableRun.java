@@ -98,7 +98,9 @@ public class ExecutableRun {
           LOG.warning("Local output path: " + outputPath + " already exists. Deleting.");
           deleteRecursively(outputPath);
         }
-        LOG.fine("Creating local outputdir: " + outputPath);
+        LOG.fine("Creating output directory");
+        LOG.info("Outputdir: " + outputPath);
+
         if (!outputPath.mkdirs()) {
           throw new IOException("Couldn't create local output dir: " + outputPath);
         }
