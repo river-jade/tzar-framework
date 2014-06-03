@@ -68,7 +68,7 @@
     <!--******************************
        API jar compile and dist
    ****************************** -->
-    <target name="compile-api" depends="checkjar, clean, init-ivy" unless="jar.uptodate">
+    <target name="compile-api" depends="checkjar, clean, init-ivy, javac2" unless="jar.uptodate">
         <mkdir dir="${build.dir}"/>
         <ivy:cachepath pathid="api.classpath" conf="api" log="download-only"/>
         <javac2 srcdir="${src.dir}" destdir="${build.dir}" target="1.6" source="1.6" includeantruntime="false"
