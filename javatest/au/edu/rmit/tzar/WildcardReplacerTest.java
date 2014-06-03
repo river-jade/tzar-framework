@@ -8,6 +8,7 @@ import junit.framework.TestCase;
 
 import java.io.File;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Unit tests for Wildcard replacer.
@@ -73,7 +74,7 @@ public class WildcardReplacerTest extends TestCase {
     parameters = Parameters.createParameters(ImmutableMap.<String, Object>of("param1", "value1", "param2",
         Lists.newArrayList(123, "abc", "$$run_id$$", "abc$$run_id$$def")));
     Parameters postReplacementParameters = wildcardReplacer.replaceWildcards(this.parameters, context);
-    ImmutableMap<String, Object> map = postReplacementParameters.asMap();
+    Map<String, Object> map = postReplacementParameters.asMap();
     List<Object> list = (List<Object>) map.get("param2");
     assertEquals(Lists.<Object>newArrayList(123, "abc", RUN_ID, "abc" + RUN_ID + "def"), list);
   }

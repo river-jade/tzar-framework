@@ -55,7 +55,7 @@ public class Parameters {
   /**
    * Map of keys to values of type String, Integer, Boolean or BigDecimal.
    */
-  public ImmutableMap<String, Object> asMap() {
+  public Map<String, Object> asMap() {
     return parameters;
   }
 

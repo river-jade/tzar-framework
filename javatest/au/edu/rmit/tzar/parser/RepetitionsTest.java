@@ -5,7 +5,6 @@ import au.edu.rmit.tzar.api.RepetitionGenerator;
 import au.edu.rmit.tzar.api.Repetitions;
 import au.edu.rmit.tzar.api.TzarException;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import junit.framework.TestCase;
 
@@ -13,6 +12,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Tests for the Repetitions class.
@@ -59,7 +59,7 @@ public class RepetitionsTest extends TestCase {
     assertEquals(10, paramsList.size());
     for (int i = 0; i < 10; i++) {
       Parameters parameters = paramsList.get(i);
-      ImmutableMap<String, Object> variables = parameters.asMap();
+      Map<String, Object> variables = parameters.asMap();
       assertEquals(1, variables.size());
       assertEquals(BigDecimal.valueOf(1.0 + (i * 2)), variables.get(KEY));
     }

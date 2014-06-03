@@ -10,6 +10,7 @@ import junit.framework.TestCase;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -75,7 +76,7 @@ public class RunFactoryTest extends TestCase {
     );
 
     for (Run run : runs) {
-      ImmutableMap<String, Object> variables = run.getParameters().asMap();
+      Map<String, Object> variables = run.getParameters().asMap();
       assertTrue(expected.remove(ImmutableList.of(
           (Integer)variables.get("A"),
           (Integer)variables.get("B"),
