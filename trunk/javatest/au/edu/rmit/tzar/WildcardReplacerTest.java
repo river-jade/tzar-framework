@@ -52,7 +52,7 @@ public class WildcardReplacerTest extends TestCase {
     parameters = Parameters.createParameters(ImmutableMap.<String, Object>of("param1", "$$output_path$$", "param2",
         "value2"));
     Parameters postParameters = wildcardReplacer.replaceWildcards(this.parameters, context);
-    assertEquals(OUTPUT_PATH.getAbsolutePath() + File.separator, postParameters.asMap().get("param1"));
+    assertEquals(OUTPUT_PATH.getAbsolutePath(), postParameters.asMap().get("param1"));
   }
 
   public void testPathEscaping() throws TzarException {

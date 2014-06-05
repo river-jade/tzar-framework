@@ -97,7 +97,7 @@ public class ExecutableRunTest extends TestCase {
 
     // we rerun setup to recreate the objects that depend on library. a bit dodgy though.
     setUp();
-    variables.put("libtest", "$$library_path(lib1)$$2");
+    variables.put("libtest", "$$library_path(lib1)$$/2");
     createExecutableRun(tzarOutputPath);
 
     Map<String, Object> changedVariables = Maps.newHashMap(parameters.asMap());
