@@ -31,25 +31,25 @@ public class WildcardReplacer {
 
   private static WildcardFunction MODEL_PATH = new SimpleWildcardFunction() {
     public String apply(Context context) {
-      return context.model.getAbsolutePath() + File.separator;
+      return context.model.getAbsolutePath();
     }
   };
 
   private static WildcardFunction LIBRARY_PATH = new ValueWildcardFunction() {
     public String apply(String value, Context context) {
-      return context.libraries.get(value).getAbsolutePath() + File.separator;
+      return context.libraries.get(value).getAbsolutePath();
     }
   };
 
   private static WildcardFunction OUTPUT_PATH = new SimpleWildcardFunction() {
     public String apply(Context context) {
-      return context.outputPath.getAbsolutePath() + File.separator;
+      return context.outputPath.getAbsolutePath();
     }
   };
 
   private static WildcardFunction OUTPUT_METADATA_PATH = new SimpleWildcardFunction() {
     public String apply(Context context) {
-      return context.outputMetadataPath.getAbsolutePath() + File.separator;
+      return context.outputMetadataPath.getAbsolutePath();
     }
   };
 
