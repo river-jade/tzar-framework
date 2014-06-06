@@ -237,7 +237,7 @@ public class TzarGui {
         String revision = revisionNumber.getText().trim();
         String projectPath = pathToProject.getText().trim();
         CodeSourceImpl codeSource = CodeSourceFactory.createCodeSource(revision, repositoryType,
-            Utils.makeAbsoluteUri(projectPath), modelPath);
+            Utils.makeAbsoluteUri(projectPath));
 
         ProjectSpec projectSpec = codeSource.getProjectSpec(Files.createTempDir());
         String runsetName = TzarGui.this.runsetName.getText().trim();
@@ -286,7 +286,7 @@ public class TzarGui {
         }
         try {
           codeSource = CodeSourceFactory.createCodeSource(revision, repositoryType,
-              sourceUri, Files.createTempDir());
+              sourceUri);
         } catch (CodeSourceImpl.InvalidRevisionException e) {
           throw new TzarException(String.format("Invalid revision %s for repository type %s", revision,
               repositoryType));

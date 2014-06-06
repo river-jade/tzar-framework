@@ -53,7 +53,7 @@ class CommandFactory {
 
     CodeSourceImpl modelSource;
     try {
-      modelSource = CodeSourceFactory.createCodeSource(revision, repositoryType, projectUri, baseModelPath);
+      modelSource = CodeSourceFactory.createCodeSource(revision, repositoryType, projectUri);
     } catch (CodeSourceImpl.InvalidRevisionException e) {
       throw new ParseException(e.getMessage());
     }
@@ -129,7 +129,7 @@ class CommandFactory {
     CodeSourceImpl codeSource;
     try {
       codeSource = CodeSourceFactory.createCodeSource(CREATE_RUNS_FLAGS.getRevision(), repositoryType,
-          CREATE_RUNS_FLAGS.getProjectUri(), Files.createTempDir());
+          CREATE_RUNS_FLAGS.getProjectUri());
     } catch (CodeSourceImpl.InvalidRevisionException e) {
       throw new ParseException(e.getMessage());
     }

@@ -46,7 +46,7 @@ public interface CodeSource {
   CodeSource.RepositoryType getRepositoryType();
 
   public interface RepositoryType {
-    CodeRepository createRepository(URI sourceUri, File baseModelPath);
+    CodeRepository createRepository(URI sourceUri);
     boolean isValidRevision(String revision);
   }
 }

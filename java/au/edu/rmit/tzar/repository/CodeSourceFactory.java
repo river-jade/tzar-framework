@@ -3,7 +3,6 @@ package au.edu.rmit.tzar.repository;
 import au.edu.rmit.tzar.api.Constants;
 import au.edu.rmit.tzar.api.TzarException;
 
-import java.io.File;
 import java.net.URI;
 
 /**
@@ -11,9 +10,9 @@ import java.net.URI;
  */
 public class CodeSourceFactory {
   public static CodeSourceImpl createCodeSource(String revision, CodeSourceImpl.RepositoryTypeImpl repositoryType,
-      URI sourceUri, File baseModelPath) throws TzarException, CodeSourceImpl.InvalidRevisionException {
+      URI sourceUri) throws TzarException, CodeSourceImpl.InvalidRevisionException {
     if (revision.equals(Constants.HEAD_REVISION)) {
-      revision = repositoryType.createRepository(sourceUri, baseModelPath).getHeadRevision();
+      revision = repositoryType.createRepository(sourceUri).getHeadRevision();
     } else {
       if (!repositoryType.isValidRevision(revision)) {
         throw new CodeSourceImpl.InvalidRevisionException(revision, repositoryType);

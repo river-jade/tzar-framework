@@ -37,12 +37,11 @@ public class HttpRepository extends UrlRepository {
 
   /**
    *
-   * @param baseModelsPath the base path to download the library into
    * @param sourceUri the URL to download from
    * @param skipIfExists don't redownload the library if we already have it
    */
-  public HttpRepository(File baseModelsPath, URI sourceUri, boolean skipIfExists) {
-    super(baseModelsPath, sourceUri);
+  public HttpRepository(URI sourceUri, boolean skipIfExists) {
+    super(sourceUri);
     this.skipIfExists = skipIfExists;
     client = CachingHttpClientBuilder.create()
         .setCacheConfig(CacheConfig.DEFAULT)
@@ -55,8 +54,9 @@ public class HttpRepository extends UrlRepository {
   }
 
   @Override
-  public File retrieveModel(String revision, String name) throws TzarException {
-    File modelPath = createModelPath(name, baseModelsPath, sourceUri); LOG.fine(String.format("Retrieving model from %s to %s", sourceUri, modelPath));
+  public File retrieveModel(String revision, String name, File baseModelPath) throws TzarException {
+    File modelPath = createModelPath(name, baseModelPath, sourceUri);
+    LOG.fine(String.format("Retrieving model from %s to %s", sourceUri, modelPath));
     if (skipIfExists && modelPath.exists()) {
       LOG.fine(String.format("Library already exists at %s so not downloading", modelPath));
     } else {
@@ -66,7 +66,7 @@ public class HttpRepository extends UrlRepository {
   }
 
   @Override
-  public File retrieveProjectParams(String projectParamFilename, String revision) throws TzarException {
+  public File retrieveProjectParams(String projectParamFilename, String revision, File destPath) throws TzarException {
     File tempDir = Files.createTempDir();
 
     URI uri;
@@ -76,7 +76,7 @@ public class HttpRepository extends UrlRepository {
       throw new TzarException(e);
     }
     LOG.fine(String.format("Retrieving project.yaml from: %s to local path: %s", uri, tempDir));
-    File path = createModelPath("project_params", baseModelsPath, sourceUri);
+    File path = createModelPath("project_params", destPath, sourceUri);
     retrieveFile(path);
     return path;
   }
