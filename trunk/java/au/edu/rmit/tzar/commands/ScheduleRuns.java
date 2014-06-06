@@ -49,7 +49,7 @@ public class ScheduleRuns implements Command {
     List<Run> runs = runFactory.createRuns(numRuns);
     runDao.insertRuns(runs);
     for (Run run : runs) {
-      LOG.log(Level.INFO, "Scheduled run:{0} ", run);
+      LOG.log(Level.FINE, "Scheduled run:{0} ", run);
     }
     LOG.log(Level.INFO, "Inserted {0} runs.", runs.size());
     return true;
