@@ -29,7 +29,7 @@ public class SvnRepositoryTest extends TestCase {
   public void setUp() throws Exception {
     mockClient = Mockito.mock(SVNUpdateClient.class);
     SVNWCClient mockWCClient = Mockito.mock(SVNWCClient.class);
-    repository = new SvnRepository(new URI(TEST_URL), BASE_MODEL_PATH, mockClient, mockWCClient);
+    repository = new SvnRepository(new URI(TEST_URL), mockClient, mockWCClient);
   }
 
   /**
@@ -39,9 +39,9 @@ public class SvnRepositoryTest extends TestCase {
     String revision = "1000";
 
     String moduleName = "a_project";
-    File expectedPath = repository.createModelPath(moduleName, repository.baseModelsPath, repository.sourceUri);
+    File expectedPath = repository.createModelPath(moduleName, BASE_MODEL_PATH, repository.sourceUri);
 
-    File modelPath = repository.retrieveModel(revision, moduleName);
+    File modelPath = repository.retrieveModel(revision, moduleName, BASE_MODEL_PATH);
 
     SVNRevision svnRevision = SVNRevision.create(Long.parseLong(revision));
     verify(mockClient).doCheckout(SVNURL.parseURIEncoded(TEST_URL), expectedPath, svnRevision,
@@ -51,7 +51,7 @@ public class SvnRepositoryTest extends TestCase {
 
   public void testGetModelBadRevision() {
     try {
-      repository.retrieveModel("foo", "a_project");
+      repository.retrieveModel("foo", "a_project", BASE_MODEL_PATH);
       fail("Expected TzarException to be thrown.");
     } catch (TzarException e) {
     }

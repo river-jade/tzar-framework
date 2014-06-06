@@ -30,18 +30,18 @@ public class CodeSourceImpl implements CodeSource {
 
   @Override
   public File getCode(File baseModelPath, String name) throws TzarException {
-    return getRepository(baseModelPath).retrieveModel(revision, name);
+    return getRepository().retrieveModel(revision, name, baseModelPath);
   }
 
   @Override
   public ProjectSpec getProjectSpec(File baseModelPath) throws TzarException, FileNotFoundException {
     YamlParser parser = new YamlParser();
-    File file = getRepository(baseModelPath).retrieveProjectParams(Constants.PROJECT_YAML, revision);
+    File file = getRepository().retrieveProjectParams(Constants.PROJECT_YAML, revision, baseModelPath);
     return parser.projectSpecFromYaml(file);
   }
 
-  private CodeRepository getRepository(File baseModelPath) {
-    return repositoryType.createRepository(sourceUri, baseModelPath);
+  private CodeRepository getRepository() {
+    return repositoryType.createRepository(sourceUri);
   }
 
   @Override
@@ -95,7 +95,7 @@ public class CodeSourceImpl implements CodeSource {
   public enum RepositoryTypeImpl implements CodeSource.RepositoryType {
     LOCAL_FILE {
       @Override
-      public CodeRepository createRepository(URI sourceUri, File baseModelPath) {
+      public CodeRepository createRepository(URI sourceUri) {
         return new LocalFileRepository(sourceUri);
       }
 
@@ -106,8 +106,8 @@ public class CodeSourceImpl implements CodeSource {
     },
     SVN {
       @Override
-      public CodeRepository createRepository(URI sourceUri, File baseModelPath) {
-        return new SvnRepository(sourceUri, baseModelPath);
+      public CodeRepository createRepository(URI sourceUri) {
+        return new SvnRepository(sourceUri);
       }
 
       @Override
@@ -122,7 +122,7 @@ public class CodeSourceImpl implements CodeSource {
     },
     GIT {
       @Override
-      public CodeRepository createRepository(URI sourceUri, File baseModelPath) {
+      public CodeRepository createRepository(URI sourceUri) {
         throw new UnsupportedOperationException("Sorry, Git repository support is not yet implemented.");
       }
 
@@ -133,8 +133,8 @@ public class CodeSourceImpl implements CodeSource {
     },
     HTTP_FILE {
       @Override
-      public CodeRepository createRepository(URI sourceUri, File baseModelPath) {
-        return new HttpRepository(baseModelPath, sourceUri, true);
+      public CodeRepository createRepository(URI sourceUri) {
+        return new HttpRepository(sourceUri, true);
       }
 
       @Override
@@ -144,8 +144,8 @@ public class CodeSourceImpl implements CodeSource {
     },
     HTTP_ZIP {
       @Override
-      public CodeRepository createRepository(URI sourceUri, File baseModelPath) {
-        return new HttpZipRepository(baseModelPath, sourceUri, true);
+      public CodeRepository createRepository(URI sourceUri) {
+        return new HttpZipRepository(sourceUri, true);
       }
 
       @Override
@@ -154,7 +154,7 @@ public class CodeSourceImpl implements CodeSource {
       }
     };
 
-    public abstract CodeRepository createRepository(URI sourceUri, File baseModelPath);
+    public abstract CodeRepository createRepository(URI sourceUri);
     public abstract boolean isValidRevision(String revision);
   }
 

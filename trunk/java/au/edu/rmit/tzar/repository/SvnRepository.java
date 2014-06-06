@@ -32,10 +32,9 @@ public class SvnRepository extends UrlRepository {
    * Constructor.
    *
    * @param sourceUri      uri to the project location in the subversion repository
-   * @param baseModelsPath path to the local directory in which to put the
    */
-  public SvnRepository(URI sourceUri, File baseModelsPath) {
-    this(sourceUri, baseModelsPath, SVNClientManager.newInstance().getUpdateClient(),
+  public SvnRepository(URI sourceUri) {
+    this(sourceUri, SVNClientManager.newInstance().getUpdateClient(),
         SVNClientManager.newInstance().getWCClient());
   }
 
@@ -43,21 +42,19 @@ public class SvnRepository extends UrlRepository {
    * Constructor.
    *
    * @param sourceUri      uri to the project location in the subversion repository
-   * @param baseModelsPath path to the local directory in which to put the
-   *                       svn client (will be created if it doesn't exist)
    * @param updateClient   SVNUpdateClient object (for updating the local svn client)
    * @param wcClient       SVNWCClient object (for cleaning up the local svn client)
    */
-  SvnRepository(URI sourceUri, File baseModelsPath, SVNUpdateClient updateClient, SVNWCClient wcClient) {
-    super(baseModelsPath, sourceUri);
+  SvnRepository(URI sourceUri, SVNUpdateClient updateClient, SVNWCClient wcClient) {
+    super(sourceUri);
     this.updateClient = updateClient;
     this.wcClient = wcClient;
     DAVRepositoryFactory.setup();
   }
 
   @Override
-  public File retrieveModel(String revision, String name) throws TzarException {
-    File modelPath = createModelPath(name, baseModelsPath, sourceUri);
+  public File retrieveModel(String revision, String name, File baseModelPath) throws TzarException {
+    File modelPath = createModelPath(name, baseModelPath, sourceUri);
     LOG.fine(String.format("Retrieving code revision: %s, to %s", revision, modelPath));
     try {
       SVNURL url = getUrl();
@@ -83,7 +80,7 @@ public class SvnRepository extends UrlRepository {
   }
 
   @Override
-  public File retrieveProjectParams(String projectParamFilename, String revision) throws TzarException {
+  public File retrieveProjectParams(String projectParamFilename, String revision, File destPath) throws TzarException {
     File tempDir = Files.createTempDir();
     LOG.fine("Retrieving project params at revision: " + revision + ", to local path:" + tempDir);
 

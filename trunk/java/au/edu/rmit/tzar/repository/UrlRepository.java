@@ -13,11 +13,9 @@ import java.net.URI;
 // but that won't be available until java 8.
 
 abstract class UrlRepository implements CodeRepository {
-  protected final File baseModelsPath;
   protected final URI sourceUri;
 
-  public UrlRepository(File baseModelsPath, URI sourceUri) {
-    this.baseModelsPath = baseModelsPath;
+  public UrlRepository(URI sourceUri) {
     this.sourceUri = sourceUri;
   }
 

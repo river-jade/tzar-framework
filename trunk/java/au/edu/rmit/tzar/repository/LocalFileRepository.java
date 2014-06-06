@@ -21,12 +21,12 @@ public class LocalFileRepository implements CodeRepository {
   }
 
   @Override
-  public File retrieveModel(String revision, String name) {
-    return modelPath;
+  public File retrieveModel(String revision, String name, File modelPath) {
+    return this.modelPath;
   }
 
   @Override
-  public File retrieveProjectParams(String projectParamFilename, String revision) throws TzarException {
+  public File retrieveProjectParams(String projectParamFilename, String revision, File destPath) throws TzarException {
     return new File(modelPath, projectParamFilename);
   }
 

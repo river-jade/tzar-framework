@@ -16,13 +16,11 @@ import java.net.URI;
 public class HttpZipRepository extends HttpRepository {
   /**
    * Constructor.
-   * @param baseModelsPath the path in which to create the directory containing the
-   *                       extracted model files
    * @param sourceUri the URL pointing to the zip file to download
    * @param skipIfExists don't download the zip file if the expanded library already exists
    */
-  public HttpZipRepository(File baseModelsPath, URI sourceUri, boolean skipIfExists) {
-    super(baseModelsPath, sourceUri, skipIfExists);
+  public HttpZipRepository(URI sourceUri, boolean skipIfExists) {
+    super(sourceUri, skipIfExists);
   }
 
   @Override
