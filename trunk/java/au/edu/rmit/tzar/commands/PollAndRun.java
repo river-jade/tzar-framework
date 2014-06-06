@@ -173,10 +173,8 @@ class PollAndRun implements Command {
       } finally {
         run.setEndTime(new Date());
         if (success) {
-          LOG.info("Run " + run.getRunId() + " succeeded.");
           run.setState(Run.State.COMPLETED);
         } else {
-          LOG.warning("Run " + run.getRunId() + " failed.");
           run.setState(Run.State.FAILED);
         }
 
