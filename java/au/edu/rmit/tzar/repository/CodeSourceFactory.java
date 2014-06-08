@@ -11,7 +11,7 @@ import java.net.URI;
 public class CodeSourceFactory {
   public static CodeSourceImpl createCodeSource(String revision, CodeSourceImpl.RepositoryTypeImpl repositoryType,
       URI sourceUri) throws TzarException, CodeSourceImpl.InvalidRevisionException {
-    if (revision.equals(Constants.HEAD_REVISION)) {
+    if (revision != null && revision.equals(Constants.HEAD_REVISION)) {
       revision = repositoryType.createRepository(sourceUri).getHeadRevision();
     } else {
       if (!repositoryType.isValidRevision(revision)) {
