@@ -126,6 +126,7 @@ DECLARE
     new_db_version varchar := '0.5.4';
 BEGIN
   ALTER TABLE public.libraries ADD force_download bool DEFAULT true NOT NULL;
+  UPDATE public.libraries SET revision = '' WHERE revision is null;
   ALTER TABLE public.libraries ALTER revision set DEFAULT '';
   ALTER TABLE public.libraries ALTER revision set NOT NULL;
   ALTER TABLE public.libraries DROP CONSTRAINT libraries_repo_type_key ;
