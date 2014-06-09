@@ -303,6 +303,8 @@ GRANT ALL ON SCHEMA public TO tzar;
 GRANT ALL ON SCHEMA public TO PUBLIC;
 
 
+insert into constants (db_version) values ('0.5.4');
+
 --
 -- PostgreSQL database dump complete
 --
