@@ -31,12 +31,12 @@ public class YamlParserTest extends TestCase {
 
   public void testWriteThenReadProjectSpec() throws Exception {
     Map<String, CodeSourceImpl> libraries = Maps.newLinkedHashMap();
-    libraries.put("library1", new CodeSourceImpl(new URI("/source/code/1"), CodeSourceImpl.RepositoryTypeImpl.LOCAL_FILE,
-        "123"));
-    libraries.put("library2", new CodeSourceImpl(new URI("/source/code/2"), CodeSourceImpl.RepositoryTypeImpl.LOCAL_FILE,
-        "124"));
-    libraries.put("library3", new CodeSourceImpl(new URI("/source/code/3"), CodeSourceImpl.RepositoryTypeImpl.LOCAL_FILE,
-        "125"));
+    libraries.put("library1", new CodeSourceImpl(new URI("/source/code/1"),
+        CodeSourceImpl.RepositoryTypeImpl.LOCAL_FILE, "123", true));
+    libraries.put("library2", new CodeSourceImpl(new URI("/source/code/2"),
+        CodeSourceImpl.RepositoryTypeImpl.LOCAL_FILE, "124", true));
+    libraries.put("library3", new CodeSourceImpl(new URI("/source/code/3"),
+        CodeSourceImpl.RepositoryTypeImpl.LOCAL_FILE, "125", false));
 
     Map<String, Object> variables = Maps.newLinkedHashMap();
     variables.put("test1", 3);
@@ -91,19 +91,19 @@ public class YamlParserTest extends TestCase {
   public void testRepetitionDeserialisationAndGeneration() throws TzarException {
     String yaml =
         "static_repetitions : \n" +
-        "  - A : 1\n" +
-        "  - A : 2\n" +
-        "generators : \n" +
-        "  - key : B \n" +
-        "    generator_type : linear_step \n" +
-        "    start : 0 \n" +
-        "    step_size : 0.1 \n" +
-        "    count : 10\n" +
-        "  - key : C \n" +
-        "    generator_type : normal_distribution \n" +
-        "    mean : 0 \n" +
-        "    std_dev : 5 \n" +
-        "    count : 10";
+            "  - A : 1\n" +
+            "  - A : 2\n" +
+            "generators : \n" +
+            "  - key : B \n" +
+            "    generator_type : linear_step \n" +
+            "    start : 0 \n" +
+            "    step_size : 0.1 \n" +
+            "    count : 10\n" +
+            "  - key : C \n" +
+            "    generator_type : normal_distribution \n" +
+            "    mean : 0 \n" +
+            "    std_dev : 5 \n" +
+            "    count : 10";
     Repetitions repetitions = yamlParser.repetitionsFromYaml(yaml);
     assertEquals(LinearStepGenerator.class, repetitions.getGenerators().get(0).getClass());
     assertEquals(NormalDistributionGenerator.class, repetitions.getGenerators().get(1).getClass());

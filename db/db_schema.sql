@@ -48,9 +48,10 @@ CREATE TABLE libraries (
     repo_type character varying(16) NOT NULL,
     uri text NOT NULL,
     name text NOT NULL,
-    revision character varying(16)
+    revision character varying(16) NOT NULL,
+    force_download boolean DEFAULT true NOT NULL
 );
-
+CREATE UNIQUE INDEX libraries_repo_type_key ON libraries ( repo_type, uri, name, revision, force_download );
 
 ALTER TABLE public.libraries OWNER TO tzar;
 
@@ -73,9 +74,6 @@ ALTER TABLE public.libraries_library_id_seq OWNER TO tzar;
 --
 
 ALTER SEQUENCE libraries_library_id_seq OWNED BY libraries.library_id;
-
--- Make each library record unique
-ALTER TABLE libraries ADD UNIQUE (repo_type, uri, name, revision);
 
 --
 -- Name: run_libraries; Type: TABLE; Schema: public; Owner: tzar; Tablespace: 

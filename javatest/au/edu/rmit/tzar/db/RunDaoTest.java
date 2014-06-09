@@ -69,7 +69,7 @@ public class RunDaoTest extends TestCase {
     runDao = new RunDao(mockConnectionFactory, mockParametersDao, mockLibraryDao);
 
     CodeSourceImpl codeSource = new CodeSourceImpl(new URI(MODEL_URL), CodeSourceImpl.RepositoryTypeImpl.SVN,
-        CODE_VERSION);
+        CODE_VERSION, true);
     ImmutableMap<String, CodeSource> library = ImmutableMap.of();
     projectInfo = new Run.ProjectInfo(PROJECT_NAME, codeSource, library, RUNNER_CLASS, RUNNER_FLAGS);
   }
@@ -111,7 +111,7 @@ public class RunDaoTest extends TestCase {
     runs.add(run);
 
     CodeSourceImpl codeSource2 = new CodeSourceImpl(new URI(MODEL_URL), CodeSourceImpl.RepositoryTypeImpl.LOCAL_FILE,
-        CODE_VERSION + 1);
+        CODE_VERSION + 1, true);
     Run.ProjectInfo projectInfo2 = new Run.ProjectInfo(PROJECT_NAME, codeSource2, null, RUNNER_CLASS, RUNNER_FLAGS);
     run = new Run(projectInfo2, SCENARIO_NAME + 1)
         .setRunId(RUN_ID)

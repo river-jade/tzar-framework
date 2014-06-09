@@ -34,7 +34,7 @@ public class RunFactoryTest extends TestCase {
     sourceUrl = new URI("/path/to/code");
     mockProjectSpec = mock(ProjectSpec.class);
     mockRepetitions = mock(Repetitions.class);
-    codeSource = new CodeSourceImpl(sourceUrl, CodeSourceImpl.RepositoryTypeImpl.LOCAL_FILE, REVISION);
+    codeSource = new CodeSourceImpl(sourceUrl, CodeSourceImpl.RepositoryTypeImpl.LOCAL_FILE, REVISION, true);
   }
 
   /**

@@ -30,7 +30,7 @@ public interface CodeSource {
   /**
    * The revision that this CodeSource points to. #getCode and #getProjectSpec will retrieve
    * code at this revision. This value is meaningless for CodeSources which do not represent a versioned
-   * file system / VCS.
+   * file system / VCS and will be ignored. Should not be null.
    * @return the revision
    */
   String getRevision();
@@ -45,8 +45,14 @@ public interface CodeSource {
 
   CodeSource.RepositoryType getRepositoryType();
 
+  /**
+   * Determines if we should re-download this codesource even if it already exists locally.
+   * @return true if we should always re-download
+   */
+  boolean isForceDownload();
+
   public interface RepositoryType {
-    CodeRepository createRepository(URI sourceUri);
+    CodeRepository createRepository(URI sourceUri, boolean forceDownload);
     boolean isValidRevision(String revision);
   }
 }
