@@ -34,9 +34,9 @@ public class RunDao {
       "project_name, scenario_name, runner_flags, runset, cluster_name, runner_class) " +
       "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
   @VisibleForTesting
-  static final String NEXT_RUN_SQL = "SELECT run_id, state, model_url, model_repo_type, model_revision, project_name, " +
-      "scenario_name, runner_flags, runset, cluster_name, output_path, output_host, runner_class FROM runs " +
-      "WHERE state='scheduled' AND runset LIKE ? AND cluster_name = ? ORDER BY run_id ASC LIMIT 1";
+  static final String NEXT_RUN_SQL = "SELECT run_id, state, model_url, model_repo_type, model_revision, " +
+      "project_name, scenario_name, runner_flags, runset, cluster_name, output_path, output_host, runner_class " +
+      "FROM runs WHERE state='scheduled' AND runset LIKE ? AND cluster_name = ? ORDER BY run_id ASC LIMIT 1";
   @VisibleForTesting
   static final String UPDATE_RUN_SQL = "UPDATE runs SET run_start_time = ?, run_end_time = ?, state = ?, " +
       "hostname = ?, host_ip = ?, output_path = ?, output_host = ? where run_id = ?";
@@ -44,6 +44,9 @@ public class RunDao {
   // than another node does not write to the row before we do
   @VisibleForTesting
   static final String SELECT_RUN_SQL = "SELECT state FROM runs where run_id = ? FOR UPDATE";
+
+  static final String RUNSET_EXISTS = "SELECT count(*) from runs where runset = ?";
+
   private final ParametersDao parametersDao;
   private final LibraryDao libraryDao;
   private final ConnectionFactory connectionFactory;
@@ -60,7 +63,7 @@ public class RunDao {
    * 'in_progress' and persisted to the database. This is done in a single transaction, to avoid two nodes
    * from executing the same run.
    *
-   * @param runset runset to filter by or null to poll for any runset
+   * @param runset      runset to filter by or null to poll for any runset
    * @param clusterName we only poll for runs scheduled for the current cluster. Not null, but may be empty.
    * @return true if a run was found, false otherwise
    * @throws TzarException if something goes wrong executing the run
@@ -153,8 +156,8 @@ public class RunDao {
         int nextRunId = rs.getInt(1);
         connection.prepareStatement("select setval('runs_run_id_seq', " + (nextRunId + runs.size()) +
             ", false)").execute();
-            // false here indicates that the next sequence number returned by 'select nextval' will be
-            // nextRunId + runs.size(), as opposed to nextRunId + runs.size() + 1
+        // false here indicates that the next sequence number returned by 'select nextval' will be
+        // nextRunId + runs.size(), as opposed to nextRunId + runs.size() + 1
 
         PreparedStatement insertRun = connection.prepareStatement(INSERT_RUN_SQL);
 
@@ -191,7 +194,6 @@ public class RunDao {
 
   /**
    * Prints the set of matching runs in the database to stdout.
-   *
    *
    * @param states         list of states to be matched (using boolean OR) (may be empty)
    * @param hostname       hostname to match
@@ -315,5 +317,27 @@ public class RunDao {
     }
     run.setOutputHost(resultSet.getString("output_host"));
     return run;
+  }
+
+  /**
+   * Check if a runset already exists in the database.
+   *
+   * @param runset the name of the runset to look for
+   * @return true if the runset exists
+   * @throws TzarException
+   */
+  public boolean runsetExists(final String runset) throws TzarException {
+    final Connection connection = connectionFactory.createConnection();
+    return Utils.executeSqlStatement(new Callable<Boolean>() {
+      @Override
+      public Boolean call() throws Exception {
+        PreparedStatement statement = connection.prepareStatement(RUNSET_EXISTS);
+        statement.setString(1, runset);
+        statement.execute();
+        ResultSet resultSet = statement.getResultSet();
+        resultSet.next();
+        return resultSet.getInt(1) > 0;
+      }
+    }, connection);
   }
 }
