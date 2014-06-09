@@ -31,18 +31,19 @@ public class HttpRepository extends UrlRepository {
   // that we'll get the most sane response for something that doesn't look like a browser.
   private static final String USER_AGENT = "Wget/1.12";
 
-  private final boolean skipIfExists;
+  private final boolean forceDownload;
+
   @VisibleForTesting
   final CloseableHttpClient client;
 
   /**
    *
    * @param sourceUri the URL to download from
-   * @param skipIfExists don't redownload the library if we already have it
+   * @param forceDownload download the library even if we already have it
    */
-  public HttpRepository(URI sourceUri, boolean skipIfExists) {
+  public HttpRepository(URI sourceUri, boolean forceDownload) {
     super(sourceUri);
-    this.skipIfExists = skipIfExists;
+    this.forceDownload = forceDownload;
     client = CachingHttpClientBuilder.create()
         .setCacheConfig(CacheConfig.DEFAULT)
         .setUserAgent(USER_AGENT)
@@ -57,8 +58,8 @@ public class HttpRepository extends UrlRepository {
   public File retrieveModel(String revision, String name, File baseModelPath) throws TzarException {
     File modelPath = createModelPath(name, baseModelPath, sourceUri);
     LOG.fine(String.format("Retrieving model from %s to %s", sourceUri, modelPath));
-    if (skipIfExists && modelPath.exists()) {
-      LOG.fine(String.format("Library already exists at %s so not downloading", modelPath));
+    if (!forceDownload && modelPath.exists()) {
+      LOG.fine(String.format("Model already exists at %s so not downloading", modelPath));
     } else {
       retrieveFile(modelPath);
     }

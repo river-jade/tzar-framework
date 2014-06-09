@@ -1,7 +1,7 @@
 CREATE OR REPLACE FUNCTION update_schema() returns void AS $$
 DECLARE
    current_db_version varchar;
-   latest_db_version varchar := '0.4.3';
+   latest_db_version varchar := '0.5.4';
 BEGIN
 
 if not exists (SELECT * FROM pg_class where relname = 'constants' and relkind = 'r') then
@@ -116,6 +116,22 @@ BEGIN
         ADD CONSTRAINT run_libraries_run_id_fkey FOREIGN KEY (run_id) REFERENCES runs(run_id)
         DEFERRABLE INITIALLY IMMEDIATE;
     return new_db_version;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Update from v0.4.3 to v0.5.4
+CREATE OR REPLACE FUNCTION update_schema_043() returns varchar AS $$
+DECLARE
+    old_db_version varchar := '0.4.3';
+    new_db_version varchar := '0.5.4';
+BEGIN
+  ALTER TABLE public.libraries ADD force_download bool DEFAULT true NOT NULL;
+  ALTER TABLE public.libraries ALTER revision set DEFAULT '';
+  ALTER TABLE public.libraries ALTER revision set NOT NULL;
+  ALTER TABLE public.libraries DROP CONSTRAINT libraries_repo_type_key ;
+  CREATE UNIQUE INDEX libraries_repo_type_key ON libraries ( repo_type, uri, name, revision, force_download );
+
+  return new_db_version;
 END;
 $$ LANGUAGE plpgsql;
 

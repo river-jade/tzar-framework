@@ -296,9 +296,10 @@ public class RunDao {
       throw new TzarException("model_url in database for run: " + runId + " was not a valid URI. Value was: " +
           modelUrlString + ". Error was: " + e.getMessage());
     }
-    CodeSourceImpl codeSource = new CodeSourceImpl(modelUri,
-        CodeSourceImpl.RepositoryTypeImpl.valueOf(resultSet.getString("model_repo_type").toUpperCase()),
-        resultSet.getString("model_revision"));
+    CodeSourceImpl.RepositoryTypeImpl repositoryType = CodeSourceImpl.RepositoryTypeImpl.valueOf(resultSet.getString
+        ("model_repo_type").toUpperCase());
+    CodeSourceImpl codeSource = new CodeSourceImpl(modelUri, repositoryType, resultSet.getString("model_revision"),
+        true /* by default we force download of model code */);
 
     Run.ProjectInfo projectInfo = new Run.ProjectInfo(resultSet.getString("project_name"), codeSource,
         libraries, resultSet.getString("runner_class"), resultSet.getString("runner_flags"));

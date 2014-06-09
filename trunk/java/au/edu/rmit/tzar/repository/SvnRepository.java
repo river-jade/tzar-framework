@@ -61,7 +61,8 @@ public class SvnRepository extends UrlRepository {
       SVNRevision svnRevision = parseSvnRevision(revision);
 
       if (svnRevision.equals(lastRevision) && sourceUri.equals(lastSourceUri)) {
-        LOG.fine(String.format("Model already exists at %s so not downloading", modelPath));
+        LOG.fine(String.format("Model already exists in local SVN client at correct version with path %s so not " +
+                "downloading", modelPath));
         return modelPath;
       }
 

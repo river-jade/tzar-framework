@@ -236,8 +236,9 @@ public class TzarGui {
         File modelPath = new File(tzarBasePath, Constants.DEFAULT_MODEL_CODE_DIR);
         String revision = revisionNumber.getText().trim();
         String projectPath = pathToProject.getText().trim();
+
         CodeSourceImpl codeSource = CodeSourceFactory.createCodeSource(revision, repositoryType,
-            Utils.makeAbsoluteUri(projectPath));
+            Utils.makeAbsoluteUri(projectPath), true /* force download of model code */);
 
         ProjectSpec projectSpec = codeSource.getProjectSpec(Files.createTempDir());
         String runsetName = TzarGui.this.runsetName.getText().trim();
@@ -285,8 +286,8 @@ public class TzarGui {
           throw new TzarException(String.format("Project not found at path: %s", projectPath), e);
         }
         try {
-          codeSource = CodeSourceFactory.createCodeSource(revision, repositoryType,
-              sourceUri);
+          codeSource = CodeSourceFactory.createCodeSource(revision, repositoryType, sourceUri,
+              true /* force download of model code */);
         } catch (CodeSourceImpl.InvalidRevisionException e) {
           throw new TzarException(String.format("Invalid revision %s for repository type %s", revision,
               repositoryType));
