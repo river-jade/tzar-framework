@@ -101,12 +101,41 @@ public class Utils {
     printer.print();
   }
 
-  public static <V> V executeInTransaction(Callable<V> callable, Connection connection) throws TzarException {
+
+  /**
+   * Executes a method within a SQL transaction, correctly handling any thrown SQLExceptions and closing the connection
+   * after the method completes.
+   * @param callable the method to call
+   * @param connection the database connection
+   * @param <V> the return value
+   * @return the value returned by the callable
+   * @throws TzarException
+   */
+  public static <V> V executeInTransaction(final Callable<V> callable, final Connection connection) throws TzarException {
+    return executeSqlStatement(new Callable<V>() {
+      @Override
+      public V call() throws Exception {
+        V retVal = callable.call();
+        connection.commit();
+        return retVal;
+      }
+    }, connection);
+  }
+
+  /**
+   * Execute a method that might throw a SQLException. For some reason, these exceptions are weird
+   * in that the actual cause of the exception has to be explicitly unpacked. This method does that for callers.
+   * @param callable the actual function to execute
+   * @param connection the database connection
+   * @param <V> the return type
+   * @return whatever is returned by the callable
+   * @throws TzarException if a sql exception is thrown
+   */
+  public static <V> V executeSqlStatement(Callable<V> callable, Connection connection) throws TzarException {
     boolean exceptionOccurred = true;
     V retVal;
     try {
       retVal = callable.call();
-      connection.commit();
       exceptionOccurred = false;
     } catch (Exception e) {
       LOG.log(Level.WARNING, "Exception thrown. Rolling back transaction.", e);
