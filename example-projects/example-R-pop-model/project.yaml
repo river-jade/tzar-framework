@@ -13,8 +13,8 @@ base_params:
 
     # Outputs
     summary.filename: $$output_path$$all.results.summary.txt
-    output.plot : $$output_path$$poptraj
-    output.dump : $$output_path$$projtraj.R
+    output.plot : $$output_path$$/poptraj
+    output.dump : $$output_path$$/projtraj.R
 
 scenarios:
     - name: S1 50 reps
