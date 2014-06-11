@@ -5,7 +5,7 @@ libraries:
     -  name: R-libraries
        repo_type: svn
        url: http://rdv-framework.googlecode.com/svn/trunk/R
-       revision: head
+       revision: 291
 
 base_params:
     test.variable.1: 123
