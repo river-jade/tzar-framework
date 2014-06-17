@@ -31,7 +31,7 @@ public class Concatenator implements Reducer {
       boolean fileExists = outputFile.exists();
 
       if (fileExists) {
-        LOG.warning(String.format("Concatenator output file %s exists from previous job. Appending.", outputFile));
+        LOG.info(String.format("Concatenator output file %s exists from previous job. Appending.", outputFile));
       } else {
         if (!outputFile.createNewFile()) {
           throw new IOException("Couldn't create new file: " + outputFile);
