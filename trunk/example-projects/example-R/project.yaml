@@ -5,7 +5,7 @@ libraries:
     -  name: R-libraries
        repo_type: svn
        url: http://rdv-framework.googlecode.com/svn/trunk/R
-       revision: head
+       revision: 498
 
 base_params:
     test.variable.1: 123
@@ -19,10 +19,10 @@ base_params:
         - 9
         - 10
     test.variable.7:
-        - "D:/a/long/path/to/a/filename.1"
-        - "/Users/Another/file.2"
-        - "OneMoreFile.name"
-    test.variable.8: ["D:/a/long/path/to/a/filename.1", "/Users/Another/file.2", "OneMoreFile.nam"]
+        - $$path(D:/a/long/path/to/a/filename.1)$$
+        - $$path(/Users/Another/file.2)$$
+        - $$path(OneMoreFile.name)$$
+    test.variable.8: ["$$path(D:/a/long/path/to/a/filename.1)$$", "$$path(/Users/Another/file.2)$$" , "OneMoreFile.nam"]
     test.variable.9: ["a string", 15, 3.2, "another string", 2]
     test.variable.10: [21.3, "string 1", "3.5", 4, "yet another string"]
 
