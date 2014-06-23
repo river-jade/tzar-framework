@@ -31,27 +31,34 @@ public class WildcardReplacer {
 
   private static WildcardFunction MODEL_PATH = new SimpleWildcardFunction() {
     public String apply(Context context) {
-      return context.model.getAbsolutePath();
+      return getAbsolutePathWithTrailingSlash(context.model);
     }
   };
 
   private static WildcardFunction LIBRARY_PATH = new ValueWildcardFunction() {
     public String apply(String value, Context context) {
-      return context.libraries.get(value).getAbsolutePath();
+      return getAbsolutePathWithTrailingSlash(context.libraries.get(value));
     }
   };
 
   private static WildcardFunction OUTPUT_PATH = new SimpleWildcardFunction() {
     public String apply(Context context) {
-      return context.outputPath.getAbsolutePath();
+      return getAbsolutePathWithTrailingSlash(context.outputPath);
     }
   };
 
   private static WildcardFunction OUTPUT_METADATA_PATH = new SimpleWildcardFunction() {
     public String apply(Context context) {
-      return context.outputMetadataPath.getAbsolutePath();
+      return getAbsolutePathWithTrailingSlash(context.outputMetadataPath);
     }
   };
+
+  private static String getAbsolutePathWithTrailingSlash(File path) {
+    if (path.isDirectory()) {
+      return path.getAbsolutePath() + File.separator;
+    }
+    return path.getAbsolutePath();
+  }
 
   private static ImmutableMap<String, WildcardFunction> WILDCARDS = ImmutableMap.<String, WildcardFunction>builder()
       .put("run_id", RUN_ID)
