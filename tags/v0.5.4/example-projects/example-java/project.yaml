@@ -1,0 +1,49 @@
+project_name: Example Project
+runner_class: JavaRunner
+runner_flags: --jarpath=dist/lib/ExampleJavaRunner.jar --classname=au.edu.rmit.rdvtest.ExampleJavaRunner
+
+libraries:
+    -  name: version-library
+       repo_type: http_file
+       url: http://tzar-framework.googlecode.com/svn/trunk/java/version.properties
+       force_download: false
+
+base_params:
+    # Random seed based on run_id. The $$ syntax specifies that this value
+    # is to be substituted at runtime.
+    random.seed: $$run_id$$
+
+    test.variable.1: $$model_path$$foobar
+    test.variable.2: 456
+    test.variable.3: xyz
+    test.variable.4: abc
+
+    PAR.testing.output.filename: $$output_path$$test_output_file.txt
+    PAR.testing.output.filename2: $$output_path$$test_output_file2.txt
+
+    version.library.name: $$library_path(version-library)$$
+
+scenarios:
+    - name: Example scenario
+      parameters:
+        test.variable.5: 789
+
+    - name: Example scenario 2
+      parameters: 
+        test.variable.1: 789
+
+#mapreduce:
+#  mapper_class: FileCopier
+#  mapper_flags:
+#    source_filename: single_result.csv
+#    dest_filename: all_results.csv
+#  reducer_class: Concatenator
+#  reducer_flags:
+#    heading_row: true
+
+# This stanza is equivalent to the one above, but is simpler
+# to understand.
+concatenate:
+  heading_row: true
+  input_filename: single_result.csv
+  output_filename: all_results2.csv

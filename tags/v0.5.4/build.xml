@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:ivy="antlib:org.apache.ivy.ant" default="dist" basedir=".">
+    <property name="build.dir" location="build"/>
+    <property name="test.build.dir" location="build.test"/>
+    <property name="jar.name" value="tzar.jar"/>
+    <property name="src.dir" value="java"/>
+    <property name="tst.dir" value="javatest"/>
+    <property name="out.dir" value="out"/>
+    <property name="api.jar.name" value="tzar-api.jar"/>
+
+    <target name="dist" depends="test, dist-tzar"/>
+
+<!--*****************************
+      Main code compile and dist
+    ***************************** -->
+
+    <target name="clean" depends="clean-test" unless="jar.uptodate">
+        <delete dir="${build.dir}"/>
+    </target>
+
+    <target name="compile" depends="checkjar, clean, init-ivy, javac2" unless="jar.uptodate">
+        <ivy:cachepath pathid="tzar.classpath" conf="tzar" log="download-only"/>
+        <mkdir dir="${build.dir}"/>
+        <javac2 srcdir="${src.dir}" destdir="${build.dir}" target="1.6" source="1.6" includeantruntime="false"
+               debug="true">
+            <classpath>
+                <path refid="tzar.classpath"/>
+            </classpath>
+        </javac2>
+    </target>
+
+    <target name="dist-tzar" depends="checkjar, compile, init-ivy" unless="jar.uptodate">
+        <!-- Copy any properties files from source tree to build dir -->
+        <copy todir="${build.dir}">
+            <fileset dir="${src.dir}">
+                <include name="**.properties"/>
+            </fileset>
+        </copy>
+        <copy todir="${build.dir}">
+        <!-- copy external runners to the build dir, so that they get included in the jar -->
+            <fileset dir="external_runners">
+                <include name="**"/>
+            </fileset>
+        </copy>
+        <copy file="__run__.py" todir="${build.dir}"/>
+        <ivy:cachefileset setid="libs.fileset" conf="tzar-dist" log="download-only"/>
+        <!-- we create this external libs jar because we need to strip out
+        the security signature on the bc-prov.jar library, otherwise when
+         we glom them all into a single jar, jar loading fails. Unfortunately, the
+         zipgroupfileset doesn't allow us to filter out matching files, so we use this
+         ugly and slow hack.
+         -->
+        <jar jarfile="${out.dir}/external-libs.jar" keepcompression="false">
+            <zipgroupfileset refid="libs.fileset"/>
+        </jar>
+        <!-- Build the jar -->
+        <jar destfile="${out.dir}/${jar.name}" basedir="${build.dir}" keepcompression="false">
+            <manifest>
+                <attribute name="Main-Class" value="au.edu.rmit.tzar.commands.Main"/>
+            </manifest>
+            <!-- strip out the signature files -->
+            <zipfileset src="${out.dir}/external-libs.jar">
+                <exclude name="META-INF/**.SF"/>
+                <exclude name="META-INF/**.DSA"/>
+            </zipfileset>
+        </jar>
+    </target>
+
+    <!--******************************
+       API jar compile and dist
+   ****************************** -->
+    <target name="compile-api" depends="checkjar, clean, init-ivy, javac2" unless="jar.uptodate">
+        <mkdir dir="${build.dir}"/>
+        <ivy:cachepath pathid="api.classpath" conf="api" log="download-only"/>
+        <javac2 srcdir="${src.dir}" destdir="${build.dir}" target="1.6" source="1.6" includeantruntime="false"
+               debug="true" includes="au/edu/rmit/tzar/api/**">
+            <classpath refid="api.classpath"/>
+        </javac2>
+    </target>
+
+    <target name="dist-api" depends="compile-api">
+        <!-- Build the jar -->
+        <jar destfile="${api.jar.name}" basedir="${build.dir}"
+             includes="au/edu/rmit/tzar/api/**"/>
+    </target>
+
+    <!--   **************************
+    Test build and run
+   ************************** -->
+
+    <target name="clean-test">
+        <delete dir="${test.build.dir}"/>
+    </target>
+
+    <target name="compile-test" depends="compile">
+    	<ivy:cachepath pathid="test.classpath" conf="test" log="download-only"/>
+        <mkdir dir="${test.build.dir}"/>
+        <javac2 srcdir="${tst.dir}" destdir="${test.build.dir}" target="1.6" source="1.6" includeantruntime="false">
+            <classpath>
+                <pathelement location="${build.dir}"/>
+                <path refid="test.classpath"/>
+            </classpath>
+        </javac2>
+    </target>
+
+    <target name="test" depends="clean-test, compile-test" unless="no.test">
+        <junit haltonerror="true"
+               haltonfailure="false"
+               failureproperty="tests.failed"
+               errorproperty="tests.failed"
+               clonevm="true"
+               fork="true"
+               outputtoformatters="false">
+            <classpath>
+                <pathelement location="${build.dir}"/>
+                <pathelement location="${test.build.dir}"/>
+                <path refid="test.classpath"/>
+            </classpath>
+            <formatter type="brief" usefile="false"/>
+            <batchtest>
+                <fileset dir="${tst.dir}" includes="**/*Test.java" excludes="**/Abstract*.java"/>
+            </batchtest>
+        </junit>
+        <fail message="Test failure detected, check test results." if="tests.failed"/>
+    </target>
+
+    <!--**************************
+       Generate javadocs
+    ************************** -->
+    <target name="javadoc">
+        <javadoc sourcepath="${src.dir}" destdir="docs"/>
+    </target>
+
+
+    <!--**************************
+       Utility targets
+   ************************** -->
+    <!-- Check that the jar file is up to date so we don't build unnecessarily -->
+    <target name="checkjar">
+        <uptodate property="jar.uptodate" targetfile="${jar.name}">
+            <srcfiles dir="." includes="**"/>
+        </uptodate>
+    </target>
+
+    <!-- defines the target for creating the task for compiling using intellij's javac wrapper. This is
+    required for intellij form designer :( -->
+    <target name="javac2">
+        <ivy:cachepath pathid="javac2.classpath" conf="tzar" log="download-only"/>
+        <!--We define a specal task for compiling using the intellij wrapper. This is required
+        for compiling the Swing GUI. -->
+        <taskdef name="javac2" classname="com.intellij.ant.Javac2" classpathref="javac2.classpath"/>
+    </target>
+
+    <!--****************************************************
+       Ivy targets
+       (The below is all stuff to automatically download and install Ivy,
+       which is used to manage build dependencies.)
+   **************************************************** -->
+    <property name="ivy.install.version" value="2.2.0"/>
+    <condition property="ivy.home" value="${env.IVY_HOME}">
+        <isset property="env.IVY_HOME"/>
+    </condition>
+    <property name="ivy.home" value="${user.home}/.ant"/>
+    <property name="ivy.jar.dir" value="${ivy.home}/lib"/>
+    <property name="ivy.jar.file" value="${ivy.jar.dir}/ivy.jar"/>
+    
+    <target name="check-ivy-installed">
+        <available property="ivy.exists" file="${ivy.jar.file}"/>
+    </target>
+
+    <target name="download-ivy" depends="check-ivy-installed" unless="ivy.exists">
+        <mkdir dir="${ivy.jar.dir}"/>
+        <!-- download Ivy from web site so that it can be used even without any special installation -->
+        <get src="http://repo2.maven.org/maven2/org/apache/ivy/ivy/${ivy.install.version}/ivy-${ivy.install.version}.jar"
+             dest="${ivy.jar.file}" usetimestamp="true"/>
+    </target>
+
+    <target name="init-ivy" depends="download-ivy">
+        <!-- try to load ivy here from ivy home, in case the user has not already dropped
+it into ant's lib dir (note that the latter copy will always take precedence).
+We will not fail as long as local lib dir exists (it may be empty) and
+ivy is in at least one of ant's lib dir or the local lib dir. -->
+        <path id="ivy.lib.path">
+            <fileset dir="${ivy.jar.dir}" includes="*.jar"/>
+
+        </path>
+        <taskdef resource="org/apache/ivy/ant/antlib.xml"
+                 uri="antlib:org.apache.ivy.ant" classpathref="ivy.lib.path"/>
+    </target>
+</project>
