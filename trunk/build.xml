@@ -5,6 +5,7 @@
     <property name="jar.name" value="tzar.jar"/>
     <property name="src.dir" value="java"/>
     <property name="tst.dir" value="javatest"/>
+    <property name="out.dir" value="out"/>
     <property name="api.jar.name" value="tzar-api.jar"/>
 
     <target name="dist" depends="test, dist-tzar"/>
@@ -49,16 +50,16 @@
          zipgroupfileset doesn't allow us to filter out matching files, so we use this
          ugly and slow hack.
          -->
-        <jar jarfile="external-libs.jar" keepcompression="false">
+        <jar jarfile="${out.dir}/external-libs.jar" keepcompression="false">
             <zipgroupfileset refid="libs.fileset"/>
         </jar>
         <!-- Build the jar -->
-        <jar destfile="${jar.name}" basedir="${build.dir}" keepcompression="false">
+        <jar destfile="${out.dir}/${jar.name}" basedir="${build.dir}" keepcompression="false">
             <manifest>
                 <attribute name="Main-Class" value="au.edu.rmit.tzar.commands.Main"/>
             </manifest>
             <!-- strip out the signature files -->
-            <zipfileset src="external-libs.jar">
+            <zipfileset src="${out.dir}/external-libs.jar">
                 <exclude name="META-INF/**.SF"/>
                 <exclude name="META-INF/**.DSA"/>
             </zipfileset>
