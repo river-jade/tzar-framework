@@ -1,6 +1,7 @@
 package au.edu.rmit.tzar;
 
 import au.edu.rmit.tzar.api.PathUtils;
+import au.edu.rmit.tzar.api.StopRun;
 import au.edu.rmit.tzar.api.TzarException;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
@@ -9,6 +10,9 @@ import com.google.common.io.Files;
 import java.io.*;
 import java.net.*;
 import java.util.Collections;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -76,27 +80,51 @@ public class Utils {
   }
 
   /**
-   * Spawns a new thread to copy an InputStream to the logger at the provided level.
+   * Spawns a new thread to copy an InputStream to the logger at the provided level. This method
+   * registers a stopTask to the provided StopRun object so that the logger can be gracefully disconnected
+   * before the input stream becomes unavailable.
    *
    * @param in       stream to copy
    * @param logger   logger to log to
    * @param logLevel logging level to log at
+   * @param stopRun  object to register tasks to be executed if a run is to be stopped mid-run
+   * @param executor executor service for spawning new threads
    */
-  public static void copyStreamToLog(final InputStream in, final Logger logger, final Level logLevel) {
-    new Thread() {
+  public static void copyStreamToLog(final InputStream in, final Logger logger, final Level logLevel,
+      final StopRun stopRun, ExecutorService executor) {
+    final CountDownLatch finished = new CountDownLatch(1);
+    final AtomicBoolean stopLogging = new AtomicBoolean(false);
+
+    // this task will run iff stopRun.stop() is called, which will be done if the user
+    // requests stopping a run in mid-run.
+    stopRun.registerStopTask(new Runnable() {
+      @Override
+      public void run() {
+        stopLogging.set(true); // tell the logger to stop
+        try {
+          finished.await(); // wait for the logger to stop (to avoid a race condition) before continuing with the
+                            // other stop tasks
+        } catch (InterruptedException e) {
+          e.printStackTrace();
+          Thread.currentThread().interrupt();
+        }
+      }
+    });
+    executor.submit(new Runnable() {
       @Override
       public void run() {
         try {
           BufferedReader br = new BufferedReader(new InputStreamReader(in));
           String line;
-          while ((line = br.readLine()) != null) {
+          while (!stopLogging.get() && (line = br.readLine()) != null) {
             logger.log(logLevel, line);
           }
+          finished.countDown(); // let the stop task know that we're done
         } catch (IOException e) {
           logger.log(Level.SEVERE, "Failed to copy provided stream to logs.", e);
         }
       }
-    }.start();
+    });
   }
 
   public static void copyDirectory(File source, File dest) throws IOException {

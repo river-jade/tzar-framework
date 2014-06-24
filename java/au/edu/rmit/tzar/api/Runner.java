@@ -21,9 +21,10 @@ public interface Runner {
    * @param logger     a java logger for the runner code to use for logging. This logger
    * will log to a file in the output directory. By default, INFO level logs will go to
    * console. If --verbose is set, then FINE logs will also go to console.
+   * @param stopRun for stopping runs in progress
    * @return true if the run succeeded, false otherwise
    * @throws TzarException
    */
   boolean runModel(File model, File outputPath, String runId, String runnerFlags, Parameters parameters,
-      Logger logger) throws TzarException;
+      Logger logger, StopRun stopRun) throws TzarException;
 }

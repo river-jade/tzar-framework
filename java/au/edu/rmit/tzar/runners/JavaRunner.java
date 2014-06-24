@@ -2,6 +2,7 @@ package au.edu.rmit.tzar.runners;
 
 import au.edu.rmit.tzar.api.Parameters;
 import au.edu.rmit.tzar.api.Runner;
+import au.edu.rmit.tzar.api.StopRun;
 import au.edu.rmit.tzar.api.TzarException;
 import com.beust.jcommander.Parameter;
 import org.xeustechnologies.jcl.JarClassLoader;
@@ -23,7 +24,7 @@ import java.util.logging.Logger;
 public class JavaRunner implements Runner {
   @Override
   public boolean runModel(File model, File outputPath, String runId, String runnerFlags, Parameters parameters,
-      Logger logger) throws TzarException {
+      Logger logger, StopRun stopRun) throws TzarException {
 
     Flags flags = RunnerUtils.parseFlags(runnerFlags.split(" "), new Flags());
     File jarPath = new File(model, flags.jarPath);
@@ -37,7 +38,7 @@ public class JavaRunner implements Runner {
     }
 
     Runner runner = getRunner(jarPath, flags.className);
-    return runner.runModel(model, outputPath, runId, runnerFlags, parameters, logger);
+    return runner.runModel(model, outputPath, runId, runnerFlags, parameters, logger, stopRun);
   }
 
   private Runner getRunner(File jarPath, String runnerClassName) {

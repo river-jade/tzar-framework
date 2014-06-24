@@ -2,6 +2,7 @@ package au.edu.rmit.tzar.runners;
 
 import au.edu.rmit.tzar.api.Parameters;
 import au.edu.rmit.tzar.api.Runner;
+import au.edu.rmit.tzar.api.StopRun;
 import au.edu.rmit.tzar.api.TzarException;
 import com.beust.jcommander.Parameter;
 import com.google.common.collect.ImmutableMap;
@@ -22,7 +23,7 @@ public class PythonRunner extends SystemRunner implements Runner {
 
   @Override
   public boolean runModel(File model, File outputPath, String runId, String runnerFlags, Parameters parameters,
-                          Logger logger) throws TzarException {
+      Logger logger, StopRun stopRun) throws TzarException {
     Flags flags = RunnerUtils.parseFlags(runnerFlags.split(" "), new Flags());
 
     File variablesFile = RunnerUtils.writeTempVariablesFile(parameters);
@@ -32,7 +33,7 @@ public class PythonRunner extends SystemRunner implements Runner {
     RunnerUtils.extractResourceToFile(tempDirectory, "python/", "basemodel.py");
 
     Map<String, String> env = ImmutableMap.of("PYTHONPATH", model.getAbsolutePath());
-    return executeCommand(model, logger, env, flags.pythonLocation.getPath(),
+    return executeCommand(model, logger, env, stopRun, flags.pythonLocation.getPath(),
         pythonRunner.getPath(),
         "--paramfile=" + variablesFile.getPath(),
         "--modelpath=" + model,

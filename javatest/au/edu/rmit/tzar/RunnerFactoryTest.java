@@ -2,6 +2,7 @@ package au.edu.rmit.tzar;
 
 import au.edu.rmit.tzar.api.Parameters;
 import au.edu.rmit.tzar.api.Runner;
+import au.edu.rmit.tzar.api.StopRun;
 import au.edu.rmit.tzar.api.TzarException;
 import au.edu.rmit.tzar.runners.NullRunner;
 import au.edu.rmit.tzar.runners.RunnerFactory;
@@ -30,13 +31,14 @@ public class RunnerFactoryTest extends TestCase {
     RunnerFactory runnerFactory = new RunnerFactory();
     Runner runner = runnerFactory.getRunner("au.edu.rmit.tzar.TestRunner");
     assertEquals(TestRunner.class, runner.getClass());
-    assertTrue(runner.runModel(null, null, null, null, null, null));
+    assertTrue(runner.runModel(null, null, null, null, null, null, new StopRun()));
   }
 }
 
 class TestRunner implements Runner {
   @Override
-  public boolean runModel(File model, File outputPath, String runId, String runnerFlags, Parameters parameters, Logger logger) throws TzarException {
+  public boolean runModel(File model, File outputPath, String runId, String runnerFlags, Parameters parameters,
+      Logger logger, StopRun stopRun) throws TzarException {
     return true;
   }
 }

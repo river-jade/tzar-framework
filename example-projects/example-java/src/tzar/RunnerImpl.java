@@ -2,6 +2,7 @@ package tzar;
 
 import au.edu.rmit.tzar.api.Parameters;
 import au.edu.rmit.tzar.api.Runner;
+import au.edu.rmit.tzar.api.StopRun;
 import au.edu.rmit.tzar.api.TzarException;
 
 import java.io.File;
@@ -14,7 +15,7 @@ import java.util.logging.Logger;
 public class RunnerImpl implements Runner {
   @Override
   public boolean runModel(File model, File outputPath, String runId, String runnerFlags, Parameters parameters,
-      Logger logger) throws TzarException {
+      Logger logger, StopRun stopRun) throws TzarException {
     logger.info("Entering RunnerImpl runner.");
     logger.info("Here are the parameters: " + parameters.toString());
     logger.info("Exiting RunnerImpl runner.");

@@ -90,6 +90,16 @@ public class ExecutableRun {
    * @return true if the run executed successfully, false otherwise
    */
   public boolean execute() {
+    return execute(new StopRun());
+  }
+
+  /**
+   * Execute this run. Checked exceptions are caught, and result in a failed run.
+   *
+   * @return true if the run executed successfully, false otherwise
+   * @param stopRun construct for stopping mid run, if this is supported by the runner
+   */
+  public boolean execute(StopRun stopRun) {
     try {
       CodeSource codeSource = run.getCodeSource();
       File model = codeSource.getCode(baseModelPath, run.getProjectName());
@@ -128,7 +138,7 @@ public class ExecutableRun {
           yamlParser.parametersToYaml(parameters, parametersFile);
           Runner runner = runnerFactory.getRunner(run.getRunnerClass());
           success = runner.runModel(model, outputPath, Integer.toString(run.getRunId()), run.getRunnerFlags(),
-              parameters, RUNNER_LOGGER);
+              parameters, RUNNER_LOGGER, stopRun);
         } finally {
           RUNNER_LOGGER.removeHandler(handler);
           handler.close();
