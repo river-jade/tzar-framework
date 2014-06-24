@@ -1,23 +1,19 @@
 #!/usr/bin/jython
 
+import java.io.File
+
 import datetime
 import optparse
 import os
 import shlex
-import sys
 import traceback
-
 from model import Model
 import rrunner
-
-import java.io.File
-
-from org.python.core import PyException
-
 from au.edu.rmit.tzar.api import Runner
 
+
 class ModelRunner(Runner):
-    def runModel(self, modelpath, outputpath, runid, flags, params, logger):
+    def runModel(self, modelpath, outputpath, runid, flags, params, logger, runstop):
         try:
             parser = optparse.OptionParser()
             options = self.parse_flags(parser, flags)

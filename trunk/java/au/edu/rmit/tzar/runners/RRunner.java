@@ -2,6 +2,7 @@ package au.edu.rmit.tzar.runners;
 
 import au.edu.rmit.tzar.api.Parameters;
 import au.edu.rmit.tzar.api.Runner;
+import au.edu.rmit.tzar.api.StopRun;
 import au.edu.rmit.tzar.api.TzarException;
 import com.beust.jcommander.Parameter;
 import com.google.common.collect.ImmutableMap;
@@ -21,7 +22,7 @@ public class RRunner extends SystemRunner implements Runner {
 
   @Override
   public boolean runModel(File model, File outputPath, String runId, String runnerFlags, Parameters parameters,
-      Logger logger) throws TzarException {
+      Logger logger, StopRun stopRun) throws TzarException {
     Flags flags = RunnerUtils.parseFlags(runnerFlags.split(" "), new Flags());
 
     File variablesFile = RunnerUtils.writeTempVariablesFile(parameters);
@@ -34,7 +35,7 @@ public class RRunner extends SystemRunner implements Runner {
     }
     RunnerUtils.extractResource("R/rrunner.R", rRunnerPath);
 
-    return executeCommand(model, logger, ImmutableMap.<String, String>of(), flags.rLocation.getPath(),
+    return executeCommand(model, logger, ImmutableMap.<String, String>of(), stopRun, flags.rLocation.getPath(),
         rRunnerPath.toString(),
         "--paramfile=" + variablesFile.getPath(),
         "--rscript=" + new File(model, flags.rScript.getPath()).getPath(),

@@ -2,10 +2,7 @@ package au.edu.rmit.tzar.gui;
 
 import au.edu.rmit.tzar.RunFactory;
 import au.edu.rmit.tzar.Utils;
-import au.edu.rmit.tzar.api.CodeSource;
-import au.edu.rmit.tzar.api.Constants;
-import au.edu.rmit.tzar.api.ProjectSpec;
-import au.edu.rmit.tzar.api.TzarException;
+import au.edu.rmit.tzar.api.*;
 import au.edu.rmit.tzar.commands.ExecLocalRuns;
 import au.edu.rmit.tzar.commands.ScheduleRuns;
 import au.edu.rmit.tzar.db.DaoFactory;
@@ -63,6 +60,8 @@ public class TzarGui {
   private JTextField dbConnectionString;
   private ErrorDialog errorDialog;
   private final JFrame frame;
+  private JButton stopButton;
+  private StopRun stopRun;
 
   public TzarGui() {
     frame = new JFrame("Tzar computation framework");
@@ -92,6 +91,12 @@ public class TzarGui {
       throw new TzarException(e);
     }
 
+    stopButton.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        stopRun.stop();
+      }
+    });
     clearButton.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
@@ -224,6 +229,7 @@ public class TzarGui {
   }
 
   private void execLocalRuns() {
+    this.stopRun = new StopRun();
     new SwingWorker<Void, Void>() {
       @Override
       protected Void doInBackground() throws Exception {
@@ -245,7 +251,7 @@ public class TzarGui {
         RunFactory runFactory = new RunFactory(codeSource, runsetName, "", projectSpec);
         RunnerFactory runnerFactory = new RunnerFactory();
         ExecLocalRuns execLocalRuns = new ExecLocalRuns((Integer) numRuns.getValue(), runFactory,
-            tzarOutputPath, modelPath, runnerFactory, Optional.fromNullable(projectSpec.getMapReduce()));
+            tzarOutputPath, modelPath, runnerFactory, Optional.fromNullable(projectSpec.getMapReduce()), stopRun);
         execLocalRuns.execute();
         return null;
       }

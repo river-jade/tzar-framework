@@ -3,6 +3,7 @@ package au.edu.rmit.tzar.commands;
 import au.edu.rmit.tzar.RunFactory;
 import au.edu.rmit.tzar.api.Constants;
 import au.edu.rmit.tzar.api.ProjectSpec;
+import au.edu.rmit.tzar.api.StopRun;
 import au.edu.rmit.tzar.api.TzarException;
 import au.edu.rmit.tzar.db.DaoFactory;
 import au.edu.rmit.tzar.db.RunDao;
@@ -69,7 +70,7 @@ class CommandFactory {
     Optional<au.edu.rmit.tzar.api.MapReduce> mapReduce = Optional.fromNullable(projectSpec.getMapReduce());
 
     return new ExecLocalRuns(CREATE_RUNS_FLAGS.getNumRuns(), runFactory, tzarOutputPath, baseModelPath,
-        new RunnerFactory(), mapReduce);
+        new RunnerFactory(), mapReduce, new StopRun());
   }
 
   public Command newHelp() {

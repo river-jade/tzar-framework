@@ -1,8 +1,9 @@
 package au.edu.rmit.tzar.runners;
 
 import au.edu.rmit.tzar.api.Parameters;
-import au.edu.rmit.tzar.api.TzarException;
 import au.edu.rmit.tzar.api.Runner;
+import au.edu.rmit.tzar.api.StopRun;
+import au.edu.rmit.tzar.api.TzarException;
 import com.google.common.io.Files;
 import org.python.core.Py;
 import org.python.core.PyException;
@@ -25,7 +26,7 @@ public class JythonRunner implements Runner {
 
   @Override
   public boolean runModel(File model, File outputPath, String runId, String runnerFlags, Parameters parameters,
-      Logger logger) throws TzarException {
+      Logger logger, StopRun stopRun) throws TzarException {
     Runner runner;
     try {
       runner = getJythonModelRunner(model);
@@ -34,7 +35,7 @@ public class JythonRunner implements Runner {
     }
 
     try {
-      return runner.runModel(model, outputPath, runId, runnerFlags, parameters, logger);
+      return runner.runModel(model, outputPath, rnId, runnerFlags, parameters, logger, stopRun);
     } catch (PyException e) {
       throw new TzarException("Error occurred running the jython code.", e);
     }

@@ -122,14 +122,14 @@ public class ExecutableRunTest extends TestCase {
 
     when(runnerFactory.getRunner(RUNNER_CLASS)).thenReturn(mockRunner);
     when(mockRunner.runModel(any(File.class), any(File.class), anyString(), anyString(), any(Parameters.class),
-        any(Logger.class))).thenReturn(success);
-    boolean result = executableRun.execute();
+        any(Logger.class), any(StopRun.class))).thenReturn(success);
+    boolean result = executableRun.execute(new StopRun());
 
     ArgumentCaptor<Parameters> parametersArgumentCaptor = ArgumentCaptor.forClass(Parameters.class);
     verify(mockRunner).runModel(eq(SOURCE_PATH.getAbsoluteFile()),
         eq(new File(outputDir.toString() + Constants.INPROGRESS_SUFFIX)),
         eq(Integer.toString(RUN_ID)), eq(RUNNER_FLAGS),
-        parametersArgumentCaptor.capture(), isA(Logger.class));
+        parametersArgumentCaptor.capture(), isA(Logger.class), isA(StopRun.class));
 
     Parameters expected = parameters.mergeParameters(Parameters.createParameters(expectedVariables));
 

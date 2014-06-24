@@ -2,14 +2,10 @@ package au.edu.rmit.rdvtest;
 
 import au.edu.rmit.tzar.api.Parameters;
 import au.edu.rmit.tzar.api.Runner;
+import au.edu.rmit.tzar.api.StopRun;
 import au.edu.rmit.tzar.api.TzarException;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.lang.String;
+import java.io.*;
 import java.util.logging.Logger;
 
 /**
@@ -19,7 +15,7 @@ import java.util.logging.Logger;
 public class ExampleJavaRunner implements Runner {
 
   public boolean runModel(File model, File outputPath, String runId, String flagsString, Parameters parameters,
-      Logger logger) throws TzarException {
+      Logger logger, StopRun stopRun) throws TzarException {
     logger.info("Entering example java runner.");
     logger.info("Here are the parameters: " + parameters.toString());
     logger.info("Exiting example java runner.");
