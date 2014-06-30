@@ -1,11 +1,13 @@
 package au.edu.rmit.tzar;
 
+import au.com.bytecode.opencsv.CSVWriter;
 import au.edu.rmit.tzar.api.*;
 import au.edu.rmit.tzar.parser.YamlParser;
 import au.edu.rmit.tzar.runners.RunnerFactory;
 import com.google.common.collect.ImmutableMap;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.util.Date;
@@ -45,7 +47,7 @@ public class ExecutableRun {
    *
    * @param run            run to execute
    * @param tzarOutputPath base directory for all run output
-   * @param tzarModelPath local path for all tzar model code
+   * @param tzarModelPath  local path for all tzar model code
    * @param runnerFactory  factory to instantiate runner objects
    * @return a newly created executable run
    */
@@ -71,9 +73,9 @@ public class ExecutableRun {
   /**
    * Constructor.
    *
-   * @param run            run to execute
-   * @param runOutputPath  local path for output for this run
-   * @param runnerFactory  factory to create runner instances
+   * @param run           run to execute
+   * @param runOutputPath local path for output for this run
+   * @param runnerFactory factory to create runner instances
    * @param baseModelPath
    */
   private ExecutableRun(Run run, File runOutputPath, RunnerFactory runnerFactory, File baseModelPath) {
@@ -96,8 +98,8 @@ public class ExecutableRun {
   /**
    * Execute this run. Checked exceptions are caught, and result in a failed run.
    *
-   * @return true if the run executed successfully, false otherwise
    * @param stopRun construct for stopping mid run, if this is supported by the runner
+   * @return true if the run executed successfully, false otherwise
    */
   public boolean execute(StopRun stopRun) {
     try {
@@ -133,6 +135,8 @@ public class ExecutableRun {
             new Object[]{defaultIfEmpty(codeSource.getRevision(), "none"), codeSource.getSourceUri()});
         File parametersFile = new File(metadataPath, "parameters.yaml");
 
+        writeLibraryMetadata(metadataPath);
+
         boolean success = false;
         try {
           yamlParser.parametersToYaml(parameters, parametersFile);
@@ -160,9 +164,31 @@ public class ExecutableRun {
     }
   }
 
+  private void writeLibraryMetadata(File metadataPath) throws TzarException {
+    Map<String, ? extends CodeSource> libraries = run.getLibraries();
+    File libraryMetadata = new File(metadataPath, "libraries.csv");
+    try {
+      CSVWriter csvWriter = new CSVWriter(new FileWriter(libraryMetadata));
+      try {
+        csvWriter.writeNext(new String[]{"library_name", "repository_type", "uri", "revision", "force_download"});
+        for (Map.Entry<String, ? extends CodeSource> entry : libraries.entrySet()) {
+          CodeSource codeSource = entry.getValue();
+          csvWriter.writeNext(new String[]{entry.getKey(), codeSource.getRepositoryType().toString(),
+              codeSource.getSourceUri().toString(), codeSource.getRevision(),
+              Boolean.toString(codeSource.isForceDownload())});
+        }
+      } finally {
+        csvWriter.close();
+      }
+    } catch (IOException e) {
+      throw new TzarException(e);
+    }
+  }
+
   /**
    * Loads user libraries, and returns a map of library names to paths containing the downloaded
    * library code.
+   *
    * @return
    * @throws TzarException
    */
