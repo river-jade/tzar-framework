@@ -45,4 +45,5 @@ public class Constants {
 
   public static final String HEAD_REVISION = "head";
   public static final String METADATA_DIRECTORY_NAME = "metadata";
+  public static final String VERSION_PROPERTIES = "/version.properties";
 }
