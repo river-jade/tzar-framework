@@ -15,9 +15,7 @@ import com.google.common.io.Files;
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.concurrent.ExecutionException;
@@ -61,13 +59,20 @@ public class TzarGui {
   private ErrorDialog errorDialog;
   private final JFrame frame;
   private JButton stopButton;
+  private JButton javaExampleButton;
+  private JButton jythonExampleButton;
+  private JButton jythonCallingRButton;
+  private JButton pythonExampleButton;
+  private JButton rExampleButton;
   private StopRun stopRun;
 
   public TzarGui() {
-    frame = new JFrame("Tzar computation framework");
+    String appName = "Tzar computation framework";
+    frame = new JFrame(appName);
     frame.setContentPane(mainPanel);
     frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
     errorDialog = new ErrorDialog(frame);
+    System.setProperty("com.apple.mrj.application.apple.menu.about.name", appName);
   }
 
   /**
@@ -82,6 +87,7 @@ public class TzarGui {
     initialiseExecLocalPane();
     initialiseScheduleRunsPane();
     initialiseSettings();
+    initialiseExamplePane();
   }
 
   private void initialiseLoggingPane() throws TzarException {
@@ -173,6 +179,51 @@ public class TzarGui {
   private void initialiseSettings() {
     dbConnectionString.setText(System.getenv(Constants.DB_ENVIRONMENT_VARIABLE_NAME));
     baseDirectory.setText(Constants.DEFAULT_TZAR_BASE_DIR.getAbsolutePath());
+  }
+
+  private void initialiseExamplePane() {
+    initialiseExampleButton(javaExampleButton, "java");
+    initialiseExampleButton(jythonExampleButton, "jython");
+    initialiseExampleButton(jythonCallingRButton, "jython-calling-R");
+    initialiseExampleButton(pythonExampleButton, "python");
+    initialiseExampleButton(rExampleButton, "R");
+  }
+
+  private void initialiseExampleButton(JButton exampleButton, final String exampleName) {
+    exampleButton.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        populateRunPaneWithExample(exampleName);
+      }
+    });
+  }
+
+  private void populateRunPaneWithExample(String exampleName) {
+    try {
+      String version = getVersion();
+      String url = String.format("http://tzar-framework.googlecode.com/svn/tags/v%s/example-projects/example-%s",
+          version, exampleName);
+      repoType.setSelectedItem(CodeSourceImpl.RepositoryTypeImpl.SVN);
+      numRuns.setValue(1);
+      pathToProject.setText(url);
+      headRevisionCheckBox.setSelected(false); // clear the selection
+      headRevisionCheckBox.doClick(); // then select it!
+      runsetName.setText("");
+      tabbedPane.setSelectedIndex(0);
+    } catch (TzarException cause) {
+      errorDialog.display(cause);
+    }
+  }
+
+  private static String getVersion() throws TzarException {
+    BufferedReader in = new BufferedReader(new InputStreamReader(TzarGui.class.getResourceAsStream(
+        Constants.VERSION_PROPERTIES)));
+    try {
+      String line = in.readLine();
+      return line.split(" ")[1];
+    } catch (IOException e) {
+      throw new TzarException(e);
+    }
   }
 
   private void initialiseNumRuns(JSpinner numRuns) {
