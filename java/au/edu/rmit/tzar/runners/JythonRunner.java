@@ -35,7 +35,7 @@ public class JythonRunner implements Runner {
     }
 
     try {
-      return runner.runModel(model, outputPath, rnId, runnerFlags, parameters, logger, stopRun);
+      return runner.runModel(model, outputPath, runId, runnerFlags, parameters, logger, stopRun);
     } catch (PyException e) {
       throw new TzarException("Error occurred running the jython code.", e);
     }
