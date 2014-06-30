@@ -59,6 +59,7 @@ public class TzarGui {
   private JTextField dbConnectionString;
   private ErrorDialog errorDialog;
   private final JFrame frame;
+
   private JButton stopButton;
   private JButton javaExampleButton;
   private JButton jythonExampleButton;
@@ -273,6 +274,7 @@ public class TzarGui {
 
       }
     };
+    handler.setLevel(Level.INFO);
     Logger.getLogger("").addHandler(handler);
     handler.setFormatter(new SimpleFormatter());
 
