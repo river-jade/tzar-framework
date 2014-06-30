@@ -26,6 +26,7 @@ import java.util.logging.*;
  */
 public class TzarGui {
   private static Logger LOG = Logger.getLogger(TzarGui.class.getName());
+  public static String APP_NAME = "Tzar computation framework";
 
   private JTabbedPane tabbedPane;
   private JPanel mainPanel;
@@ -67,12 +68,10 @@ public class TzarGui {
   private StopRun stopRun;
 
   public TzarGui() {
-    String appName = "Tzar computation framework";
-    frame = new JFrame(appName);
+    frame = new JFrame(APP_NAME);
     frame.setContentPane(mainPanel);
     frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
     errorDialog = new ErrorDialog(frame);
-    System.setProperty("com.apple.mrj.application.apple.menu.about.name", appName);
   }
 
   /**
