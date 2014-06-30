@@ -2,6 +2,7 @@ package au.edu.rmit.tzar.commands;
 
 import au.edu.rmit.tzar.BriefLogFormatter;
 import au.edu.rmit.tzar.ColorConsoleHandler;
+import au.edu.rmit.tzar.api.Constants;
 import au.edu.rmit.tzar.api.TzarException;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
@@ -72,7 +73,7 @@ public class Main {
     if (!cmd.isPresent()) {
       if (SharedFlags.COMMON_FLAGS.isVersion()) {
         BufferedReader in = new BufferedReader(
-            new InputStreamReader(Main.class.getResourceAsStream("/version.properties")));
+            new InputStreamReader(Main.class.getResourceAsStream(Constants.VERSION_PROPERTIES)));
         String line;
         while ((line = in.readLine()) != null)
           System.out.println(line);
