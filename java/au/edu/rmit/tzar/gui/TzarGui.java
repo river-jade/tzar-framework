@@ -73,6 +73,7 @@ public class TzarGui {
     frame.setContentPane(mainPanel);
     frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
     errorDialog = new ErrorDialog(frame);
+    stopRun = new StopRun();
   }
 
   /**
@@ -281,7 +282,7 @@ public class TzarGui {
   }
 
   private void execLocalRuns() {
-    this.stopRun = new StopRun();
+    stopRun.reset();
     new SwingWorker<Void, Void>() {
       @Override
       protected Void doInBackground() throws Exception {

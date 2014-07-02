@@ -31,4 +31,11 @@ public class StopRun {
       runnable.run();
     }
   }
+
+  /**
+   * Removes all stop tasks from the queue so that this stopRun can be reused.
+   */
+  public void reset() {
+    stopTasks.clear();
+  }
 }
