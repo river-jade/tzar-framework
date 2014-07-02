@@ -63,6 +63,22 @@ public class WildcardReplacerTest extends TestCase {
     assertEquals(new File("foo/bar/blah").getPath(), postParameters.asMap().get("param1"));
   }
 
+  public void testWildcardInAngleBrackets() throws TzarException {
+    String pathString = "foo/$$run_id$$/blah";
+    parameters = Parameters.createParameters(ImmutableMap.<String, Object>of("param1", "<<" + pathString + ">>",
+        "param2", "value2"));
+    Parameters postParameters = wildcardReplacer.replaceWildcards(this.parameters, context);
+    assertEquals(new File("foo/" + RUN_ID + "/blah").getPath(), postParameters.asMap().get("param1"));
+  }
+
+  public void testAngleBracketPathEscaping() throws TzarException {
+    String pathString = "foo/bar/blah";
+    parameters = Parameters.createParameters(ImmutableMap.<String, Object>of("param1", "<<" + pathString + ">>",
+        "param2", "value2"));
+    Parameters postParameters = wildcardReplacer.replaceWildcards(this.parameters, context);
+    assertEquals(new File("foo/bar/blah").getPath(), postParameters.asMap().get("param1"));
+  }
+
   public void testNoReplacementInKey() throws TzarException {
     parameters = Parameters.createParameters(ImmutableMap.<String, Object>of("param1$$run_id$$", "value1", "param2",
         "value2"));
@@ -77,6 +93,16 @@ public class WildcardReplacerTest extends TestCase {
     Map<String, Object> map = postReplacementParameters.asMap();
     List<Object> list = (List<Object>) map.get("param2");
     assertEquals(Lists.<Object>newArrayList(123, "abc", RUN_ID, "abc" + RUN_ID + "def"), list);
+  }
+
+  public void testAngleBracketsInArray() throws TzarException {
+    parameters = Parameters.createParameters(ImmutableMap.<String, Object>of("param1", "value1", "param2",
+        Lists.newArrayList(123, "abc", "$$run_id$$", "abc<</foo/$$run_id$$/bar>>def")));
+    Parameters postReplacementParameters = wildcardReplacer.replaceWildcards(this.parameters, context);
+    Map<String, Object> map = postReplacementParameters.asMap();
+    List<Object> list = (List<Object>) map.get("param2");
+    assertEquals(Lists.<Object>newArrayList(123, "abc", RUN_ID,
+        "abc" + new File("/foo/" + RUN_ID +"/bar").getPath() + "def"), list);
   }
 
   public void testUnknownWildcard() {

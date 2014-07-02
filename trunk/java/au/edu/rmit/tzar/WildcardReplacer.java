@@ -73,10 +73,16 @@ public class WildcardReplacer {
   // regex matches $$abc(def)$$ and $$abc$$, capturing 'abc' and 'def' for the first case and 'abc' for the second.
   private static final Pattern PATTERN = Pattern.compile(
       "\\$\\$" + // starting $$
-      "([^\\s\\($]+)" + // wildcard name (cannot contain whitespace, open paren, or '$').
-      "(?:\\((\\S+)\\))?" + // optional wildcard value inside ()
-      "\\$\\$" // ending $$
+          "([^\\s\\($]+)" + // wildcard name (cannot contain whitespace, open paren, or '$').
+          "(?:\\((\\S+)\\))?" + // optional wildcard value inside ()
+          "\\$\\$" // ending $$
   );
+
+  /**
+   * Pattern to recognise strings that should be treated as paths, and separator characters converted to
+   * correct platform specific ones.
+   */
+  private static final Pattern PATH_PATTERN = Pattern.compile("<<(.*)>>");
 
   /**
    * Creates a new Parameters object based on the provided Parameters, with all wildcards in parameter values
@@ -124,25 +130,54 @@ public class WildcardReplacer {
     }
   }
 
+  /**
+   * Given a string and execution context, replace any wild card values in the string with appropriate
+   * values, using the provided context if required.
+   *
+   * Also replaces sub-strings matching <<.*>> with their contents treated as a path.
+   * @param context values (such as the run_id) required by some of the wildcard functions
+   * @param value the string in which to replace wildcards
+   * @return
+   * @throws WildcardParseException
+   */
   private static Object replaceInString(Context context, String value) throws WildcardParseException {
-    Matcher matcher = PATTERN.matcher(value.toString());
+    Object ret = applyWildcardOrPathFunction(context, value, PATTERN.matcher(value), false);
+    if (ret instanceof String) {
+      value = (String)ret;
+      return applyWildcardOrPathFunction(context, value, PATH_PATTERN.matcher(value), true);
+    } else {
+      return ret;
+    }
+  }
+
+  private static Object applyWildcardOrPathFunction(Context context, String value, Matcher matcher,
+      boolean pathFunction) throws WildcardParseException {
     if (matcher.matches()) { // Entire value matches. We handle this as a special case, so that we can avoid
       // converting numbers etc to Strings.
-      return applyWildcardFunction(matcher.group(1), matcher.group(2), context);
+      return applyWildcardOrPathFunction(context, matcher, pathFunction);
     } else {
       matcher.reset(); // need to reset the matcher, as we've already called matcher.matches().
       StringBuilder sb = new StringBuilder();
       int position = 0;
 
       while (matcher.find()) {
-        Object replacement = applyWildcardFunction(matcher.group(1), matcher.group(2), context);
+        Object replacement = applyWildcardOrPathFunction(context, matcher, pathFunction);
 
-        sb.append(value.toString().substring(position, matcher.start()));
+        sb.append(value.substring(position, matcher.start()));
         sb.append(replacement);
         position = matcher.end();
       }
-      sb.append(value.toString().substring(position));
+      sb.append(value.substring(position));
       return sb.toString();
+    }
+  }
+
+  private static Object applyWildcardOrPathFunction(Context context, Matcher matcher, boolean pathFunction)
+      throws WildcardParseException {
+    if (pathFunction) {
+      return new File(matcher.group(1)).getPath();
+    } else {
+      return applyWildcardFunction(matcher.group(1), matcher.group(2), context);
     }
   }
 

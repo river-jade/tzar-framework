@@ -13,7 +13,7 @@ base_params:
     # is to be substituted at runtime.
     random.seed: $$run_id$$
 
-    test.variable.1: $$model_path$$foobar
+    test.variable.1: <<$$model_path$$/foobar>>
     test.variable.2: 456
     test.variable.3: xyz
     test.variable.4: abc
