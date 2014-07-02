@@ -55,6 +55,8 @@ public class TzarGui {
   private JSpinner scheduleRunsNumRuns;
   private JButton scheduleRunsExecute;
   private JTextField scheduleRunsRevision;
+  private JComboBox scheduleRunsRepoType;
+
   private JTextField baseDirectory;
   private JTextField dbConnectionString;
   private ErrorDialog errorDialog;
@@ -133,16 +135,14 @@ public class TzarGui {
     scheduleRunsExecute.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent evt) {
-        try {
-          scheduleRuns(scheduleRunsRevision.getText(), scheduleRunsPathToProject.getText(),
-              dbConnectionString.getText(), scheduleRunsRunset.getText(), scheduleRunsClusterName.getText(),
-              (Integer) scheduleRunsNumRuns.getValue());
-        } catch (TzarException e) {
-          LOG.log(Level.SEVERE, "An error occurred scheduling runs.", e);
-          errorDialog.display("An error occurred scheduling runs.", e);
-        }
+        tabbedPane.setSelectedComponent(outputLog);
+        scheduleRuns();
       }
     });
+
+    for (CodeSource.RepositoryType type : CodeSourceImpl.RepositoryTypeImpl.values()) {
+      scheduleRunsRepoType.addItem(type);
+    }
   }
 
   private void initialiseExecLocalPane() {
@@ -328,22 +328,25 @@ public class TzarGui {
     }.execute();
   }
 
-  private void scheduleRuns(final String revision, final String projectPath, final String dbUrl, final String runset,
-      final String clusterName, final int numRuns) throws TzarException {
+  private void scheduleRuns() {
     new SwingWorker<Void, Void>() {
       @Override
       protected Void doInBackground() throws TzarException {
-        DaoFactory daoFactory = new DaoFactory(dbUrl);
+        String projectPath = scheduleRunsPathToProject.getText();
+        CodeSourceImpl.RepositoryTypeImpl repositoryType = CodeSourceImpl.RepositoryTypeImpl.valueOf(
+            scheduleRunsRepoType.getSelectedItem().toString());
 
-        CodeSourceImpl.RepositoryTypeImpl repositoryType = CodeSourceImpl.RepositoryTypeImpl.SVN;
+        DaoFactory daoFactory = new DaoFactory(dbConnectionString.getText());
 
-        CodeSourceImpl codeSource;
         URI sourceUri;
         try {
           sourceUri = new URI(projectPath);
         } catch (URISyntaxException e) {
           throw new TzarException(String.format("Project not found at path: %s", projectPath), e);
         }
+
+        String revision = scheduleRunsRevision.getText();
+        CodeSourceImpl codeSource;
         try {
           codeSource = CodeSourceFactory.createCodeSource(revision, repositoryType, sourceUri,
               true /* force download of model code */);
@@ -351,6 +354,7 @@ public class TzarGui {
           throw new TzarException(String.format("Invalid revision %s for repository type %s", revision,
               repositoryType));
         }
+
         ProjectSpec projectSpec;
         try {
           projectSpec = codeSource.getProjectSpec(Files.createTempDir());
@@ -359,8 +363,9 @@ public class TzarGui {
           return null;
         }
 
-        RunFactory runFactory = new RunFactory(codeSource, runset, clusterName, projectSpec);
-        new ScheduleRuns(daoFactory.createRunDao(), numRuns, runFactory).execute();
+        RunFactory runFactory = new RunFactory(codeSource, scheduleRunsRunset.getText(),
+            scheduleRunsClusterName.getText(), projectSpec);
+        new ScheduleRuns(daoFactory.createRunDao(), (Integer) scheduleRunsNumRuns.getValue(), runFactory).execute();
         return null;
       }
 
