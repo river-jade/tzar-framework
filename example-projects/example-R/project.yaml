@@ -19,17 +19,17 @@ base_params:
         - 9
         - 10
     test.variable.7:
-        - $$path(D:/a/long/path/to/a/filename.1)$$
-        - $$path(/Users/Another/file.2)$$
-        - $$path(OneMoreFile.name)$$
-    test.variable.8: ["$$path(D:/a/long/path/to/a/filename.1)$$", "$$path(/Users/Another/file.2)$$" , "OneMoreFile.nam"]
+        - <<D:/a/long/path/to/a/filename.1>>
+        - <</Users/Another/file.2>>
+        - <<OneMoreFile.name>>
+    test.variable.8: ["<<D:/a/long/path/to/a/filename.1>>", "<</Users/Another/file.2>>" , "OneMoreFile.nam"]
     test.variable.9: ["a string", 15, 3.2, "another string", 2]
     test.variable.10: [21.3, "string 1", "3.5", 4, "yet another string"]
 
-    path.to.example.script: $$library_path(R-libraries)$$/example.R
+    path.to.example.script: <<$$library_path(R-libraries)$$/example.R>>
 
-    test.output.filename: $$output_path$$test_output_file.txt
-    test.output.filename2: $$output_path$$test_output_file2.txt
+    test.output.filename: <<$$output_path$$/test_output_file.txt>>
+    test.output.filename2: <<$$output_path$$/test_output_file2.txt>>
 
 
 scenarios:
