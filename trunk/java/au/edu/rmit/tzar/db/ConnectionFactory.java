@@ -33,7 +33,12 @@ class ConnectionFactory {
     try {
       connectionPool = new BoneCP(config);
     } catch (SQLException e) {
-      throw new TzarException(e);
+      if (e.getCause() != null) {
+        throw new TzarException(e.getCause()); // because something weird happens in one of these libraries, and
+        // the top level exception is junk.
+      } else {
+        throw new TzarException(e);
+      }
     }
   }
 
