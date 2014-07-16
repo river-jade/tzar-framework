@@ -1,7 +1,7 @@
 CREATE OR REPLACE FUNCTION update_schema() returns void AS $$
 DECLARE
    current_db_version varchar;
-   latest_db_version varchar := '0.5.4';
+   latest_db_version varchar := '0.5.5';
 BEGIN
 
 if not exists (SELECT * FROM pg_class where relname = 'constants' and relkind = 'r') then
@@ -135,6 +135,20 @@ BEGIN
   return new_db_version;
 END;
 $$ LANGUAGE plpgsql;
+
+
+-- Update from v0.5.4 to v0.5.5
+CREATE OR REPLACE FUNCTION update_schema_054() returns varchar AS $$
+DECLARE
+    old_db_version varchar := '0.5.4';
+    new_db_version varchar := '0.5.5';
+BEGIN
+  ALTER TABLE public.run_libraries ADD id bigserial NOT NULL;
+  ALTER TABLE public.run_libraries ADD CONSTRAINT run_libraries_pkey PRIMARY KEY (id);
+  return new_db_version;
+END;
+$$ LANGUAGE plpgsql;
+
 
 begin;
 select update_schema();
