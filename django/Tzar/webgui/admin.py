@@ -1,5 +1,6 @@
-from webgui.models import Run, RunParam, RunSet
+from webgui.models import Run, RunParam, RunSet, Library
 from django.contrib import admin
+
 
 class RunParamInline(admin.TabularInline):
     model = RunParam
@@ -9,6 +10,14 @@ class RunParamInline(admin.TabularInline):
     ]
 
 
+class RunLibraryInline(admin.TabularInline):
+    """
+    Represents the libraries for this run on the Runs admin screen.
+    """
+    model = Run.libraries.through
+    extra = 0
+
+
 def link_results(obj):
     # remove the 'mnt/rdv' from the output host TODO make this a config or somehow more robust
     new_path = obj.output_path.replace("/mnt/rdv","")
@@ -16,8 +25,8 @@ def link_results(obj):
     # TODO - generate an index.html file and point at this instead
 link_results.allow_tags=True
 
-class RunAdmin(admin.ModelAdmin):
 
+class RunAdmin(admin.ModelAdmin):
     save_as = True
     list_display = ('run_id','project_name','scenario_name','runset','state', 'hostname', link_results)
     # list_display = ('run_id','run_name','runset','state', 'hostname', link_results)
@@ -33,7 +42,7 @@ class RunAdmin(admin.ModelAdmin):
         ('Technical details', {'fields': ['seed', 'model_revision', 'runner_flags'], 'classes': ['collapse']}),
         ('Output', {'fields': ['output_host', 'output_path'], 'classes': ['collapse']}),
     ]
-    inlines = [RunParamInline]
+    inlines = [RunParamInline, RunLibraryInline]
     actions = ['reschedule_runs']
 
 #    def format_submission_time(self, obj):
@@ -47,6 +56,7 @@ class RunAdmin(admin.ModelAdmin):
 
 admin.site.register(Run, RunAdmin)
 
+
 class RunInline(admin.TabularInline):
     model = Run
     list_display = ('run_id','state')
@@ -57,10 +67,11 @@ class RunInline(admin.TabularInline):
     ]
 #    list_filter = ['state']
 
+
 class RunSetAdmin(admin.ModelAdmin):
     save_as = False
     list_display = ('runset','num_runs', 'seconds_duration', 'failed','scheduled','in_progress','completed','copied', 'copy_failed')
-#    list_display = ('runset','num_runs','format_submission_time', 'format_end_time', 'seconds_duration', 'failed','scheduled','in_progress','completed','copied', 'copy_failed') 
+#    list_display = ('runset','num_runs','format_submission_time', 'format_end_time', 'seconds_duration', 'failed','scheduled','in_progress','completed','copied', 'copy_failed')
     list_filter = ['submission_time']
     search_fields = ['runset']
     inlines = [RunInline]
@@ -96,4 +107,4 @@ class RunSetAdmin(admin.ModelAdmin):
 
 
 admin.site.register(RunSet, RunSetAdmin)
-
+admin.site.register(Library)
