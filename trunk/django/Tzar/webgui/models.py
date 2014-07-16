@@ -14,6 +14,7 @@ class FailedRunSetsManager(models.Manager):
     def get_query_set(self):
         return super(FailedRunSetsManager, self).get_query_set().filter(failed != 0)
 
+
 class RunSet(models.Model):
 
     def __unicode__(self):
@@ -40,6 +41,21 @@ class RunSet(models.Model):
         managed = False
 
 
+class Library(models.Model):
+    def __unicode__(self):
+        return ' | '.join((self.name, self.repo_type, self.uri, self.revision))
+
+    library_id = models.AutoField(primary_key=True)
+    repo_type = models.CharField(max_length=16)
+    uri = models.TextField()
+    name = models.TextField()
+    revision = models.CharField(max_length=16)
+    force_download = models.BooleanField()
+
+    class Meta:
+        db_table = u'libraries'
+
+
 class Run(models.Model):
 
     def __unicode__(self):
@@ -53,8 +69,8 @@ class Run(models.Model):
     model_revision = models.CharField(max_length=30)
     runner_flags = models.CharField(max_length=200)
     hostname = models.CharField(max_length=50)
-    output_path = models.CharField(max_length=200)
-    output_host = models.CharField(max_length=50)
+    output_path = models.CharField(max_length=200, blank=True)
+    output_host = models.CharField(max_length=50, blank=True)
     run_start_time = models.DateTimeField()
     run_end_time = models.DateTimeField()
     # runset = models.CharField(max_length=80)
@@ -64,9 +80,11 @@ class Run(models.Model):
     run_submission_time = models.DateTimeField()
     project_name = models.CharField(max_length=50)
     scenario_name = models.CharField(max_length=50)
+    libraries = models.ManyToManyField(Library, through='RunLibrary')
     
     class Meta:
         db_table = u'runs'
+
 
 class RunParam(models.Model):
 
@@ -82,3 +100,11 @@ class RunParam(models.Model):
     class Meta:
         db_table = u'run_params'
 
+
+class RunLibrary(models.Model):
+    run = models.ForeignKey(Run)
+    library = models.ForeignKey(Library)
+
+    class Meta:
+        db_table = u'run_libraries'
+        unique_together = ('run', 'library')
