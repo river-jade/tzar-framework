@@ -80,6 +80,7 @@ ALTER SEQUENCE libraries_library_id_seq OWNED BY libraries.library_id;
 --
 
 CREATE TABLE run_libraries (
+    id bigserial NOT NULL,
     run_id integer,
     library_id integer
 );
@@ -293,6 +294,9 @@ ALTER TABLE ONLY run_libraries
 ALTER TABLE ONLY run_libraries
     ADD CONSTRAINT run_libraries_run_id_fkey FOREIGN KEY (run_id) REFERENCES runs(run_id)
     DEFERRABLE INITIALLY IMMEDIATE;
+
+
+ALTER TABLE ONLY run_libraries ADD CONSTRAINT run_libraries_pkey PRIMARY KEY (id);
 
 
 --
