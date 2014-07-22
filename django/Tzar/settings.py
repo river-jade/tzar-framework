@@ -16,12 +16,11 @@ MANAGERS = ADMINS
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2', 
-                      
-        'HOST': '<hostname goes here>',     # Set to empty string for localhost.
+        'HOST': 'glass.eres.rmit.edu.au',     # Set to empty string for localhost.
         'NAME': 'tzar',  
-        'USER': 'tzar',               
-        'PASSWORD': '<password goes here>',    
-        'PORT': '8080'                      # Glass runs on 8080!!!
+        'USER': 'tzar',
+        'PASSWORD': '<password goes here>', # TODO(river): read password from environment variables
+        'PORT': '8080'                      # Glass runs on 8080
     }
 }
 
@@ -162,3 +161,15 @@ LOGGING = {
         },
     }
 }
+
+##################
+# LOCAL SETTINGS #
+##################
+
+# Allow any settings to be defined in local_settings.py which should be
+# ignored in your version control system allowing for settings to be
+# defined per machine.
+try:
+    from local_settings import *
+except ImportError:
+    pass
