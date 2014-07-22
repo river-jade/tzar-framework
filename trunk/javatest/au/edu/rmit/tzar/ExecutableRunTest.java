@@ -6,6 +6,7 @@ import au.edu.rmit.tzar.runners.RunnerFactory;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Files;
 import junit.framework.TestCase;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.mockito.ArgumentCaptor;
 import org.python.google.common.collect.Maps;
 
@@ -43,6 +44,7 @@ public class ExecutableRunTest extends TestCase {
   private Runner mockRunner = mock(Runner.class);
   private Parameters parameters;
   private File tzarOutputPath;
+  private CloseableHttpClient mockHttpClient = mock(CloseableHttpClient.class);
 
   @Override
   public void setUp() throws Exception {
@@ -57,8 +59,8 @@ public class ExecutableRunTest extends TestCase {
 
   private ExecutableRun createExecutableRun(File TZAR_OUTPUT_PATH) throws TzarException {
     parameters = Parameters.createParameters(variables);
-    CodeSourceImpl modelSource = new CodeSourceImpl(SOURCE_PATH.toURI(), CodeSourceImpl.RepositoryTypeImpl.LOCAL_FILE,
-        REVISION, true);
+    CodeSourceImpl modelSource = new CodeSourceImpl(mockHttpClient, SOURCE_PATH.toURI(),
+        CodeSourceImpl.RepositoryTypeImpl.LOCAL_FILE, REVISION, true);
 
     Run.ProjectInfo projectInfo = new Run.ProjectInfo(PROJECT_NAME, modelSource, libraries, RUNNER_CLASS, RUNNER_FLAGS);
     run = new Run(projectInfo, SCENARIO_NAME)
@@ -91,12 +93,12 @@ public class ExecutableRunTest extends TestCase {
 
   public void testLibraryParamReplacement() throws Exception {
     libraries = ImmutableMap.of(
-        "lib1", new CodeSourceImpl(new URI("file:///source/code/1"), CodeSourceImpl.RepositoryTypeImpl.LOCAL_FILE,
-            "123", true),
-        "lib2", new CodeSourceImpl(new URI("file:///source/code/2"), CodeSourceImpl.RepositoryTypeImpl.LOCAL_FILE,
-            "223", true),
-        "lib3", new CodeSourceImpl(new URI("file:///source/code/3"), CodeSourceImpl.RepositoryTypeImpl.LOCAL_FILE,
-            "323", false));
+        "lib1", new CodeSourceImpl(mockHttpClient, new URI("file:///source/code/1"),
+            CodeSourceImpl.RepositoryTypeImpl.LOCAL_FILE, "123", true),
+        "lib2", new CodeSourceImpl(mockHttpClient, new URI("file:///source/code/2"),
+            CodeSourceImpl.RepositoryTypeImpl.LOCAL_FILE, "223", true),
+        "lib3", new CodeSourceImpl(mockHttpClient, new URI("file:///source/code/3"),
+            CodeSourceImpl.RepositoryTypeImpl.LOCAL_FILE, "323", false));
 
     // we rerun setup to recreate the objects that depend on library. a bit dodgy though.
     setUp();

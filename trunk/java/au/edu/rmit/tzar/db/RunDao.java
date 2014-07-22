@@ -4,6 +4,7 @@ import au.edu.rmit.tzar.api.CodeSource;
 import au.edu.rmit.tzar.api.Parameters;
 import au.edu.rmit.tzar.api.Run;
 import au.edu.rmit.tzar.api.TzarException;
+import au.edu.rmit.tzar.repository.CodeSourceFactory;
 import au.edu.rmit.tzar.repository.CodeSourceImpl;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Optional;
@@ -50,12 +51,14 @@ public class RunDao {
   private final ParametersDao parametersDao;
   private final LibraryDao libraryDao;
   private final ConnectionFactory connectionFactory;
+  private final CodeSourceFactory codeSourceFactory;
 
-  public RunDao(ConnectionFactory connectionFactory, ParametersDao parametersDao, LibraryDao libraryDao)
-      throws TzarException {
+  public RunDao(ConnectionFactory connectionFactory, ParametersDao parametersDao, LibraryDao libraryDao,
+      CodeSourceFactory codeSourceFactory) throws TzarException {
     this.connectionFactory = connectionFactory;
     this.parametersDao = parametersDao;
     this.libraryDao = libraryDao;
+    this.codeSourceFactory = codeSourceFactory;
   }
 
   /**
@@ -300,8 +303,8 @@ public class RunDao {
     }
     CodeSourceImpl.RepositoryTypeImpl repositoryType = CodeSourceImpl.RepositoryTypeImpl.valueOf(resultSet.getString
         ("model_repo_type").toUpperCase());
-    CodeSourceImpl codeSource = new CodeSourceImpl(modelUri, repositoryType, resultSet.getString("model_revision"),
-        true /* by default we force download of model code */);
+    CodeSourceImpl codeSource = codeSourceFactory.createCodeSource(resultSet.getString("model_revision"),
+        repositoryType, modelUri, true /* by default we force download of model code */);
 
     Run.ProjectInfo projectInfo = new Run.ProjectInfo(resultSet.getString("project_name"), codeSource,
         libraries, resultSet.getString("runner_class"), resultSet.getString("runner_flags"));

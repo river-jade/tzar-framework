@@ -4,6 +4,7 @@ import au.edu.rmit.tzar.api.Parameters;
 import au.edu.rmit.tzar.api.Repetitions;
 import au.edu.rmit.tzar.api.TzarException;
 import au.edu.rmit.tzar.parser.ProjectSpecImpl;
+import au.edu.rmit.tzar.repository.CodeSourceFactory;
 import au.edu.rmit.tzar.repository.CodeSourceImpl;
 import au.edu.rmit.tzar.runners.mapreduce.MapReduce;
 import com.google.common.base.Joiner;
@@ -41,10 +42,10 @@ public class ProjectSpecBean {
     return bean;
   }
 
-  public ProjectSpecImpl toProjectSpec() throws TzarException {
+  public ProjectSpecImpl toProjectSpec(CodeSourceFactory codeSourceFactory) throws TzarException {
     Repetitions reps = (repetitions == null ? Repetitions.EMPTY_REPETITIONS : repetitions.toRepetitions());
     Map<String, CodeSourceImpl> libs = (libraries == null ? ImmutableMap.<String, CodeSourceImpl>of() :
-        LibraryBean.toLibraries(libraries));
+        LibraryBean.toLibraries(libraries, codeSourceFactory));
 
     MapReduce mapReduce = null;
     if (mapreduce != null) {

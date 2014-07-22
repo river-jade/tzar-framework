@@ -3,6 +3,7 @@ package au.edu.rmit.tzar.repository;
 import au.edu.rmit.tzar.api.TzarException;
 import net.lingala.zip4j.core.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
+import org.apache.http.impl.client.CloseableHttpClient;
 
 import java.io.File;
 import java.io.IOException;
@@ -16,11 +17,12 @@ import java.net.URI;
 public class HttpZipRepository extends HttpRepository {
   /**
    * Constructor.
+   * @param httpClient
    * @param sourceUri the URL pointing to the zip file to download
    * @param skipIfExists don't download the zip file if the expanded library already exists
    */
-  public HttpZipRepository(URI sourceUri, boolean skipIfExists) {
-    super(sourceUri, skipIfExists);
+  public HttpZipRepository(CloseableHttpClient httpClient, URI sourceUri, boolean skipIfExists) {
+    super(httpClient, sourceUri, skipIfExists);
   }
 
   @Override

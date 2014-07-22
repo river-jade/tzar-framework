@@ -39,15 +39,16 @@ public class LibraryBean {
     return bean;
   }
 
-  public static Map<String, CodeSourceImpl> toLibraries(List<LibraryBean> libraryBeans) throws TzarException {
+  public static Map<String, CodeSourceImpl> toLibraries(List<LibraryBean> libraryBeans,
+      CodeSourceFactory codeSourceFactory) throws TzarException {
     Map<String, CodeSourceImpl> libraries = Maps.newHashMap();
     for (LibraryBean bean : libraryBeans) {
-      libraries.put(bean.name, bean.toCodeSource());
+      libraries.put(bean.name, bean.toCodeSource(codeSourceFactory));
     }
     return libraries;
   }
 
-  private CodeSourceImpl toCodeSource() throws TzarException {
+  private CodeSourceImpl toCodeSource(CodeSourceFactory codeSourceFactory) throws TzarException {
     try {
       CodeSourceImpl.RepositoryTypeImpl repositoryType;
       try {
@@ -60,7 +61,7 @@ public class LibraryBean {
         throw new TzarException("Error parsing library. Must specify a valid repository type for each library. " +
             "Valid types are: " + Arrays.asList(CodeSourceImpl.RepositoryTypeImpl.values()));
       }
-      return CodeSourceFactory.createCodeSource(revision, repositoryType, Utils.makeAbsoluteUri(url), force_download);
+      return codeSourceFactory.createCodeSource(revision, repositoryType, Utils.makeAbsoluteUri(url), force_download);
     } catch (CodeSourceImpl.InvalidRevisionException e) {
       throw new TzarException(e);
     }

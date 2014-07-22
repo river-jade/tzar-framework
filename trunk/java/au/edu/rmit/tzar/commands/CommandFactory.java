@@ -34,13 +34,15 @@ import static au.edu.rmit.tzar.commands.SharedFlags.*;
 class CommandFactory {
   private static final Logger LOG = Logger.getLogger(CommandFactory.class.getName());
   private final JCommander jCommander;
+  private final CodeSourceFactory codeSourceFactory;
 
-  public CommandFactory(JCommander jCommander) {
+  public CommandFactory(JCommander jCommander, CodeSourceFactory codeSourceFactory) {
     this.jCommander = jCommander;
+    this.codeSourceFactory = codeSourceFactory;
   }
 
   public Command newAggregateResults() throws ParseException, TzarException, IOException {
-    DaoFactory daoFactory = new DaoFactory(getDbUrl());
+    DaoFactory daoFactory = new DaoFactory(getDbUrl(), codeSourceFactory);
     return new AggregateResults(LOAD_RUNS_FLAGS.getRunIds(), LOAD_RUNS_FLAGS.getStates(),
         LOAD_RUNS_FLAGS.getHostName(), LOAD_RUNS_FLAGS.getRunset(),
         daoFactory.createRunDao(), au.edu.rmit.tzar.Utils.getHostname(), AGGREGATE_RESULTS_FLAGS);
@@ -54,13 +56,13 @@ class CommandFactory {
 
     CodeSourceImpl modelSource;
     try {
-      modelSource = CodeSourceFactory.createCodeSource(revision, repositoryType, projectUri,
+      modelSource = codeSourceFactory.createCodeSource(revision, repositoryType, projectUri,
           true /* always download the project file */);
     } catch (CodeSourceImpl.InvalidRevisionException e) {
       throw new ParseException(e.getMessage());
     }
 
-    ProjectSpec projectSpec = modelSource.getProjectSpec(baseModelPath);
+    ProjectSpec projectSpec = modelSource.getProjectSpec(baseModelPath, codeSourceFactory);
     RunFactory runFactory = new RunFactory(modelSource,
         CREATE_RUNS_FLAGS.getRunset(), "" /* no cluster name for local runs */,
         projectSpec);
@@ -78,7 +80,7 @@ class CommandFactory {
   }
 
   public Command newPrintRuns() throws TzarException, ParseException {
-    DaoFactory daoFactory = new DaoFactory(getDbUrl());
+    DaoFactory daoFactory = new DaoFactory(getDbUrl(), codeSourceFactory);
     return new PrintRuns(daoFactory.createRunDao(), LOAD_RUNS_FLAGS.getStates(),
         LOAD_RUNS_FLAGS.getHostName(), LOAD_RUNS_FLAGS.getRunset(), LOAD_RUNS_FLAGS.getRunIds(),
         PRINT_TABLE_FLAGS.isTruncateOutput(), PRINT_TABLE_FLAGS.getOutputType());
@@ -91,7 +93,7 @@ class CommandFactory {
 
     Optional<ScpDestination> scpDestination = POLL_AND_RUN_FLAGS.getScpDestination();
     Optional<File> finalOutputPath = POLL_AND_RUN_FLAGS.getFinalOutputPath();
-    RunDao runDao = new DaoFactory(getDbUrl()).createRunDao();
+    RunDao runDao = new DaoFactory(getDbUrl(), codeSourceFactory).createRunDao();
 
     ResultsCopier resultsCopier;
     if (!finalOutputPath.isPresent()) { // no path specified. don't copy output
@@ -114,13 +116,13 @@ class CommandFactory {
   }
 
   public Command newPrintRun() throws TzarException, ParseException {
-    DaoFactory daoFactory = new DaoFactory(getDbUrl());
+    DaoFactory daoFactory = new DaoFactory(getDbUrl(), codeSourceFactory);
     return new PrintRun(daoFactory.createParametersDao(), PRINT_RUN_FLAGS.getRunId(),
         PRINT_TABLE_FLAGS.isTruncateOutput(), PRINT_TABLE_FLAGS.getOutputType());
   }
 
   public Command newScheduleRuns() throws IOException, TzarException, ParseException {
-    DaoFactory daoFactory = new DaoFactory(getDbUrl());
+    DaoFactory daoFactory = new DaoFactory(getDbUrl(), codeSourceFactory);
 
     CodeSourceImpl.RepositoryTypeImpl repositoryType = CREATE_RUNS_FLAGS.getRepositoryType();
     if (repositoryType == CodeSourceImpl.RepositoryTypeImpl.LOCAL_FILE) {
@@ -130,12 +132,12 @@ class CommandFactory {
 
     CodeSourceImpl codeSource;
     try {
-      codeSource = CodeSourceFactory.createCodeSource(CREATE_RUNS_FLAGS.getRevision(), repositoryType,
+      codeSource = codeSourceFactory.createCodeSource(CREATE_RUNS_FLAGS.getRevision(), repositoryType,
           CREATE_RUNS_FLAGS.getProjectUri(), true /* always download the project file */);
     } catch (CodeSourceImpl.InvalidRevisionException e) {
       throw new ParseException(e.getMessage());
     }
-    ProjectSpec projectSpec = codeSource.getProjectSpec(Files.createTempDir());
+    ProjectSpec projectSpec = codeSource.getProjectSpec(Files.createTempDir(), codeSourceFactory);
 
     RunFactory runFactory = new RunFactory(codeSource,
         CREATE_RUNS_FLAGS.getRunset(),
