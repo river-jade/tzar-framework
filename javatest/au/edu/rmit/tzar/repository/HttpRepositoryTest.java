@@ -1,11 +1,14 @@
 package au.edu.rmit.tzar.repository;
 
-import com.google.common.io.Files;
+import au.edu.rmit.tzar.api.TzarException;
+import junit.framework.Assert;
+import org.apache.http.HttpStatus;
+import org.apache.http.entity.ByteArrayEntity;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.net.URI;
+import java.io.IOException;
 
 /**
  * Tests for the HttpRepository
@@ -13,18 +16,28 @@ import java.net.URI;
 public class HttpRepositoryTest extends BaseHttpRepositoryTemplate {
   @Override
   public void setUp() throws Exception {
-    sourceUri = new URI("http://tzar-framework.googlecode.com/svn/trunk/java/version.properties?spec=svn201&r=193");
-    baseModelPath = Files.createTempDir();
-    repository = new HttpRepository(sourceUri, true);
+    super.setUp();
+    repository = new HttpRepository(mockHttpClient, sourceUri, true);
+    returnedByteArray = new ByteArrayEntity(EXPECTED.getBytes());
   }
 
-  public void testRetrieveModel() throws Exception {
-    File model = repository.retrieveModel(REVISION, "project_name", baseModelPath);
+  public void testRetrieveModelSuccess() throws Exception {
+    File model = retrieveModel(HttpStatus.SC_OK);
     assertTrue(model.exists());
     assertTrue(model.isFile());
     assertEquals(baseModelPath, model.getParentFile());
     BufferedReader reader = new BufferedReader(new FileReader(model));
     String line = reader.readLine();
-    assertEquals("tzar 0.4.3", line);
+    Assert.assertEquals(HttpRepositoryTest.EXPECTED, line);
   }
+
+  public void testRetrieveModel500() throws IOException {
+    try {
+      retrieveModel(HttpStatus.SC_INTERNAL_SERVER_ERROR);
+      fail("Exception was not thrown.");
+    } catch (TzarException e) {
+      // expected.
+    }
+  }
+
 }

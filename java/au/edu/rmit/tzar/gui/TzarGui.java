@@ -70,7 +70,15 @@ public class TzarGui {
   private JButton rExampleButton;
   private StopRun stopRun;
 
+  private final CodeSourceFactory codeSourceFactory;
+
   public TzarGui() {
+    File tzarHome = Constants.DEFAULT_TZAR_BASE_DIR;
+    File cacheDir = new File(tzarHome, Constants.HTTP_CACHE_DIR);
+    cacheDir.mkdirs();
+
+    this.codeSourceFactory = new CodeSourceFactory(Utils.createHttpClient(cacheDir));
+
     frame = new JFrame(APP_NAME);
     frame.setContentPane(mainPanel);
     frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -296,10 +304,10 @@ public class TzarGui {
         String revision = revisionNumber.getText().trim();
         String projectPath = pathToProject.getText().trim();
 
-        CodeSourceImpl codeSource = CodeSourceFactory.createCodeSource(revision, repositoryType,
+        CodeSourceImpl codeSource = codeSourceFactory.createCodeSource(revision, repositoryType,
             Utils.makeAbsoluteUri(projectPath), true /* force download of model code */);
 
-        ProjectSpec projectSpec = codeSource.getProjectSpec(Files.createTempDir());
+        ProjectSpec projectSpec = codeSource.getProjectSpec(Files.createTempDir(), codeSourceFactory);
         String runsetName = TzarGui.this.runsetName.getText().trim();
         RunFactory runFactory = new RunFactory(codeSource, runsetName, "", projectSpec);
         RunnerFactory runnerFactory = new RunnerFactory();
@@ -336,7 +344,7 @@ public class TzarGui {
         CodeSourceImpl.RepositoryTypeImpl repositoryType = CodeSourceImpl.RepositoryTypeImpl.valueOf(
             scheduleRunsRepoType.getSelectedItem().toString());
 
-        DaoFactory daoFactory = new DaoFactory(dbConnectionString.getText());
+        DaoFactory daoFactory = new DaoFactory(dbConnectionString.getText(), codeSourceFactory);
 
         URI sourceUri;
         try {
@@ -348,7 +356,7 @@ public class TzarGui {
         String revision = scheduleRunsRevision.getText();
         CodeSourceImpl codeSource;
         try {
-          codeSource = CodeSourceFactory.createCodeSource(revision, repositoryType, sourceUri,
+          codeSource = codeSourceFactory.createCodeSource(revision, repositoryType, sourceUri,
               true /* force download of model code */);
         } catch (CodeSourceImpl.InvalidRevisionException e) {
           throw new TzarException(String.format("Invalid revision %s for repository type %s", revision,
@@ -357,7 +365,7 @@ public class TzarGui {
 
         ProjectSpec projectSpec;
         try {
-          projectSpec = codeSource.getProjectSpec(Files.createTempDir());
+          projectSpec = codeSource.getProjectSpec(Files.createTempDir(), codeSourceFactory);
         } catch (FileNotFoundException e) {
           errorDialog.display("Couldn't find project spec", e);
           return null;

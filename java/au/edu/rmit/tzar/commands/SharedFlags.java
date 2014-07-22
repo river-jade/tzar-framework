@@ -34,8 +34,7 @@ class SharedFlags {
     }
 
     @Parameter(names = "--tzarbasedir", description = "Base directory to store tzar files, including temporary " +
-        "output files, and downloaded source code.",
-        converter = FileConverter.class)
+        "output files, and downloaded source code.", converter = FileConverter.class)
     private File tzarBaseDirectory = Constants.DEFAULT_TZAR_BASE_DIR;
 
     public File getBaseModelPath() {

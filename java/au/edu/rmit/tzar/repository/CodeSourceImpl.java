@@ -3,6 +3,7 @@ package au.edu.rmit.tzar.repository;
 import au.edu.rmit.tzar.Utils;
 import au.edu.rmit.tzar.api.*;
 import au.edu.rmit.tzar.parser.YamlParser;
+import org.apache.http.impl.client.CloseableHttpClient;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -16,6 +17,7 @@ public class CodeSourceImpl implements CodeSource {
   private final String revision;
   private final RepositoryTypeImpl repositoryType;
   private final boolean forceDownload;
+  private final CloseableHttpClient httpClient;
 
   /**
    * Constructor.
@@ -25,11 +27,13 @@ public class CodeSourceImpl implements CodeSource {
    * @param forceDownload force this code source to re-download models, even if we already have a copy. Note that
    *                      not all Code sources will adhere to this setting.
    */
-  public CodeSourceImpl(URI sourceUri, RepositoryTypeImpl repositoryType, String revision, boolean forceDownload) {
+  public CodeSourceImpl(CloseableHttpClient httpClient, URI sourceUri, RepositoryTypeImpl repositoryType,
+      String revision, boolean forceDownload) {
     this.sourceUri = sourceUri;
     this.repositoryType = repositoryType;
     this.revision = revision;
     this.forceDownload = forceDownload;
+    this.httpClient = httpClient;
   }
 
   @Override
@@ -38,14 +42,14 @@ public class CodeSourceImpl implements CodeSource {
   }
 
   @Override
-  public ProjectSpec getProjectSpec(File baseModelPath) throws TzarException, FileNotFoundException {
+  public ProjectSpec getProjectSpec(File baseModelPath, CodeSourceFactory codeSourceFactory) throws TzarException, FileNotFoundException {
     YamlParser parser = new YamlParser();
     File file = getRepository().retrieveProjectParams(Constants.PROJECT_YAML, revision, baseModelPath);
-    return parser.projectSpecFromYaml(file);
+    return parser.projectSpecFromYaml(file, codeSourceFactory);
   }
 
   private CodeRepository getRepository() {
-    return repositoryType.createRepository(sourceUri, forceDownload);
+    return repositoryType.createRepository(httpClient, sourceUri, forceDownload);
   }
 
   @Override
@@ -107,7 +111,7 @@ public class CodeSourceImpl implements CodeSource {
   public enum RepositoryTypeImpl implements CodeSource.RepositoryType {
     LOCAL_FILE {
       @Override
-      public CodeRepository createRepository(URI sourceUri, boolean forceDownload) {
+      public CodeRepository createRepository(CloseableHttpClient httpClient, URI sourceUri, boolean forceDownload) {
         return new LocalFileRepository(sourceUri);
       }
 
@@ -118,7 +122,7 @@ public class CodeSourceImpl implements CodeSource {
     },
     SVN {
       @Override
-      public CodeRepository createRepository(URI sourceUri, boolean forceDownload) {
+      public CodeRepository createRepository(CloseableHttpClient httpClient, URI sourceUri, boolean forceDownload) {
         return new SvnRepository(sourceUri);
       }
 
@@ -134,7 +138,7 @@ public class CodeSourceImpl implements CodeSource {
     },
     GIT {
       @Override
-      public CodeRepository createRepository(URI sourceUri, boolean forceDownload) {
+      public CodeRepository createRepository(CloseableHttpClient httpClient, URI sourceUri, boolean forceDownload) {
         throw new UnsupportedOperationException("Sorry, Git repository support is not yet implemented.");
       }
 
@@ -145,8 +149,8 @@ public class CodeSourceImpl implements CodeSource {
     },
     HTTP_FILE {
       @Override
-      public CodeRepository createRepository(URI sourceUri, boolean forceDownload) {
-        return new HttpRepository(sourceUri, forceDownload);
+      public CodeRepository createRepository(CloseableHttpClient httpClient, URI sourceUri, boolean forceDownload) {
+        return new HttpRepository(httpClient, sourceUri, forceDownload);
       }
 
       @Override
@@ -156,8 +160,8 @@ public class CodeSourceImpl implements CodeSource {
     },
     HTTP_ZIP {
       @Override
-      public CodeRepository createRepository(URI sourceUri, boolean forceDownload) {
-        return new HttpZipRepository(sourceUri, forceDownload);
+      public CodeRepository createRepository(CloseableHttpClient httpClient, URI sourceUri, boolean forceDownload) {
+        return new HttpZipRepository(httpClient, sourceUri, forceDownload);
       }
 
       @Override
@@ -166,11 +170,11 @@ public class CodeSourceImpl implements CodeSource {
       }
     };
 
-    public abstract CodeRepository createRepository(URI sourceUri, boolean forceDownload);
+    public abstract CodeRepository createRepository(CloseableHttpClient httpClient, URI sourceUri, boolean forceDownload);
     public abstract boolean isValidRevision(String revision);
   }
 
-  public static class InvalidRevisionException extends Exception {
+  public static class InvalidRevisionException extends TzarException {
     public InvalidRevisionException(String revision, RepositoryType repositoryType) {
       super(revision + " is not a valid revision for repository type: " + repositoryType);
     }

@@ -6,6 +6,7 @@ import au.edu.rmit.tzar.api.Repetitions;
 import au.edu.rmit.tzar.api.TzarException;
 import au.edu.rmit.tzar.parser.beans.ProjectSpecBean;
 import au.edu.rmit.tzar.parser.beans.RepetitionsBean;
+import au.edu.rmit.tzar.repository.CodeSourceFactory;
 import com.google.common.base.Preconditions;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
@@ -38,13 +39,14 @@ public class YamlParser {
    * Loads a project specification from a YAML file containing a project spec.
    *
    * @param file the yaml file
+   * @param codeSourceFactory
    * @return a newly constructed and populated ProjectSpec object
    * @throws java.io.FileNotFoundException if the file does not exist
    * @throws TzarException          if the file cannot be parsed
    */
-  public ProjectSpec projectSpecFromYaml(File file) throws FileNotFoundException, TzarException {
+  public ProjectSpec projectSpecFromYaml(File file, CodeSourceFactory codeSourceFactory) throws FileNotFoundException, TzarException {
     Yaml yaml = new Yaml(new ProjectSpecConstructor());
-    return objectFromYaml(file, ProjectSpecBean.class, yaml).toProjectSpec();
+    return objectFromYaml(file, ProjectSpecBean.class, yaml).toProjectSpec(codeSourceFactory);
   }
 
   /**

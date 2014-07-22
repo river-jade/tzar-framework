@@ -1,11 +1,15 @@
 package au.edu.rmit.tzar;
 
+import au.edu.rmit.tzar.api.Constants;
 import au.edu.rmit.tzar.api.PathUtils;
 import au.edu.rmit.tzar.api.StopRun;
 import au.edu.rmit.tzar.api.TzarException;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.io.Files;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.cache.CacheConfig;
+import org.apache.http.impl.client.cache.CachingHttpClients;
 
 import java.io.*;
 import java.net.*;
@@ -379,5 +383,17 @@ public class Utils {
     public abstract void exec() throws TzarException;
   }
 
-}
+  public static CloseableHttpClient createHttpClient(File cacheDir) {
+      // some websites give different responses, depending on the user agent. We gamble here
+  // that we'll get the most sane response for something that doesn't look like a browser.
+  final String USER_AGENT = "Wget/1.12";
 
+    CacheConfig cacheConfig = CacheConfig.custom().setMaxObjectSize(Constants.MAX_CACHE_OBJECT_SIZE_BYTES).build();
+    return CachingHttpClients.custom()
+      .setCacheConfig(cacheConfig)
+      .setCacheDir(cacheDir)
+      .setUserAgent(USER_AGENT)
+      .useSystemProperties()
+      .build();
+  }
+}

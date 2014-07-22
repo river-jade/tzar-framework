@@ -6,6 +6,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import junit.framework.TestCase;
+import org.apache.http.impl.client.CloseableHttpClient;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -27,6 +28,7 @@ public class RunFactoryTest extends TestCase {
   private ProjectSpec mockProjectSpec;
   private Repetitions mockRepetitions;
   private CodeSourceImpl codeSource;
+  private CloseableHttpClient mockHttpClient;
 
   @Override
   public void setUp() throws Exception {
@@ -34,7 +36,9 @@ public class RunFactoryTest extends TestCase {
     sourceUrl = new URI("/path/to/code");
     mockProjectSpec = mock(ProjectSpec.class);
     mockRepetitions = mock(Repetitions.class);
-    codeSource = new CodeSourceImpl(sourceUrl, CodeSourceImpl.RepositoryTypeImpl.LOCAL_FILE, REVISION, true);
+    mockHttpClient = mock(CloseableHttpClient.class);
+    codeSource = new CodeSourceImpl(mockHttpClient, sourceUrl, CodeSourceImpl.RepositoryTypeImpl.LOCAL_FILE, REVISION,
+        true);
   }
 
   /**

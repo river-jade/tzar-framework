@@ -1,5 +1,8 @@
 package au.edu.rmit.tzar.api;
 
+import au.edu.rmit.tzar.repository.CodeSourceFactory;
+import org.apache.http.impl.client.CloseableHttpClient;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.URI;
@@ -21,11 +24,12 @@ public interface CodeSource {
   /**
    * Retrieves the project's specification from the repository and writes it to baseModelPath.
    * @param baseModelPath the local file path at which to write the downloaded data
+   * @param codeSourceFactory
    * @return the project specification
    * @throws TzarException
    * @throws FileNotFoundException
    */
-  ProjectSpec getProjectSpec(File baseModelPath) throws TzarException, FileNotFoundException;
+  ProjectSpec getProjectSpec(File baseModelPath, CodeSourceFactory codeSourceFactory) throws TzarException, FileNotFoundException;
 
   /**
    * The revision that this CodeSource points to. #getCode and #getProjectSpec will retrieve
@@ -52,7 +56,7 @@ public interface CodeSource {
   boolean isForceDownload();
 
   public interface RepositoryType {
-    CodeRepository createRepository(URI sourceUri, boolean forceDownload);
+    CodeRepository createRepository(CloseableHttpClient httpClient, URI sourceUri, boolean forceDownload);
     boolean isValidRevision(String revision);
   }
 }

@@ -46,4 +46,8 @@ public class Constants {
   public static final String HEAD_REVISION = "head";
   public static final String METADATA_DIRECTORY_NAME = "metadata";
   public static final String VERSION_PROPERTIES = "/version.properties";
+
+  // maximum size of library files downloaded from http to be cached
+  public static final int MAX_CACHE_OBJECT_SIZE_BYTES = 10000000;
+  public static final String HTTP_CACHE_DIR = "http_cache";
 }

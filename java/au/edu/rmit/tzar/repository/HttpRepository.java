@@ -10,8 +10,6 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.cache.CacheConfig;
-import org.apache.http.impl.client.cache.CachingHttpClientBuilder;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -27,10 +25,6 @@ import java.util.logging.Logger;
 public class HttpRepository extends UrlRepository {
   private static final Logger LOG = Logger.getLogger(HttpRepository.class.getName());
 
-  // some websites give different responses, depending on the user agent. We gamble here
-  // that we'll get the most sane response for something that doesn't look like a browser.
-  private static final String USER_AGENT = "Wget/1.12";
-
   private final boolean forceDownload;
 
   @VisibleForTesting
@@ -38,20 +32,14 @@ public class HttpRepository extends UrlRepository {
 
   /**
    *
+   * @param httpClient
    * @param sourceUri the URL to download from
    * @param forceDownload download the library even if we already have it
    */
-  public HttpRepository(URI sourceUri, boolean forceDownload) {
+  public HttpRepository(CloseableHttpClient httpClient, URI sourceUri, boolean forceDownload) {
     super(sourceUri);
     this.forceDownload = forceDownload;
-    client = CachingHttpClientBuilder.create()
-        .setCacheConfig(CacheConfig.DEFAULT)
-        .setUserAgent(USER_AGENT)
-        .useSystemProperties()
-        .build();
-    // the line below should do the same as the line above, but there seems to be a bug which
-    // causes a null pointer exception.
-    // client = CachingHttpClients.createMemoryBound();
+    client = httpClient;
   }
 
   @Override

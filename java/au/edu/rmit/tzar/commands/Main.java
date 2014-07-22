@@ -2,8 +2,10 @@ package au.edu.rmit.tzar.commands;
 
 import au.edu.rmit.tzar.BriefLogFormatter;
 import au.edu.rmit.tzar.ColorConsoleHandler;
+import au.edu.rmit.tzar.Utils;
 import au.edu.rmit.tzar.api.Constants;
 import au.edu.rmit.tzar.api.TzarException;
+import au.edu.rmit.tzar.repository.CodeSourceFactory;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
 import com.google.common.base.Joiner;
@@ -69,7 +71,11 @@ public class Main {
     String cmdStr = jCommander.getParsedCommand();
     Optional<CommandFactory.Commands> cmd = CommandFactory.Commands.getCommandByName(cmdStr);
 
-    CommandFactory factory = new CommandFactory(jCommander);
+    File tzarHome = SharedFlags.RUNNER_FLAGS.getTzarBaseDirectory();
+    File cacheDir = new File(tzarHome, "http_cache");
+    cacheDir.mkdirs();
+    CommandFactory factory = new CommandFactory(jCommander, new CodeSourceFactory(
+        Utils.createHttpClient(cacheDir)));
     if (!cmd.isPresent()) {
       if (SharedFlags.COMMON_FLAGS.isVersion()) {
         BufferedReader in = new BufferedReader(

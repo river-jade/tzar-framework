@@ -2,6 +2,7 @@ package au.edu.rmit.tzar.db;
 
 import au.edu.rmit.tzar.api.CodeSource;
 import au.edu.rmit.tzar.api.TzarException;
+import au.edu.rmit.tzar.repository.CodeSourceFactory;
 import au.edu.rmit.tzar.repository.CodeSourceImpl;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
@@ -15,6 +16,12 @@ import java.util.Map;
  * Data access object for libraries. Provides methods for loading libraries from the database.
  */
 public class LibraryDao {
+
+  private final CodeSourceFactory codeSourceFactory;
+
+  public LibraryDao(CodeSourceFactory codeSourceFactory) {
+    this.codeSourceFactory = codeSourceFactory;
+  }
 
   /**
    * Associate the given libraries with the run specified by runId. If the libraries do not exist,
@@ -128,8 +135,8 @@ public class LibraryDao {
     while (resultSet.next()) {
       try {
         Library library = libraryFromResultSet(resultSet);
-        CodeSource libCodeSource = new CodeSourceImpl(new URI(library.uri),
-            CodeSourceImpl.RepositoryTypeImpl.valueOf(library.repoType.toUpperCase()), library.revision,
+        CodeSource libCodeSource = codeSourceFactory.createCodeSource(library.revision,
+            CodeSourceImpl.RepositoryTypeImpl.valueOf(library.repoType.toUpperCase()), new URI(library.uri),
             library.forceDownload);
         builder.put(library.name, libCodeSource);
       } catch (URISyntaxException e) {

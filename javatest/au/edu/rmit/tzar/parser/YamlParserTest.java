@@ -1,6 +1,8 @@
 package au.edu.rmit.tzar.parser;
 
+import au.edu.rmit.tzar.Utils;
 import au.edu.rmit.tzar.api.*;
+import au.edu.rmit.tzar.repository.CodeSourceFactory;
 import au.edu.rmit.tzar.repository.CodeSourceImpl;
 import au.edu.rmit.tzar.runners.mapreduce.Concatenator;
 import au.edu.rmit.tzar.runners.mapreduce.FileSelector;
@@ -8,6 +10,7 @@ import au.edu.rmit.tzar.runners.mapreduce.MapReduce;
 import au.edu.rmit.tzar.runners.mapreduce.Reducer;
 import com.google.common.collect.*;
 import junit.framework.TestCase;
+import org.apache.http.impl.client.CloseableHttpClient;
 
 import java.io.File;
 import java.math.BigDecimal;
@@ -17,6 +20,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 /**
  * Unit tests for the YamlParser class.
  */
@@ -24,6 +30,8 @@ public class YamlParserTest extends TestCase {
   private static final String RUNNER_CLASS = "TheRunnerClass";
   private static final String RUNNER_FLAGS = "-flag1 -flag2";
   YamlParser yamlParser;
+  private CloseableHttpClient mockHttpClient = mock(CloseableHttpClient.class);
+  private CodeSourceFactory mockCodeSourceFactory = mock(CodeSourceFactory.class);
 
   protected void setUp() throws Exception {
     yamlParser = new YamlParser();
@@ -31,12 +39,23 @@ public class YamlParserTest extends TestCase {
 
   public void testWriteThenReadProjectSpec() throws Exception {
     Map<String, CodeSourceImpl> libraries = Maps.newLinkedHashMap();
-    libraries.put("library1", new CodeSourceImpl(new URI("/source/code/1"),
-        CodeSourceImpl.RepositoryTypeImpl.LOCAL_FILE, "123", true));
-    libraries.put("library2", new CodeSourceImpl(new URI("/source/code/2"),
-        CodeSourceImpl.RepositoryTypeImpl.LOCAL_FILE, "124", true));
-    libraries.put("library3", new CodeSourceImpl(new URI("/source/code/3"),
-        CodeSourceImpl.RepositoryTypeImpl.LOCAL_FILE, "125", false));
+    CodeSourceImpl.RepositoryTypeImpl localFile = CodeSourceImpl.RepositoryTypeImpl.LOCAL_FILE;
+    CodeSourceImpl codeSource1 = new CodeSourceImpl(mockHttpClient, new URI("/source/code/1"),
+        localFile, "123", true);
+    libraries.put("library1", codeSource1);
+    CodeSourceImpl codeSource2 = new CodeSourceImpl(mockHttpClient, new URI("/source/code/2"),
+        localFile, "124", true);
+    libraries.put("library2", codeSource2);
+    CodeSourceImpl codeSource3 = new CodeSourceImpl(mockHttpClient, new URI("/source/code/3"),
+        localFile, "125", false);
+    libraries.put("library3", codeSource3);
+
+    when(mockCodeSourceFactory.createCodeSource("123", localFile, Utils.makeAbsoluteUri("/source/code/1"),
+        true)).thenReturn(codeSource1);
+    when(mockCodeSourceFactory.createCodeSource("124", localFile, Utils.makeAbsoluteUri("/source/code/2"),
+        true)).thenReturn(codeSource2);
+    when(mockCodeSourceFactory.createCodeSource("125", localFile, Utils.makeAbsoluteUri("/source/code/3"),
+        false)).thenReturn(codeSource3);
 
     Map<String, Object> variables = Maps.newLinkedHashMap();
     variables.put("test1", 3);
@@ -77,7 +96,7 @@ public class YamlParserTest extends TestCase {
     File tempFile = File.createTempFile("yaml_parser_test", null);
     tempFile.delete();
     yamlParser.projectSpecToYaml(projectSpec, tempFile);
-    ProjectSpec projectSpecCopy = yamlParser.projectSpecFromYaml(tempFile);
+    ProjectSpec projectSpecCopy = yamlParser.projectSpecFromYaml(tempFile, mockCodeSourceFactory);
     assertEquals(projectSpec, projectSpecCopy);
   }
 

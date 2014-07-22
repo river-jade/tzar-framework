@@ -4,11 +4,13 @@ import au.edu.rmit.tzar.api.CodeSource;
 import au.edu.rmit.tzar.api.Parameters;
 import au.edu.rmit.tzar.api.Run;
 import au.edu.rmit.tzar.api.TzarException;
+import au.edu.rmit.tzar.repository.CodeSourceFactory;
 import au.edu.rmit.tzar.repository.CodeSourceImpl;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import junit.framework.TestCase;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.mockito.InOrder;
 import org.postgresql.jdbc4.Jdbc4Connection;
 
@@ -51,6 +53,7 @@ public class RunDaoTest extends TestCase {
   private ParametersDao.BatchInserter mockBatchInserter;
   private LibraryDao mockLibraryDao;
   private ParametersDao mockParametersDao;
+  private CloseableHttpClient mockHttpClient;
 
   public void setUp() throws Exception {
     mockConnection = mock(Jdbc4Connection.class);
@@ -60,15 +63,16 @@ public class RunDaoTest extends TestCase {
     mockParametersDao = mock(ParametersDao.class);
     mockLibraryDao = mock(LibraryDao.class);
     mockBatchInserter = mock(ParametersDao.BatchInserter.class);
+    mockHttpClient = mock(CloseableHttpClient.class);
 
     ConnectionFactory mockConnectionFactory = mock(ConnectionFactory.class);
     when(mockConnectionFactory.createConnection()).thenReturn(mockConnection);
 
     when(mockConnection.prepareStatement(isA(String.class))).thenReturn(mock(PreparedStatement.class));
     when(mockParametersDao.createBatchInserter(mockConnection)).thenReturn(mockBatchInserter);
-    runDao = new RunDao(mockConnectionFactory, mockParametersDao, mockLibraryDao);
+    runDao = new RunDao(mockConnectionFactory, mockParametersDao, mockLibraryDao, new CodeSourceFactory(mockHttpClient));
 
-    CodeSourceImpl codeSource = new CodeSourceImpl(new URI(MODEL_URL), CodeSourceImpl.RepositoryTypeImpl.SVN,
+    CodeSourceImpl codeSource = new CodeSourceImpl(mockHttpClient, new URI(MODEL_URL), CodeSourceImpl.RepositoryTypeImpl.SVN,
         CODE_VERSION, true);
     ImmutableMap<String, CodeSource> library = ImmutableMap.of();
     projectInfo = new Run.ProjectInfo(PROJECT_NAME, codeSource, library, RUNNER_CLASS, RUNNER_FLAGS);
@@ -110,8 +114,8 @@ public class RunDaoTest extends TestCase {
 
     runs.add(run);
 
-    CodeSourceImpl codeSource2 = new CodeSourceImpl(new URI(MODEL_URL), CodeSourceImpl.RepositoryTypeImpl.LOCAL_FILE,
-        CODE_VERSION + 1, true);
+    CodeSourceImpl codeSource2 = new CodeSourceImpl(mockHttpClient, new URI(MODEL_URL),
+        CodeSourceImpl.RepositoryTypeImpl.LOCAL_FILE, CODE_VERSION + 1, true);
     Run.ProjectInfo projectInfo2 = new Run.ProjectInfo(PROJECT_NAME, codeSource2, null, RUNNER_CLASS, RUNNER_FLAGS);
     run = new Run(projectInfo2, SCENARIO_NAME + 1)
         .setRunId(RUN_ID)
