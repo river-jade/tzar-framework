@@ -69,6 +69,7 @@ class Run(models.Model):
     model_revision = models.CharField(max_length=30)
     runner_flags = models.CharField(max_length=200)
     hostname = models.CharField(max_length=50)
+    host_ip = models.CharField(max_length=20)
     output_path = models.CharField(max_length=200, blank=True)
     output_host = models.CharField(max_length=50, blank=True)
     run_start_time = models.DateTimeField()
