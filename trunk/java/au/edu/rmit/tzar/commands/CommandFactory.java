@@ -125,10 +125,6 @@ class CommandFactory {
     DaoFactory daoFactory = new DaoFactory(getDbUrl(), codeSourceFactory);
 
     CodeSourceImpl.RepositoryTypeImpl repositoryType = CREATE_RUNS_FLAGS.getRepositoryType();
-    if (repositoryType == CodeSourceImpl.RepositoryTypeImpl.LOCAL_FILE) {
-      throw new ParseException("Repository type: LOCAL_FILE is not valid when scheduling remote runs. " +
-          "Please choose a different repository type.");
-    }
 
     CodeSourceImpl codeSource;
     try {
