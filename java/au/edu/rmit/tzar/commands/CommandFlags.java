@@ -198,6 +198,14 @@ public class CommandFlags {
         "machines")
     private boolean passwordPrompt = false;
 
+    @Parameter(names = "--skipexistingruns", description = "If there are any files already on local disk from a " +
+        "given run, skip that run.")
+    private boolean skipExistingRuns = false;
+
+    @Parameter(names = "--startrunid", description = "Only copy runs whose run id is equal to or greater than this " +
+        "value.")
+    private int startRunId = 0;
+
     private AggregateResultsFlags() {
     }
 
@@ -220,5 +228,9 @@ public class CommandFlags {
     public boolean isPasswordPrompt() {
       return passwordPrompt;
     }
+
+    public boolean isSkipExistingRuns() { return skipExistingRuns; }
+
+    public int getStartRunId() { return startRunId; }
   }
 }
