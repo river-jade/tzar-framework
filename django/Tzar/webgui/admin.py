@@ -1,6 +1,6 @@
 from webgui.models import Run, RunParam, RunSet, Library
 from django.contrib import admin
-
+from django.contrib.admin.views.main import ChangeList
 
 class RunParamInline(admin.TabularInline):
     model = RunParam
@@ -72,10 +72,8 @@ class RunInline(admin.TabularInline):
 class RunSetAdmin(admin.ModelAdmin):
     save_as = False
     list_display = ('runset','num_runs', 'seconds_duration', 'failed','scheduled','in_progress','completed','copied', 'copy_failed')
-#    list_display = ('runset','num_runs','format_submission_time', 'format_end_time', 'seconds_duration', 'failed','scheduled','in_progress','completed','copied', 'copy_failed')
     list_filter = ['submission_time']
     search_fields = ['runset']
-    inlines = [RunInline]
 
     def format_submission_time(self, obj):
         return obj.submission_time.strftime('%d %b %Y %H:%M')
@@ -106,6 +104,18 @@ class RunSetAdmin(admin.ModelAdmin):
             del actions['delete_selected']
         return actions
 
+    def get_changelist(self, request, **kwargs):
+        return RunSetChangeList
+
+
+class RunSetChangeList(ChangeList):
+    def url_for_result(self, result):
+        pk = getattr(result, self.pk_attname)
+        return '/admin/webgui/run/?runset__runset__exact={0}'.format(pk)
+        # TODO(river): the above is a hack, but urlresolvers.reverse doesn't seem to support filter; the below line
+        # would list all runs, not just those in the current runset. This is a symptom of the fact that runsets are
+        # not first class database entities; they are just string fields in the runs table.
+        # return urlresolvers.reverse('admin:webgui_run_changelist', args=(pk,))
 
 admin.site.register(RunSet, RunSetAdmin)
 admin.site.register(Library)
