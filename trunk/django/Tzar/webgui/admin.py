@@ -38,7 +38,8 @@ class RunAdmin(admin.ModelAdmin):
     fieldsets = [
         # (None,               {'fields': ['run_name']}),
         (None,               {'fields': ['project_name', 'scenario_name']}),
-        ('Date, host and status', {'fields': ['hostname', 'run_submission_time', 'run_end_time', 'state', 'runset'], 'classes': ['collapse']}),
+        ('Date, host and status', {'fields': ['hostname', 'host_ip', 'run_submission_time', 'run_end_time', 'state',
+                                              'runset'], 'classes': ['collapse']}),
         ('Technical details', {'fields': ['seed', 'model_revision', 'runner_flags'], 'classes': ['collapse']}),
         ('Output', {'fields': ['output_host', 'output_path'], 'classes': ['collapse']}),
     ]
