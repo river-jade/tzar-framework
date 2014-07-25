@@ -62,7 +62,8 @@ class CommandFactory {
       throw new ParseException(e.getMessage());
     }
 
-    ProjectSpec projectSpec = modelSource.getProjectSpec(baseModelPath, codeSourceFactory);
+    ProjectSpec projectSpec = modelSource.getProjectSpec(baseModelPath, codeSourceFactory,
+            CREATE_RUNS_FLAGS.getProjectFileName());
     RunFactory runFactory = new RunFactory(modelSource,
         CREATE_RUNS_FLAGS.getRunset(), "" /* no cluster name for local runs */,
         projectSpec);
@@ -133,7 +134,8 @@ class CommandFactory {
     } catch (CodeSourceImpl.InvalidRevisionException e) {
       throw new ParseException(e.getMessage());
     }
-    ProjectSpec projectSpec = codeSource.getProjectSpec(Files.createTempDir(), codeSourceFactory);
+    ProjectSpec projectSpec = codeSource.getProjectSpec(Files.createTempDir(), codeSourceFactory,
+        CREATE_RUNS_FLAGS.getProjectFileName());
 
     RunFactory runFactory = new RunFactory(codeSource,
         CREATE_RUNS_FLAGS.getRunset(),

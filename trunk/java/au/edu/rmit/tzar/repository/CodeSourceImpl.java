@@ -42,9 +42,13 @@ public class CodeSourceImpl implements CodeSource {
   }
 
   @Override
-  public ProjectSpec getProjectSpec(File baseModelPath, CodeSourceFactory codeSourceFactory) throws TzarException, FileNotFoundException {
+  public ProjectSpec getProjectSpec(File baseModelPath, CodeSourceFactory codeSourceFactory, String projectFileName)
+      throws TzarException, FileNotFoundException {
+    if (projectFileName == null || projectFileName.length() == 0) {
+      projectFileName = Constants.PROJECT_YAML;
+    }
     YamlParser parser = new YamlParser();
-    File file = getRepository().retrieveProjectParams(Constants.PROJECT_YAML, revision, baseModelPath);
+    File file = getRepository().retrieveProjectParams(projectFileName, revision, baseModelPath);
     return parser.projectSpecFromYaml(file, codeSourceFactory);
   }
 
