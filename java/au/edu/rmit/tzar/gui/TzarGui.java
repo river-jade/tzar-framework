@@ -37,6 +37,7 @@ public class TzarGui {
   private JButton executeButton;
   private JButton fileChooserButton;
   private JTextField pathToProject;
+  private JTextField execLocalProjectFileName;
   private JCheckBox headRevisionCheckBox;
   private JTextField runsetName;
   private JTextField revisionNumber;
@@ -56,6 +57,7 @@ public class TzarGui {
   private JButton scheduleRunsExecute;
   private JTextField scheduleRunsRevision;
   private JComboBox scheduleRunsRepoType;
+  private JTextField scheduleRunsProjectFileName;
 
   private JTextField baseDirectory;
   private JTextField dbConnectionString;
@@ -130,6 +132,8 @@ public class TzarGui {
       }
     });
 
+    scheduleRunsProjectFileName.setText(Constants.PROJECT_YAML);
+
     scheduleRunsHeadRevision.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
@@ -157,6 +161,8 @@ public class TzarGui {
     for (CodeSource.RepositoryType type : CodeSourceImpl.RepositoryTypeImpl.values()) {
       repoType.addItem(type);
     }
+
+    execLocalProjectFileName.setText(Constants.PROJECT_YAML);
 
     initialiseNumRuns(numRuns);
 
@@ -307,7 +313,8 @@ public class TzarGui {
         CodeSourceImpl codeSource = codeSourceFactory.createCodeSource(revision, repositoryType,
             Utils.makeAbsoluteUri(projectPath), true /* force download of model code */);
 
-        ProjectSpec projectSpec = codeSource.getProjectSpec(Files.createTempDir(), codeSourceFactory);
+        ProjectSpec projectSpec = codeSource.getProjectSpec(Files.createTempDir(), codeSourceFactory,
+            execLocalProjectFileName.getText());
         String runsetName = TzarGui.this.runsetName.getText().trim();
         RunFactory runFactory = new RunFactory(codeSource, runsetName, "", projectSpec);
         RunnerFactory runnerFactory = new RunnerFactory();
@@ -365,7 +372,8 @@ public class TzarGui {
 
         ProjectSpec projectSpec;
         try {
-          projectSpec = codeSource.getProjectSpec(Files.createTempDir(), codeSourceFactory);
+          projectSpec = codeSource.getProjectSpec(Files.createTempDir(), codeSourceFactory,
+              scheduleRunsProjectFileName.getText());
         } catch (FileNotFoundException e) {
           errorDialog.display("Couldn't find project spec", e);
           return null;

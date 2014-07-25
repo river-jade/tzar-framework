@@ -88,6 +88,10 @@ class SharedFlags {
     @Parameter(names = "--runset", description = "Name of runset to schedule.")
     private String runset = Constants.DEFAULT_RUNSET;
 
+    @Parameter(names = "--projectfilename", description = "Name of project file to use. If unset, " +
+        Constants.PROJECT_YAML + " is assumed.")
+    private String projectFileName = "";
+
     public int getNumRuns() {
       return numRuns;
     }
@@ -117,6 +121,10 @@ class SharedFlags {
         }
       }
       return repositoryType;
+    }
+
+    public String getProjectFileName() {
+      return projectFileName;
     }
   }
 

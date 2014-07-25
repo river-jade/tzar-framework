@@ -24,12 +24,14 @@ public interface CodeSource {
   /**
    * Retrieves the project's specification from the repository and writes it to baseModelPath.
    * @param baseModelPath the local file path at which to write the downloaded data
-   * @param codeSourceFactory
+   * @param codeSourceFactory used to spawn new code source objects for downloading libraries
+   * @param projectFileName name of the file containing the project specification. If string is empty then the default at Constants.PROJECT_YAML is used.
    * @return the project specification
    * @throws TzarException
    * @throws FileNotFoundException
    */
-  ProjectSpec getProjectSpec(File baseModelPath, CodeSourceFactory codeSourceFactory) throws TzarException, FileNotFoundException;
+  ProjectSpec getProjectSpec(File baseModelPath, CodeSourceFactory codeSourceFactory, String projectFileName)
+      throws TzarException, FileNotFoundException;
 
   /**
    * The revision that this CodeSource points to. #getCode and #getProjectSpec will retrieve
