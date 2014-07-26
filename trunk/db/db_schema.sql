@@ -309,6 +309,40 @@ GRANT ALL ON SCHEMA public TO PUBLIC;
 
 insert into constants (db_version) values ('0.5.4');
 
+-- View: lucy_runset_view
+
+-- DROP VIEW lucy_runset_view;
+
+CREATE OR REPLACE VIEW lucy_runset_view AS
+ SELECT runs.runset, count(runs.run_id) AS num_runs,
+    min(runs.run_submission_time) AS submission_time,
+    max(runs.run_end_time) AS end_time,
+    floor(date_part('epoch'::text, max(runs.run_end_time) - min(runs.run_submission_time))) AS seconds_duration,
+    ( SELECT count(r.run_id) AS count
+           FROM runs r
+          WHERE runs.runset = r.runset AND r.state = 'failed'::text) AS failed,
+    ( SELECT count(r.run_id) AS count
+           FROM runs r
+          WHERE runs.runset = r.runset AND r.state = 'scheduled'::text) AS scheduled,
+    ( SELECT count(r.run_id) AS count
+           FROM runs r
+          WHERE runs.runset = r.runset AND r.state = 'in_progress'::text) AS in_progress,
+    ( SELECT count(r.run_id) AS count
+           FROM runs r
+          WHERE runs.runset = r.runset AND r.state = 'completed'::text) AS completed,
+    ( SELECT count(r.run_id) AS count
+           FROM runs r
+          WHERE runs.runset = r.runset AND r.state = 'copied'::text) AS copied,
+    ( SELECT count(r.run_id) AS count
+           FROM runs r
+          WHERE runs.runset = r.runset AND r.state = 'copy_failed'::text) AS copy_failed
+   FROM runs
+  GROUP BY runs.runset
+  ORDER BY min(runs.run_submission_time) DESC;
+
+ALTER TABLE lucy_runset_view
+  OWNER TO postgres;
+
 --
 -- PostgreSQL database dump complete
 --
