@@ -20,7 +20,7 @@ class RunLibraryInline(admin.TabularInline):
 
 def link_results(obj):
     # remove the 'mnt/rdv' from the output host TODO make this a config or somehow more robust
-    new_path = obj.output_path.replace("/mnt/rdv","")
+    new_path = obj.output_path.replace("/mnt/rdv","") if obj.output_path else None
     return '<a href="http://%s%s/" target="_blank">View results</a>' % (obj.output_host, new_path)
     # TODO - generate an index.html file and point at this instead
 link_results.allow_tags=True
