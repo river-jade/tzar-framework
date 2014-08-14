@@ -4,6 +4,7 @@ import au.edu.rmit.tzar.api.CodeSource;
 import au.edu.rmit.tzar.api.Parameters;
 import au.edu.rmit.tzar.api.Run;
 import au.edu.rmit.tzar.api.TzarException;
+import au.edu.rmit.tzar.parser.beans.DownloadMode;
 import au.edu.rmit.tzar.repository.CodeSourceFactory;
 import au.edu.rmit.tzar.repository.CodeSourceImpl;
 import com.google.common.annotations.VisibleForTesting;
@@ -304,7 +305,7 @@ public class RunDao {
     CodeSourceImpl.RepositoryTypeImpl repositoryType = CodeSourceImpl.RepositoryTypeImpl.valueOf(resultSet.getString
         ("model_repo_type").toUpperCase());
     CodeSourceImpl codeSource = codeSourceFactory.createCodeSource(resultSet.getString("model_revision"),
-        repositoryType, modelUri, true /* by default we force download of model code */);
+        repositoryType, modelUri, DownloadMode.CACHE);
 
     Run.ProjectInfo projectInfo = new Run.ProjectInfo(resultSet.getString("project_name"), codeSource,
         libraries, resultSet.getString("runner_class"), resultSet.getString("runner_flags"));

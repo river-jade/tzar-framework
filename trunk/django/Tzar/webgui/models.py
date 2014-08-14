@@ -50,7 +50,7 @@ class Library(models.Model):
     uri = models.TextField()
     name = models.TextField()
     revision = models.CharField(max_length=16)
-    force_download = models.BooleanField()
+    download_mode = models.StringField()
 
     class Meta:
         db_table = u'libraries'

@@ -19,7 +19,7 @@ public class LibraryBean {
   private String repo_type;
   private String url;
   private String revision = ""; // set to empty string if unset
-  private boolean force_download = true; // set to true if unset
+  private DownloadMode download_mode = DownloadMode.CACHE;
 
   public static List<LibraryBean> fromLibraries(Map<String, CodeSourceImpl> libraries) {
     List<LibraryBean> beans = Lists.newArrayList();
@@ -35,7 +35,7 @@ public class LibraryBean {
     bean.repo_type = codeSource.getRepositoryType().name().toLowerCase();
     bean.revision = codeSource.getRevision();
     bean.url = codeSource.getSourceUri().toString();
-    bean.force_download = codeSource.isForceDownload();
+    bean.download_mode = codeSource.getDownloadMode();
     return bean;
   }
 
@@ -61,7 +61,7 @@ public class LibraryBean {
         throw new TzarException("Error parsing library. Must specify a valid repository type for each library. " +
             "Valid types are: " + Arrays.asList(CodeSourceImpl.RepositoryTypeImpl.values()));
       }
-      return codeSourceFactory.createCodeSource(revision, repositoryType, Utils.makeAbsoluteUri(url), force_download);
+      return codeSourceFactory.createCodeSource(revision, repositoryType, Utils.makeAbsoluteUri(url), download_mode);
     } catch (CodeSourceImpl.InvalidRevisionException e) {
       throw new TzarException(e);
     }

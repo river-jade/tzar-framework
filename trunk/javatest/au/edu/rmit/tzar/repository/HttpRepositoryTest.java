@@ -17,7 +17,7 @@ public class HttpRepositoryTest extends BaseHttpRepositoryTemplate {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    repository = new HttpRepository(mockHttpClient, sourceUri, true);
+    repository = new HttpRepository(mockHttpClient, sourceUri, false);
     returnedByteArray = new ByteArrayEntity(EXPECTED.getBytes());
   }
 

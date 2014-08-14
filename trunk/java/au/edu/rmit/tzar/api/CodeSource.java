@@ -1,5 +1,6 @@
 package au.edu.rmit.tzar.api;
 
+import au.edu.rmit.tzar.parser.beans.DownloadMode;
 import au.edu.rmit.tzar.repository.CodeSourceFactory;
 import org.apache.http.impl.client.CloseableHttpClient;
 
@@ -55,10 +56,10 @@ public interface CodeSource {
    * Determines if we should re-download this codesource even if it already exists locally.
    * @return true if we should always re-download
    */
-  boolean isForceDownload();
+  DownloadMode getDownloadMode();
 
   public interface RepositoryType {
-    CodeRepository createRepository(CloseableHttpClient httpClient, URI sourceUri, boolean forceDownload);
+    CodeRepository createRepository(CloseableHttpClient httpClient, URI sourceUri, boolean downloadOnce);
     boolean isValidRevision(String revision);
   }
 }

@@ -1,6 +1,7 @@
 package au.edu.rmit.tzar.parser;
 
 import au.edu.rmit.tzar.Utils;
+import au.edu.rmit.tzar.parser.beans.DownloadMode;
 import au.edu.rmit.tzar.parser.beans.LibraryBean;
 import au.edu.rmit.tzar.repository.CodeSourceFactory;
 import au.edu.rmit.tzar.repository.CodeSourceImpl;
@@ -38,10 +39,10 @@ public class LibraryBeanTest extends TestCase {
   public void testLibraryToBeanAndBack() throws Exception {
     CodeSourceImpl.RepositoryTypeImpl repositoryType = CodeSourceImpl.RepositoryTypeImpl.HTTP_FILE;
     CodeSourceImpl codeSource = new CodeSourceImpl(mockHttpClient, sourceUri, repositoryType, REVISION,
-        true);
+        DownloadMode.FORCE);
 
     when(mockCodeSourceFactory.createCodeSource(REVISION, repositoryType, Utils.makeAbsoluteUri(sourceUri.toString()),
-        true)).thenReturn(codeSource);
+        DownloadMode.FORCE)).thenReturn(codeSource);
 
     LibraryBean libraryBean = LibraryBean.fromLibrary(LIBRARY_NAME, codeSource);
     Map<String, CodeSourceImpl> codeSourceMap = LibraryBean.toLibraries(Lists.newArrayList(libraryBean),
@@ -54,14 +55,14 @@ public class LibraryBeanTest extends TestCase {
     CodeSourceImpl.RepositoryTypeImpl httpFile = CodeSourceImpl.RepositoryTypeImpl.HTTP_FILE;
     CodeSourceImpl.RepositoryTypeImpl httpZip = CodeSourceImpl.RepositoryTypeImpl.HTTP_ZIP;
 
-    CodeSourceImpl codeSource = new CodeSourceImpl(mockHttpClient, sourceUri, httpFile, REVISION, true);
-    CodeSourceImpl codeSource2 = new CodeSourceImpl(mockHttpClient, sourceUri, httpZip, REVISION + "2", false);
+    CodeSourceImpl codeSource = new CodeSourceImpl(mockHttpClient, sourceUri, httpFile, REVISION, DownloadMode.FORCE);
+    CodeSourceImpl codeSource2 = new CodeSourceImpl(mockHttpClient, sourceUri, httpZip, REVISION + "2", DownloadMode.CACHE);
 
     when(mockCodeSourceFactory.createCodeSource(REVISION, httpFile, Utils.makeAbsoluteUri(sourceUri.toString()),
-        true)).thenReturn(codeSource);
+        DownloadMode.FORCE)).thenReturn(codeSource);
 
     when(mockCodeSourceFactory.createCodeSource(REVISION + "2", httpZip, Utils.makeAbsoluteUri(sourceUri.toString()),
-        false)).thenReturn(codeSource2);
+        DownloadMode.CACHE)).thenReturn(codeSource2);
 
     ImmutableMap<String, CodeSourceImpl> map = ImmutableMap.of(LIBRARY_NAME, codeSource, LIBRARY_NAME2, codeSource2);
     List<LibraryBean> libraryBeans = LibraryBean.fromLibraries(map);

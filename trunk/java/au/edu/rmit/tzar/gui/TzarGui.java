@@ -6,6 +6,7 @@ import au.edu.rmit.tzar.api.*;
 import au.edu.rmit.tzar.commands.ExecLocalRuns;
 import au.edu.rmit.tzar.commands.ScheduleRuns;
 import au.edu.rmit.tzar.db.DaoFactory;
+import au.edu.rmit.tzar.parser.beans.DownloadMode;
 import au.edu.rmit.tzar.repository.CodeSourceFactory;
 import au.edu.rmit.tzar.repository.CodeSourceImpl;
 import au.edu.rmit.tzar.runners.RunnerFactory;
@@ -79,7 +80,8 @@ public class TzarGui {
     File cacheDir = new File(tzarHome, Constants.HTTP_CACHE_DIR);
     cacheDir.mkdirs();
 
-    this.codeSourceFactory = new CodeSourceFactory(Utils.createHttpClient(cacheDir));
+    this.codeSourceFactory = new CodeSourceFactory(Utils.createHttpClient(cacheDir),
+        Utils.createNonCachingHttpClient());
 
     frame = new JFrame(APP_NAME);
     frame.setContentPane(mainPanel);
@@ -311,7 +313,7 @@ public class TzarGui {
         String projectPath = pathToProject.getText().trim();
 
         CodeSourceImpl codeSource = codeSourceFactory.createCodeSource(revision, repositoryType,
-            Utils.makeAbsoluteUri(projectPath), true /* force download of model code */);
+            Utils.makeAbsoluteUri(projectPath), DownloadMode.CACHE);
 
         ProjectSpec projectSpec = codeSource.getProjectSpec(Files.createTempDir(), codeSourceFactory,
             execLocalProjectFileName.getText());
@@ -363,8 +365,7 @@ public class TzarGui {
         String revision = scheduleRunsRevision.getText();
         CodeSourceImpl codeSource;
         try {
-          codeSource = codeSourceFactory.createCodeSource(revision, repositoryType, sourceUri,
-              true /* force download of model code */);
+          codeSource = codeSourceFactory.createCodeSource(revision, repositoryType, sourceUri, DownloadMode.CACHE);
         } catch (CodeSourceImpl.InvalidRevisionException e) {
           throw new TzarException(String.format("Invalid revision %s for repository type %s", revision,
               repositoryType));

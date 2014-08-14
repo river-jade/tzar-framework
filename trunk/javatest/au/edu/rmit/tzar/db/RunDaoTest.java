@@ -4,6 +4,7 @@ import au.edu.rmit.tzar.api.CodeSource;
 import au.edu.rmit.tzar.api.Parameters;
 import au.edu.rmit.tzar.api.Run;
 import au.edu.rmit.tzar.api.TzarException;
+import au.edu.rmit.tzar.parser.beans.DownloadMode;
 import au.edu.rmit.tzar.repository.CodeSourceFactory;
 import au.edu.rmit.tzar.repository.CodeSourceImpl;
 import com.google.common.base.Optional;
@@ -70,10 +71,11 @@ public class RunDaoTest extends TestCase {
 
     when(mockConnection.prepareStatement(isA(String.class))).thenReturn(mock(PreparedStatement.class));
     when(mockParametersDao.createBatchInserter(mockConnection)).thenReturn(mockBatchInserter);
-    runDao = new RunDao(mockConnectionFactory, mockParametersDao, mockLibraryDao, new CodeSourceFactory(mockHttpClient));
+    runDao = new RunDao(mockConnectionFactory, mockParametersDao, mockLibraryDao, new CodeSourceFactory(mockHttpClient,
+        mockHttpClient));
 
     CodeSourceImpl codeSource = new CodeSourceImpl(mockHttpClient, new URI(MODEL_URL), CodeSourceImpl.RepositoryTypeImpl.SVN,
-        CODE_VERSION, true);
+        CODE_VERSION, DownloadMode.CACHE);
     ImmutableMap<String, CodeSource> library = ImmutableMap.of();
     projectInfo = new Run.ProjectInfo(PROJECT_NAME, codeSource, library, RUNNER_CLASS, RUNNER_FLAGS);
   }
@@ -115,7 +117,7 @@ public class RunDaoTest extends TestCase {
     runs.add(run);
 
     CodeSourceImpl codeSource2 = new CodeSourceImpl(mockHttpClient, new URI(MODEL_URL),
-        CodeSourceImpl.RepositoryTypeImpl.LOCAL_FILE, CODE_VERSION + 1, true);
+        CodeSourceImpl.RepositoryTypeImpl.LOCAL_FILE, CODE_VERSION + 1, DownloadMode.FORCE);
     Run.ProjectInfo projectInfo2 = new Run.ProjectInfo(PROJECT_NAME, codeSource2, null, RUNNER_CLASS, RUNNER_FLAGS);
     run = new Run(projectInfo2, SCENARIO_NAME + 1)
         .setRunId(RUN_ID)

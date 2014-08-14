@@ -1,6 +1,7 @@
 package au.edu.rmit.tzar;
 
 import au.edu.rmit.tzar.api.*;
+import au.edu.rmit.tzar.parser.beans.DownloadMode;
 import au.edu.rmit.tzar.repository.CodeSourceImpl;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -38,7 +39,7 @@ public class RunFactoryTest extends TestCase {
     mockRepetitions = mock(Repetitions.class);
     mockHttpClient = mock(CloseableHttpClient.class);
     codeSource = new CodeSourceImpl(mockHttpClient, sourceUrl, CodeSourceImpl.RepositoryTypeImpl.LOCAL_FILE, REVISION,
-        true);
+        DownloadMode.FORCE);
   }
 
   /**

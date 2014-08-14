@@ -19,10 +19,10 @@ public class HttpZipRepository extends HttpRepository {
    * Constructor.
    * @param httpClient
    * @param sourceUri the URL pointing to the zip file to download
-   * @param skipIfExists don't download the zip file if the expanded library already exists
+   * @param downloadOnce
    */
-  public HttpZipRepository(CloseableHttpClient httpClient, URI sourceUri, boolean skipIfExists) {
-    super(httpClient, sourceUri, skipIfExists);
+  public HttpZipRepository(CloseableHttpClient httpClient, URI sourceUri, boolean downloadOnce) {
+    super(httpClient, sourceUri, downloadOnce);
   }
 
   @Override
