@@ -7,6 +7,7 @@ import au.edu.rmit.tzar.api.StopRun;
 import au.edu.rmit.tzar.api.TzarException;
 import au.edu.rmit.tzar.db.DaoFactory;
 import au.edu.rmit.tzar.db.RunDao;
+import au.edu.rmit.tzar.parser.beans.DownloadMode;
 import au.edu.rmit.tzar.repository.CodeSourceFactory;
 import au.edu.rmit.tzar.repository.CodeSourceImpl;
 import au.edu.rmit.tzar.resultscopier.*;
@@ -57,7 +58,7 @@ class CommandFactory {
     CodeSourceImpl modelSource;
     try {
       modelSource = codeSourceFactory.createCodeSource(revision, repositoryType, projectUri,
-          true /* always download the project file */);
+          DownloadMode.CACHE);
     } catch (CodeSourceImpl.InvalidRevisionException e) {
       throw new ParseException(e.getMessage());
     }
@@ -130,7 +131,7 @@ class CommandFactory {
     CodeSourceImpl codeSource;
     try {
       codeSource = codeSourceFactory.createCodeSource(CREATE_RUNS_FLAGS.getRevision(), repositoryType,
-          CREATE_RUNS_FLAGS.getProjectUri(), true /* always download the project file */);
+          CREATE_RUNS_FLAGS.getProjectUri(), DownloadMode.CACHE);
     } catch (CodeSourceImpl.InvalidRevisionException e) {
       throw new ParseException(e.getMessage());
     }

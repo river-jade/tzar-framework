@@ -2,6 +2,7 @@ package au.edu.rmit.tzar.parser;
 
 import au.edu.rmit.tzar.Utils;
 import au.edu.rmit.tzar.api.*;
+import au.edu.rmit.tzar.parser.beans.DownloadMode;
 import au.edu.rmit.tzar.repository.CodeSourceFactory;
 import au.edu.rmit.tzar.repository.CodeSourceImpl;
 import au.edu.rmit.tzar.runners.mapreduce.Concatenator;
@@ -41,21 +42,21 @@ public class YamlParserTest extends TestCase {
     Map<String, CodeSourceImpl> libraries = Maps.newLinkedHashMap();
     CodeSourceImpl.RepositoryTypeImpl localFile = CodeSourceImpl.RepositoryTypeImpl.LOCAL_FILE;
     CodeSourceImpl codeSource1 = new CodeSourceImpl(mockHttpClient, new URI("/source/code/1"),
-        localFile, "123", true);
+        localFile, "123", DownloadMode.FORCE);
     libraries.put("library1", codeSource1);
     CodeSourceImpl codeSource2 = new CodeSourceImpl(mockHttpClient, new URI("/source/code/2"),
-        localFile, "124", true);
+        localFile, "124", DownloadMode.FORCE);
     libraries.put("library2", codeSource2);
     CodeSourceImpl codeSource3 = new CodeSourceImpl(mockHttpClient, new URI("/source/code/3"),
-        localFile, "125", false);
+        localFile, "125", DownloadMode.CACHE);
     libraries.put("library3", codeSource3);
 
     when(mockCodeSourceFactory.createCodeSource("123", localFile, Utils.makeAbsoluteUri("/source/code/1"),
-        true)).thenReturn(codeSource1);
+        DownloadMode.FORCE)).thenReturn(codeSource1);
     when(mockCodeSourceFactory.createCodeSource("124", localFile, Utils.makeAbsoluteUri("/source/code/2"),
-        true)).thenReturn(codeSource2);
+        DownloadMode.FORCE)).thenReturn(codeSource2);
     when(mockCodeSourceFactory.createCodeSource("125", localFile, Utils.makeAbsoluteUri("/source/code/3"),
-        false)).thenReturn(codeSource3);
+        DownloadMode.CACHE)).thenReturn(codeSource3);
 
     Map<String, Object> variables = Maps.newLinkedHashMap();
     variables.put("test1", 3);

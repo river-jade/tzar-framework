@@ -1,6 +1,7 @@
 package au.edu.rmit.tzar;
 
 import au.edu.rmit.tzar.api.*;
+import au.edu.rmit.tzar.parser.beans.DownloadMode;
 import au.edu.rmit.tzar.repository.CodeSourceImpl;
 import au.edu.rmit.tzar.runners.RunnerFactory;
 import com.google.common.collect.ImmutableMap;
@@ -60,7 +61,7 @@ public class ExecutableRunTest extends TestCase {
   private ExecutableRun createExecutableRun(File TZAR_OUTPUT_PATH) throws TzarException {
     parameters = Parameters.createParameters(variables);
     CodeSourceImpl modelSource = new CodeSourceImpl(mockHttpClient, SOURCE_PATH.toURI(),
-        CodeSourceImpl.RepositoryTypeImpl.LOCAL_FILE, REVISION, true);
+        CodeSourceImpl.RepositoryTypeImpl.LOCAL_FILE, REVISION, DownloadMode.FORCE);
 
     Run.ProjectInfo projectInfo = new Run.ProjectInfo(PROJECT_NAME, modelSource, libraries, RUNNER_CLASS, RUNNER_FLAGS);
     run = new Run(projectInfo, SCENARIO_NAME)
@@ -94,11 +95,11 @@ public class ExecutableRunTest extends TestCase {
   public void testLibraryParamReplacement() throws Exception {
     libraries = ImmutableMap.of(
         "lib1", new CodeSourceImpl(mockHttpClient, new URI("file:///source/code/1"),
-            CodeSourceImpl.RepositoryTypeImpl.LOCAL_FILE, "123", true),
+            CodeSourceImpl.RepositoryTypeImpl.LOCAL_FILE, "123", DownloadMode.FORCE),
         "lib2", new CodeSourceImpl(mockHttpClient, new URI("file:///source/code/2"),
-            CodeSourceImpl.RepositoryTypeImpl.LOCAL_FILE, "223", true),
+            CodeSourceImpl.RepositoryTypeImpl.LOCAL_FILE, "223", DownloadMode.FORCE),
         "lib3", new CodeSourceImpl(mockHttpClient, new URI("file:///source/code/3"),
-            CodeSourceImpl.RepositoryTypeImpl.LOCAL_FILE, "323", false));
+            CodeSourceImpl.RepositoryTypeImpl.LOCAL_FILE, "323", DownloadMode.CACHE));
 
     // we rerun setup to recreate the objects that depend on library. a bit dodgy though.
     setUp();

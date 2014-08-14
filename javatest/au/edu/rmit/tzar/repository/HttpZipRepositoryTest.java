@@ -19,7 +19,7 @@ public class HttpZipRepositoryTest extends BaseHttpRepositoryTemplate {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    repository = new HttpZipRepository(mockHttpClient, sourceUri, true);
+    repository = new HttpZipRepository(mockHttpClient, sourceUri, false);
     ByteArrayInputStream bis = new ByteArrayInputStream(BaseHttpRepositoryTemplate.EXPECTED.getBytes());
     ZipParameters zp = new ZipParameters();
     zp.setSourceExternalStream(true);

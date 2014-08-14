@@ -149,6 +149,21 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- Update from v0.5.5 to v0.5.6
+CREATE OR REPLACE FUNCTION update_schema_055() returns varchar AS $$
+DECLARE
+    old_db_version varchar := '0.5.5';
+    new_db_version varchar := '0.5.6';
+BEGIN
+  alter table libraries add column download_mode varchar(10);
+  update libraries set download_mode='FORCE' where force_download=true;
+  update libraries set download_mode='CACHE' where force_download=false;
+  alter table libraries alter column download_mode set not null;
+  alter table libraries drop column force_download;
+  return new_db_version;
+END;
+$$ LANGUAGE plpgsql;
+
 
 begin;
 select update_schema();

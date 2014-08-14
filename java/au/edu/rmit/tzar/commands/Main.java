@@ -75,7 +75,7 @@ public class Main {
     File cacheDir = new File(tzarHome, "http_cache");
     cacheDir.mkdirs();
     CommandFactory factory = new CommandFactory(jCommander, new CodeSourceFactory(
-        Utils.createHttpClient(cacheDir)));
+        Utils.createHttpClient(cacheDir), Utils.createNonCachingHttpClient()));
     if (!cmd.isPresent()) {
       if (SharedFlags.COMMON_FLAGS.isVersion()) {
         BufferedReader in = new BufferedReader(

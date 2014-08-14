@@ -170,12 +170,12 @@ public class ExecutableRun {
     try {
       CSVWriter csvWriter = new CSVWriter(new FileWriter(libraryMetadata));
       try {
-        csvWriter.writeNext(new String[]{"library_name", "repository_type", "uri", "revision", "force_download"});
+        csvWriter.writeNext(new String[]{"library_name", "repository_type", "uri", "revision", "download_mode"});
         for (Map.Entry<String, ? extends CodeSource> entry : libraries.entrySet()) {
           CodeSource codeSource = entry.getValue();
           csvWriter.writeNext(new String[]{entry.getKey(), codeSource.getRepositoryType().toString(),
               codeSource.getSourceUri().toString(), codeSource.getRevision(),
-              Boolean.toString(codeSource.isForceDownload())});
+              codeSource.getDownloadMode().toString()});
         }
       } finally {
         csvWriter.close();

@@ -49,9 +49,9 @@ CREATE TABLE libraries (
     uri text NOT NULL,
     name text NOT NULL,
     revision character varying(16) NOT NULL,
-    force_download boolean DEFAULT true NOT NULL
+    download_mode boolean NOT NULL
 );
-CREATE UNIQUE INDEX libraries_repo_type_key ON libraries ( repo_type, uri, name, revision, force_download );
+CREATE UNIQUE INDEX libraries_repo_type_key ON libraries ( repo_type, uri, name, revision, download_mode );
 
 ALTER TABLE public.libraries OWNER TO tzar;
 

@@ -25,20 +25,18 @@ import java.util.logging.Logger;
 public class HttpRepository extends UrlRepository {
   private static final Logger LOG = Logger.getLogger(HttpRepository.class.getName());
 
-  private final boolean forceDownload;
-
   @VisibleForTesting
   final CloseableHttpClient client;
+  private final boolean downloadOnce;
 
   /**
-   *
    * @param httpClient
    * @param sourceUri the URL to download from
-   * @param forceDownload download the library even if we already have it
+   * @param downloadOnce whether to use locally cached copy of the downloaded files
    */
-  public HttpRepository(CloseableHttpClient httpClient, URI sourceUri, boolean forceDownload) {
+  public HttpRepository(CloseableHttpClient httpClient, URI sourceUri, boolean downloadOnce) {
     super(sourceUri);
-    this.forceDownload = forceDownload;
+    this.downloadOnce = downloadOnce;
     client = httpClient;
   }
 
@@ -46,7 +44,7 @@ public class HttpRepository extends UrlRepository {
   public File retrieveModel(String revision, String name, File baseModelPath) throws TzarException {
     File modelPath = createModelPath(name, baseModelPath, sourceUri);
     LOG.fine(String.format("Retrieving model from %s to %s", sourceUri, modelPath));
-    if (!forceDownload && modelPath.exists()) {
+    if (downloadOnce && modelPath.exists()) {
       LOG.fine(String.format("Model already exists at %s so not downloading", modelPath));
     } else {
       retrieveFile(modelPath);

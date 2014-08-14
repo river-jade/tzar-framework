@@ -8,6 +8,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.io.Files;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.cache.CacheConfig;
 import org.apache.http.impl.client.cache.CachingHttpClients;
 
@@ -384,9 +385,9 @@ public class Utils {
   }
 
   public static CloseableHttpClient createHttpClient(File cacheDir) {
-      // some websites give different responses, depending on the user agent. We gamble here
-  // that we'll get the most sane response for something that doesn't look like a browser.
-  final String USER_AGENT = "Wget/1.12";
+    // some websites give different responses, depending on the user agent. We gamble here
+    // that we'll get the most sane response for something that doesn't look like a browser.
+    String USER_AGENT = "Wget/1.12";
 
     CacheConfig cacheConfig = CacheConfig.custom().setMaxObjectSize(Constants.MAX_CACHE_OBJECT_SIZE_BYTES).build();
     return CachingHttpClients.custom()
@@ -395,5 +396,9 @@ public class Utils {
       .setUserAgent(USER_AGENT)
       .useSystemProperties()
       .build();
+  }
+
+  public static CloseableHttpClient createNonCachingHttpClient() {
+    return HttpClientBuilder.create().build();
   }
 }

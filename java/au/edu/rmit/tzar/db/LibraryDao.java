@@ -2,6 +2,7 @@ package au.edu.rmit.tzar.db;
 
 import au.edu.rmit.tzar.api.CodeSource;
 import au.edu.rmit.tzar.api.TzarException;
+import au.edu.rmit.tzar.parser.beans.DownloadMode;
 import au.edu.rmit.tzar.repository.CodeSourceFactory;
 import au.edu.rmit.tzar.repository.CodeSourceImpl;
 import com.google.common.base.Optional;
@@ -38,12 +39,12 @@ public class LibraryDao {
       String name = entry.getKey();
       CodeSource codeSource = entry.getValue();
       Optional<Library> library = findLibrary(connection, codeSource.getRepositoryType(), codeSource.getSourceUri(),
-          name, codeSource.getRevision(), codeSource.isForceDownload());
+          name, codeSource.getRevision(), codeSource.getDownloadMode());
 
       final int libraryId;
       if (!library.isPresent()) {
         libraryId = insertLibrary(name, codeSource.getRepositoryType(), codeSource.getSourceUri(),
-            codeSource.getRevision(), codeSource.isForceDownload(), connection);
+            codeSource.getRevision(), codeSource.getDownloadMode(), connection);
       } else {
         libraryId = library.get().id;
       }
@@ -62,7 +63,7 @@ public class LibraryDao {
    * @param repositoryType repo type for the library
    * @param sourceUri uri for the library
    * @param revision revision for the library
-   * @param forceDownload whether to re-download the library each time it's needed
+   * @param downloadMode whether to re-download the library each time it's needed
    * @param connection to connect to the db
    * @return the id of the new library
    * @throws SQLException
@@ -70,16 +71,16 @@ public class LibraryDao {
    */
   // TODO(river): use Library class when available
   int insertLibrary(String name, CodeSource.RepositoryType repositoryType, URI sourceUri, String revision,
-      boolean forceDownload, Connection connection) throws SQLException, TzarException {
+      DownloadMode downloadMode, Connection connection) throws SQLException, TzarException {
 
     PreparedStatement statement = connection.prepareStatement(
-        "INSERT INTO libraries (name, repo_type, uri, revision, force_download) VALUES (?, ?, ?, ?, ?)",
+        "INSERT INTO libraries (name, repo_type, uri, revision, download_mode) VALUES (?, ?, ?, ?, ?)",
         Statement.RETURN_GENERATED_KEYS);
     statement.setString(1, name);
     statement.setString(2, repositoryType.toString().toLowerCase());
     statement.setString(3, sourceUri.toString());
     statement.setString(4, revision);
-    statement.setBoolean(5, forceDownload);
+    statement.setString(5, downloadMode.toString());
     statement.execute();
     ResultSet rs = statement.getGeneratedKeys();
     if (!rs.next()) {
@@ -96,19 +97,19 @@ public class LibraryDao {
    * @param uri uri of the library to find
    * @param name name of the library to find
    * @param revision revision of the library to find
-   * @param forceDownload libraries with different values for forceDownload are treated as different libraries
+   * @param downloadMode libraries with different values for downloadMode are treated as different libraries
    * @return an optional library. will be empty if none found
    * @throws SQLException
    */
   Optional<Library> findLibrary(Connection connection, CodeSource.RepositoryType repoType, URI uri, String name,
-      String revision, boolean forceDownload) throws SQLException {
+      String revision, DownloadMode downloadMode) throws SQLException {
     PreparedStatement statement = connection.prepareStatement("SELECT library_id, repo_type, uri, name, revision, " +
-        "force_download FROM libraries WHERE repo_type=? AND uri=? AND name=? AND revision=? AND force_download=?");
+        "download_mode FROM libraries WHERE repo_type=? AND uri=? AND name=? AND revision=? AND download_mode=?");
     statement.setString(1, repoType.toString().toLowerCase());
     statement.setString(2, uri.toString());
     statement.setString(3, name);
     statement.setString(4, revision);
-    statement.setBoolean(5, forceDownload);
+    statement.setString(5, downloadMode.toString());
     ResultSet rs = statement.executeQuery();
     if (!rs.next()) {
       return Optional.absent();
@@ -126,7 +127,7 @@ public class LibraryDao {
    */
   ImmutableMap<String, CodeSource> getLibraries(int runId, Connection connection) throws TzarException, SQLException {
     PreparedStatement statement = connection.prepareStatement("SELECT l.library_id, repo_type, uri, name, " +
-        "revision, force_download FROM libraries l INNER JOIN run_libraries rl ON l.library_id = rl.library_id " +
+        "revision, download_mode FROM libraries l INNER JOIN run_libraries rl ON l.library_id = rl.library_id " +
         "WHERE run_id = ?");
 
     statement.setInt(1, runId);
@@ -137,7 +138,7 @@ public class LibraryDao {
         Library library = libraryFromResultSet(resultSet);
         CodeSource libCodeSource = codeSourceFactory.createCodeSource(library.revision,
             CodeSourceImpl.RepositoryTypeImpl.valueOf(library.repoType.toUpperCase()), new URI(library.uri),
-            library.forceDownload);
+            library.downloadMode);
         builder.put(library.name, libCodeSource);
       } catch (URISyntaxException e) {
         throw new TzarException(String.format("Invalid URI in database record. Run Id: %s", runId), e);
@@ -148,7 +149,7 @@ public class LibraryDao {
 
   private Library libraryFromResultSet(ResultSet rs) throws SQLException {
     return new Library(rs.getInt(1), rs.getString(2), rs.getString(3), rs.getString(4), rs.getString(5),
-        rs.getBoolean(6));
+        DownloadMode.valueOf(rs.getString(6)));
   }
 
   // TODO(river): make this part of the API. ie add a Libraries class to replace the ugly
@@ -159,15 +160,15 @@ public class LibraryDao {
     final String uri;
     final String name;
     final String revision;
-    final boolean forceDownload;
+    final DownloadMode downloadMode;
 
-    public Library(int id, String repoType, String uri, String name, String revision, boolean forceDownload) {
+    public Library(int id, String repoType, String uri, String name, String revision, DownloadMode downloadMode) {
       this.id = id;
       this.repoType = repoType;
       this.uri = uri;
       this.name = name;
       this.revision = revision;
-      this.forceDownload = forceDownload;
+      this.downloadMode = downloadMode;
     }
   }
 }
