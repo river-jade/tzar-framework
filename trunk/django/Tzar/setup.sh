@@ -32,7 +32,7 @@ exit
 # configure supervisor script
 cat << EOF > /etc/supervisor/conf.d/tzar_admin.conf
 [program:webgui]
-command = /webapps/tzar/bin/gunicorn_start                            ; Command to start app
+command = /webapps/tzar/tzar_admin/bin/gunicorn_start.sh              ; Command to start app
 user = tzar                                                           ; User to run as
 stdout_logfile = /webapps/tzar/logs/gunicorn_supervisor.log           ; Where to write log messages
 redirect_stderr = true                                                ; Save stderr in the same log

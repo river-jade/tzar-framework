@@ -9,7 +9,8 @@ upstream tzar_admin_server {
 server {
 
     listen   80;
-    server_name *;
+    # since we don't have a dns record, accept any server name in request
+    # server_name www.tzar.org;
 
     client_max_body_size 4G;
 
@@ -51,7 +52,7 @@ server {
         # Try to serve static files from nginx, no point in making an
         # *application* server like Unicorn/Rainbows! serve static files.
         if (!-f $request_filename) {
-            proxy_pass http://hello_app_server;
+            proxy_pass http://localhost;
             break;
         }
     }
