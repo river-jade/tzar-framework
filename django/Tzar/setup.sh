@@ -17,7 +17,7 @@ sudo groupadd --system webapps
 sudo useradd --system --gid webapps --shell /bin/bash --home /webapps/tzar tzar
 chown tzar:webapps /webapps/tzar/ -R
 
-su - tzar << 'EOF'
+su - tzar << EOF
 # get code
 svn checkout http://tzar-framework.googlecode.com/svn/trunk/django/Tzar/tzar_admin
 virtualenv .
@@ -27,6 +27,10 @@ pip install -r tzar_admin/requirements.txt
 
 mkdir -p /webapps/tzar/logs/
 touch /webapps/tzar/logs/gunicorn_supervisor.log
+
+cd /webapps/tzar/tzar_admin
+# collect static
+DJANGO_SETTINGS_MODULE=webgui.settings.production DJANGO_SECRET_KEY='$SECRET_KEY' DJANGO_DB_PASSWORD='$DB_PASSWORD' python manage.py collectstatic --noinput
 EOF
 
 # configure supervisor script
@@ -37,11 +41,8 @@ user = tzar                                                           ; User to 
 stdout_logfile = /webapps/tzar/logs/gunicorn_supervisor.log           ; Where to write log messages
 redirect_stderr = true                                                ; Save stderr in the same log
 ; Set UTF-8 as default encoding
-environment=LANG=en_US.UTF-8,LC_ALL=en_US.UTF-8,DJANGO_DB_PASSWORD='$DB_PASSWORD',DJANGO_SECRET_KEY='$SECRET_KEY'
+environment=LANG=en_US.UTF-8,LC_ALL=en_US.UTF-8,DJANGO_DB_PASSWORD='${DB_PASSWORD//%/%%}',DJANGO_SECRET_KEY='${SECRET_KEY//%/%%}'
 EOF
-
-# collect static
-DJANGO_SETTINGS_MODULE=webgui.settings.production DJANGO_SECRET_KEY=$SECRET_KEY DJANGO_DB_PASSWORD=$DB_PASSWORD' python manage.py collectstatic
 
 # reread supervisor script and start
 supervisorctl reread
