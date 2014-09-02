@@ -1,9 +1,30 @@
-# Django settings for Tzar project.
+"""Django base settings for Tzar project."""
 
-# Attempt to replace /home/ubuntu/ 's with something more robust - but not tested in anger because none of the constructed paths seem to be used at present.
-DJANGO_PROJECT_HOME = '/home/ubuntu/'
+import os
 
-DEBUG = True
+from unipath import Path
+from django.core.exceptions import ImproperlyConfigured
+
+
+def get_env_variables(var_name):
+    try:
+        return os.environ[var_name]
+    except:
+        raise ImproperlyConfigured("The {0} environment variable is required and was not set.".format(var_name))
+
+
+#########
+# PATHS #
+#########
+
+# Full filesystem path to the project.
+PROJECT_DIR = Path(__file__).ancestor(3)
+
+# Name of the directory for the project.
+PROJECT_DIRNAME = PROJECT_DIR.name
+
+
+DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
@@ -19,7 +40,7 @@ DATABASES = {
         'HOST': 'glass.eres.rmit.edu.au',     # Set to empty string for localhost.
         'NAME': 'tzar',  
         'USER': 'tzar',
-        'PASSWORD': '<password goes here>', # TODO(river): read password from environment variables
+        'PASSWORD': get_env_variables('DJANGO_DB_PASSWORD'),
         'PORT': '8080'                      # Glass runs on 8080
     }
 }
@@ -47,28 +68,30 @@ USE_I18N = True
 # calendars according to the current locale
 USE_L10N = True
 
-# Absolute filesystem path to the directory that will hold user-uploaded files.
-# Example: "/home/media/media.lawrence.com/media/"
-# MEDIA_ROOT = '/home/ubuntu/media/'
-MEDIA_ROOT = DJANGO_PROJECT_HOME + 'media/'
-# lack of 'MEDIA_ROOT' seems to make no different to the basic admin page at least.
+# Every cache key will get prefixed with this value - here we set it to
+# the name of the directory the project is in to try and use something
+# project specific.
+CACHE_MIDDLEWARE_KEY_PREFIX = PROJECT_DIRNAME
 
-# URL that handles the media served from MEDIA_ROOT. Make sure to use a
-# trailing slash.
-# Examples: "http://media.lawrence.com/media/", "http://example.com/media/"
-MEDIA_URL = '/media/'
+# URL prefix for static files.
+# Example: "http://media.lawrence.com/static/"
+STATIC_URL = "/static/"
 
 # Absolute path to the directory static files should be collected to.
 # Don't put anything in this directory yourself; store your static files
 # in apps' "static/" subdirectories and in STATICFILES_DIRS.
 # Example: "/home/media/media.lawrence.com/static/"
-# STATIC_ROOT = '/home/ubuntu/django_projects/static/'
-STATIC_ROOT = DJANGO_PROJECT_HOME + 'django_projects/static/'
-# lack of 'STATIC_ROOT' seems to make no different to the basic admin page at least.
+STATIC_ROOT = PROJECT_DIR.child("staticfiles")
 
-# URL prefix for static files.
-# Example: "http://media.lawrence.com/static/"
-STATIC_URL = '/static/'
+# URL that handles the media served from MEDIA_ROOT. Make sure to use a
+# trailing slash.
+# Examples: "http://media.lawrence.com/media/", "http://example.com/media/"
+MEDIA_URL = STATIC_URL + "media/"
+
+# Absolute filesystem path to the directory that will hold user-uploaded files.
+# Example: "/home/media/media.lawrence.com/media/"
+MEDIA_ROOT = STATIC_ROOT.child("media")
+
 
 # URL prefix for admin static files -- CSS, JavaScript and images.
 # Make sure to use a trailing slash.
@@ -95,9 +118,6 @@ STATICFILES_FINDERS = (
 #    'django.contrib.staticfiles.finders.DefaultStorageFinder',
 )
 
-# Make this unique, and don't share it with anybody.
-SECRET_KEY = '<secret key goes here>'
-
 # List of callables that know how to import templates from various sources.
 TEMPLATE_LOADERS = (
     'django.template.loaders.filesystem.Loader',
@@ -113,14 +133,14 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
 )
 
-ROOT_URLCONF = 'Tzar.urls'
+ROOT_URLCONF = 'webgui.urls'
 
 TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
     # "/home/ubuntu/django_templates"
-    DJANGO_PROJECT_HOME + "django_templates"
+    PROJECT_DIR + "django_templates"
     # Commenting this out doesn't seem to make a difference either at present.
 )
 
@@ -161,15 +181,3 @@ LOGGING = {
         },
     }
 }
-
-##################
-# LOCAL SETTINGS #
-##################
-
-# Allow any settings to be defined in local_settings.py which should be
-# ignored in your version control system allowing for settings to be
-# defined per machine.
-try:
-    from local_settings import *
-except ImportError:
-    pass
