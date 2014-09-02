@@ -1,7 +1,7 @@
 #!/bin/bash
 
 NAME="webgui"                                     # Name of the application
-DJANGODIR=/webapps/tzar/webgui                    # Django project directory
+DJANGODIR=/webapps/tzar/tzar_admin/webgui                    # Django project directory
 SOCKFILE=/webapps/tzar/run/gunicorn.sock  # we will communicte using this unix socket
 USER=tzar                                         # the user to run as
 GROUP=webapps                                     # the group to run as
