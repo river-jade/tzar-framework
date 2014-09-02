@@ -33,17 +33,6 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
-#   Updated to point at the glass database, not arcs
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2', 
-        'HOST': 'glass.eres.rmit.edu.au',     # Set to empty string for localhost.
-        'NAME': 'tzar',  
-        'USER': 'tzar',
-        'PASSWORD': get_env_variables('DJANGO_DB_PASSWORD'),
-        'PORT': '8080'                      # Glass runs on 8080
-    }
-}
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
