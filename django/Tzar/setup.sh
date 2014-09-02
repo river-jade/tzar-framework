@@ -52,5 +52,6 @@ cp /webapps/tzar/tzar_admin/tzar_admin.nginxconf /etc/nginx/sites-available/tzar
 ln -s /etc/nginx/sites-available/tzar_admin /etc/nginx/sites-enabled/tzar_admin
 rm /etc/nginx/sites-enabled/default
 
-# start nginx
+# (re)start nginx
+service nginx stop
 service nginx start
