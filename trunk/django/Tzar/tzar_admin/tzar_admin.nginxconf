@@ -18,11 +18,11 @@ server {
     error_log /webapps/tzar/logs/nginx-error.log;
  
     location /static/ {
-        alias   /webapps/tzar/static/;
+        alias   /webapps/tzar/tzar_admin/staticfiles/;
     }
     
     location /media/ {
-        alias   /webapps/tzar/media/;
+        alias   /webapps/tzar/tzar_admin/media/;
     }
 
     location / {
@@ -52,7 +52,7 @@ server {
         # Try to serve static files from nginx, no point in making an
         # *application* server like Unicorn/Rainbows! serve static files.
         if (!-f $request_filename) {
-            proxy_pass http://localhost;
+            proxy_pass http://tzar_admin_server;
             break;
         }
     }
