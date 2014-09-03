@@ -148,25 +148,42 @@ INSTALLED_APPS = (
     'webgui'
 )
 
-# A sample logging configuration. The only tangible logging
-# performed by this configuration is to send an email to
-# the site admins on every HTTP 500 error.
-# See http://docs.djangoproject.com/en/dev/topics/logging for
-# more details on how to customize your logging configuration.
 LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'mail_admins': {
-            'level': 'ERROR',
-            'class': 'django.utils.log.AdminEmailHandler'
-        }
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "simple": {
+            "format": "[%(asctime)s] %(levelname)s %(message)s",
+            "datefmt": "%Y-%m-%d %H:%M:%S"
+        },
+        "verbose": {
+            "format": "[%(asctime)s] %(levelname)s [%(name)s.%(funcName)s:%(lineno)d] %(message)s",
+            "datefmt": "%Y-%m-%d %H:%M:%S"
+        },
     },
-    'loggers': {
-        'django.request': {
-            'handlers': ['mail_admins'],
-            'level': 'ERROR',
-            'propagate': True,
+    "handlers": {
+        "console": {
+            "level": "INFO",
+            "class": "logging.StreamHandler",
+            "formatter": "verbose",
+        },
+        # "mail_admins": {
+        #     "level": "ERROR",
+        #     "class": "django.utils.log.AdminEmailHandler",
+        #     "formatter": "verbose",
+        # }
+    },
+    "loggers": {
+        "django": {
+            "handlers": ["console"],
+        },
+        # "django.request": {
+        #     "handlers": ["mail_admins"],
+        #     "level": "ERROR",
+        #     "propagate": True,
+        # },
+        "": {
+            "handlers": ["console"],
         },
     }
 }
