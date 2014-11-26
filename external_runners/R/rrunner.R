@@ -30,8 +30,10 @@ install.if.required <- function(pkg) {
 install.if.required( "optparse" )
 install.if.required( "rjson" )
 
-# Add the default location of the personal install directory to the libPaths
-.libPaths(Sys.getenv("R_LIBS_USER"))
+# If new libraries we added to the R_LIBS_USER location (the personal
+# install directory), then add this location of to the .libPaths,
+# which tells R where to look for libraries
+if( file.exists( Sys.getenv("R_LIBS_USER") ) ) .libPaths( c(.libPaths(), Sys.getenv("R_LIBS_USER")) )
 
 
    #--------------------------------------------------------------
