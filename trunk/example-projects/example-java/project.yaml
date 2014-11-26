@@ -18,9 +18,6 @@ base_params:
     test.variable.3: xyz
     test.variable.4: abc
 
-    PAR.testing.output.filename: $$output_path$$test_output_file.txt
-    PAR.testing.output.filename2: $$output_path$$test_output_file2.txt
-
     version.library.name: $$library_path(version-library)$$
 
 scenarios:
