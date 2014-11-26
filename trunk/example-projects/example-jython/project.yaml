@@ -11,8 +11,8 @@ base_params:
     test.variable.3: xyz
     test.variable.4: abc
     
-    output.filename: $$output_path$$test_output_file.txt
-    output.filename2: $$output_path$$test_output_file2.txt
+    output.filename: <<$$output_path$$/test_output_file.txt>>
+    output.filename2: <<$$output_path$$/test_output_file2.txt>>
     
 
 scenarios:
