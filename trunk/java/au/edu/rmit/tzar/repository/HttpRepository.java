@@ -43,9 +43,9 @@ public class HttpRepository extends UrlRepository {
   @Override
   public File retrieveModel(String revision, String name, File baseModelPath) throws TzarException {
     File modelPath = createModelPath(name, baseModelPath, sourceUri);
-    LOG.fine(String.format("Retrieving model from %s to %s", sourceUri, modelPath));
+    LOG.info(String.format("Retrieving model from %s to %s", sourceUri, modelPath));
     if (downloadOnce && modelPath.exists()) {
-      LOG.fine(String.format("Model already exists at %s so not downloading", modelPath));
+      LOG.info(String.format("Model already exists at %s so not downloading", modelPath));
     } else {
       retrieveFile(modelPath);
     }

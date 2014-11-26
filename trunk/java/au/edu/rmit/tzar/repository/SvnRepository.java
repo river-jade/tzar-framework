@@ -55,13 +55,13 @@ public class SvnRepository extends UrlRepository {
   @Override
   public File retrieveModel(String revision, String name, File baseModelPath) throws TzarException {
     File modelPath = createModelPath(name, baseModelPath, sourceUri);
-    LOG.fine(String.format("Retrieving code revision: %s, to %s", revision, modelPath));
+    LOG.info(String.format("Retrieving code revision: %s, to %s", revision, modelPath));
     try {
       SVNURL url = getUrl();
       SVNRevision svnRevision = parseSvnRevision(revision);
 
       if (svnRevision.equals(lastRevision) && sourceUri.equals(lastSourceUri)) {
-        LOG.fine(String.format("Model already exists in local SVN client at correct version with path %s so not " +
+        LOG.info(String.format("Model already exists in local SVN client at correct version with path %s so not " +
                 "downloading", modelPath));
         return modelPath;
       }
