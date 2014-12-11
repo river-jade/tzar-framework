@@ -16,19 +16,21 @@ public class NormalDistributionGenerator extends RepetitionGenerator<BigDecimal>
   private final BigDecimal mean;
   private final int count;
   private final BigDecimal stdDev;
+  private final SecureRandom secureRandom;
 
   public NormalDistributionGenerator(String key, BigDecimal mean, int count, BigDecimal stdDev) {
     super(key);
     this.mean = mean;
     this.count = count;
     this.stdDev = stdDev;
+    secureRandom = new SecureRandom();
   }
 
   @Override
   public List<BigDecimal> generate() {
     List<BigDecimal> list = new ArrayList<BigDecimal>();
     for (int i = 0; i < count; ++i) {
-      list.add(new BigDecimal(new SecureRandom().nextGaussian()).multiply(stdDev).add(mean));
+      list.add(new BigDecimal(secureRandom.nextGaussian()).multiply(stdDev).add(mean));
     }
     return list;
   }
