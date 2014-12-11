@@ -28,11 +28,13 @@ public abstract class RepetitionGenerator<T> {
 
   /**
    * Types of Generators. New implementations of this class should be added to this list so
-   * that they can be correctly deserialised.
+   * that they can be correctly deserialised. The value of the "name" field is the name that will
+   * be deserialised from the project.yaml file.
    */
   public enum GeneratorType {
     LINEAR_STEP("linear_step"),
-    NORMAL_DISTRIBUTION("normal_distribution");
+    NORMAL_DISTRIBUTION("normal_distribution"),
+    UNIFORM_DISTRUBUTION("uniform_distribution");
 
     public static final Map<String, GeneratorType> TYPES = new HashMap<String, GeneratorType>();
     
@@ -42,6 +44,7 @@ public abstract class RepetitionGenerator<T> {
       }
     }
 
+    /** The name of the generator as used in project.yaml */
     private final String name;
 
     GeneratorType(String name) {

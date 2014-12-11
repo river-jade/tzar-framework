@@ -41,4 +41,10 @@ repetitions:
         generator_type: normal_distribution
         mean: 5
         std_dev: 1
+        count: 1
+
+      - key: test.variable.6
+        generator_type: uniform_distribution
+        lower_bound: 5
+        upper_bound: 23.3
         count: 2
