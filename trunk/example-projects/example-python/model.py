@@ -1,8 +1,3 @@
-import csv
-import glob
-import os
-import sys
-
 import basemodel
 
 class Model(basemodel.BaseModel):
@@ -21,6 +16,7 @@ class Model(basemodel.BaseModel):
         self.logger.fine("test.variable.5: %s" % params["test.variable.5"])
         self.logger.fine("test.variable.5 size: %s" % len(params["test.variable.5"]))
         self.logger.fine("test.variable.5 type: %s" % type(params["test.variable.5"]))
+        self.logger.fine("test.variable.6: %s" % params["test.variable.6"])
 
         # write some variables to output files
         with open(params["output.filename"], 'w') as f1:
