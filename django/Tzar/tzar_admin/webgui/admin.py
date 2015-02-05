@@ -111,7 +111,7 @@ class RunSetAdmin(admin.ModelAdmin):
 class RunSetChangeList(ChangeList):
     def url_for_result(self, result):
         pk = getattr(result, self.pk_attname)
-        return '/admin/webgui/run/?runset__runset__exact={0}'.format(pk)
+        return u'/admin/webgui/run/?runset__runset__exact={0}'.format(pk)
         # TODO(river): the above is a hack, but urlresolvers.reverse doesn't seem to support filter; the below line
         # would list all runs, not just those in the current runset. This is a symptom of the fact that runsets are
         # not first class database entities; they are just string fields in the runs table.
