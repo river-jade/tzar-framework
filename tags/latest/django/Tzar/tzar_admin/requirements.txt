@@ -1,0 +1,7 @@
+Django==1.6.6
+Unipath==1.0
+argparse==1.2.1
+gunicorn==18.0
+psycopg2==2.5.4
+setproctitle==1.1.8
+wsgiref==0.1.2

@@ -1,0 +1,60 @@
+project_name: EcoTas demo
+runner_class: RRunner
+
+base_params:
+
+    no.timesteps: 50
+    reps: 50
+    init.pop.size: 1000
+    mu: -0.1
+    sd: 0.1
+    run.id: $$run_id$$
+    timeToEvalPopStats: 30
+
+    # Outputs
+    summary.filename: <<$$output_path$$/all.results.summary.txt>>
+    output.plot : <<$$output_path$$/poptraj>>
+    output.dump : <<$$output_path$$/projtraj.R>>
+
+scenarios:
+    - name: S1 50 reps
+      parameters: 
+        variables: 
+          reps: 50
+
+    # - name: S2 500 reps
+    #   parameters: 
+    #     variables: 
+    #       reps: 500
+
+# Note that this file does all repetitions on scen 1, then on scen 2 etc...
+# Note that also the original value of the variable is not used.
+
+repetitions:
+       generators:
+        - key: sd
+          generator_type: linear_step
+          start: 0.05
+          step_size: 0.01
+          count: 11
+
+#        - key: mu
+#          generator_type: linear_step
+#          start: -0.15
+#          step_size: 0.01
+#          count: 11
+#
+#        - key: init.pop.size
+#          generator_type: linear_step
+#          start: 800
+#          step_size: 50
+#          count: 9
+
+mapreduce:
+  mapper_class: FileSelector
+  mapper_flags:
+    filenames: all.results.summary.txt
+  reducer_class: Concatenator
+  reducer_flags:
+    skipfirstrow: true
+
