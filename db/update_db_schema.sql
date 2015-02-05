@@ -1,7 +1,7 @@
 CREATE OR REPLACE FUNCTION update_schema() returns void AS $$
 DECLARE
    current_db_version varchar;
-   latest_db_version varchar := '0.5.5';
+   latest_db_version varchar := '0.5.5a';
 BEGIN
 
 if not exists (SELECT * FROM pg_class where relname = 'constants' and relkind = 'r') then
@@ -153,7 +153,7 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION update_schema_055() returns varchar AS $$
 DECLARE
     old_db_version varchar := '0.5.5';
-    new_db_version varchar := '0.5.6';
+    new_db_version varchar := '0.5.5a';
 BEGIN
   alter table libraries add column download_mode varchar(10);
   update libraries set download_mode='FORCE' where force_download=true;
