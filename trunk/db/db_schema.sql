@@ -49,7 +49,7 @@ CREATE TABLE libraries (
     uri text NOT NULL,
     name text NOT NULL,
     revision character varying(16) NOT NULL,
-    download_mode boolean NOT NULL
+    download_mode character varying(10) NOT NULL
 );
 CREATE UNIQUE INDEX libraries_repo_type_key ON libraries ( repo_type, uri, name, revision, download_mode );
 
