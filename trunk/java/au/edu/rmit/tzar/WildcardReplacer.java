@@ -53,6 +53,12 @@ public class WildcardReplacer {
     }
   };
 
+  private static WildcardFunction RUNSET = new SimpleWildcardFunction() {
+    public String apply(Context context) {
+      return context.runset;
+    }
+  };
+
   private static String getAbsolutePathWithTrailingSlash(File path) {
     if (path.isDirectory()) {
       return path.getAbsolutePath() + File.separator;
@@ -63,11 +69,11 @@ public class WildcardReplacer {
   private static ImmutableMap<String, WildcardFunction> WILDCARDS = ImmutableMap.<String, WildcardFunction>builder()
       .put("run_id", RUN_ID)
       .put("path", PATH)
-
       .put("model_path", MODEL_PATH)
       .put("library_path", LIBRARY_PATH)
       .put("output_path", OUTPUT_PATH)
       .put("output_metadata_path", OUTPUT_METADATA_PATH)
+      .put("runset", RUNSET)
       .build();
 
   // regex matches $$abc(def)$$ and $$abc$$, capturing 'abc' and 'def' for the first case and 'abc' for the second.
@@ -255,6 +261,7 @@ public class WildcardReplacer {
     public final int runId;
     public final File outputPath;
     public final File outputMetadataPath;
+    private final String runset;
 
     /**
      * @param runId the id of the run
@@ -262,14 +269,16 @@ public class WildcardReplacer {
      * @param libraries a map of library names to their paths for this run
      * @param outputPath the path for the run output files
      * @param outputMetadataPath
+     * @param runset
      */
     public Context(int runId, File model, ImmutableMap<String, File> libraries, File outputPath,
-        File outputMetadataPath) {
+        File outputMetadataPath, String runset) {
       this.runId = runId;
       this.model = model;
       this.libraries = libraries;
       this.outputPath = outputPath;
       this.outputMetadataPath = outputMetadataPath;
+      this.runset = runset;
     }
   }
 

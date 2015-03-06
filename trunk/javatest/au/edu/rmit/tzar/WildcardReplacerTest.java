@@ -26,7 +26,7 @@ public class WildcardReplacerTest extends TestCase {
     wildcardReplacer = new WildcardReplacer();
     parameters = Parameters.createParameters(ImmutableMap.<String, Object>of("param1", "value1", "param2", "value2"));
     context = new WildcardReplacer.Context(RUN_ID, new File(""), ImmutableMap.<String, File>of(), OUTPUT_PATH,
-        OUTPUT_METADATA_PATH);
+        OUTPUT_METADATA_PATH, "a runset");
   }
 
   public void testNoReplacement() throws TzarException {
