@@ -76,7 +76,7 @@ public class ExecutableRun {
    * @param run           run to execute
    * @param runOutputPath local path for output for this run
    * @param runnerFactory factory to create runner instances
-   * @param baseModelPath
+   * @param baseModelPath base path for the model code to be downloaded to
    */
   private ExecutableRun(Run run, File runOutputPath, RunnerFactory runnerFactory, File baseModelPath) {
     this.run = run;
@@ -125,7 +125,7 @@ public class ExecutableRun {
             "Flags: %s", model, getRunId(), run.getProjectName(), run.getScenarioName(), run.getRunnerFlags()));
 
         WildcardReplacer.Context context = new WildcardReplacer.Context(getRunId(), model, loadLibraries(), outputPath,
-            metadataPath);
+            metadataPath, getRun().getRunset());
         Parameters parameters = new WildcardReplacer().replaceWildcards(run.getParameters(), context);
 
         FileHandler handler = setupLogFileHandler(metadataPath);
@@ -137,24 +137,24 @@ public class ExecutableRun {
 
         writeLibraryMetadata(metadataPath);
 
-        boolean success = false;
-        try {
+    boolean success = false;
+    try {
           yamlParser.parametersToYaml(parameters, parametersFile);
-          Runner runner = runnerFactory.getRunner(run.getRunnerClass());
-          success = runner.runModel(model, outputPath, Integer.toString(run.getRunId()), run.getRunnerFlags(),
-              parameters, RUNNER_LOGGER, stopRun);
-        } finally {
-          RUNNER_LOGGER.removeHandler(handler);
-          handler.close();
-          renameOutputDir(success);
-        }
-        if (success) {
-          LOG.info("Run " + getRunId() + " succeeded.");
-        } else {
-          LOG.warning("Run " + getRunId() + " failed.");
-        }
+      Runner runner = runnerFactory.getRunner(run.getRunnerClass());
+      success = runner.runModel(model, outputPath, Integer.toString(run.getRunId()), run.getRunnerFlags(),
+          parameters, RUNNER_LOGGER, stopRun);
+    } finally {
+      RUNNER_LOGGER.removeHandler(handler);
+      handler.close();
+      renameOutputDir(success);
+    }
+    if (success) {
+      LOG.info("Run " + getRunId() + " succeeded.");
+    } else {
+      LOG.warning("Run " + getRunId() + " failed.");
+    }
 
-        return success;
+    return success;
       } catch (IOException e) {
         throw new TzarException(e);
       }
