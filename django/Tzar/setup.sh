@@ -19,7 +19,7 @@ chown tzar:webapps /webapps/tzar/ -R
 
 su - tzar << EOF
 # get code
-svn checkout http://tzar-framework.googlecode.com/svn/trunk/django/Tzar/tzar_admin
+svn checkout http://tzar-framework.googlecode.com/svn/tags/latest/django/Tzar/tzar_admin
 virtualenv .
 source bin/activate
 # install python requirements
