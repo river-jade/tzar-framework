@@ -1,0 +1,2 @@
+Lightweight queueing and scheduling system for executing computational modeling software.
+For recent binary downloads (v0.5.0 and above, see https://tzar-framework.atlassian.net/wiki/display/TD/Tzar+downloads)
