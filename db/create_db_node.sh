@@ -25,7 +25,7 @@ createdb tzar -O tzar
 
 # Edit postgres permissions file to allow local trusted login, remote 
 # password login, and connections from internet, and restart db server
-sed '/^local.*all.*all.*peer/s/peer/trust/g' -i /etc/postgresql/9.1/main/pg_hba.conf
+sed '/^local.*all.*all.*peer/s/peer/trust/g' -i /etc/postgresql/9.3/main/pg_hba.conf
 
 cat >> /etc/postgresql/9.3/main/pg_hba.conf << EOF_INNER
 
