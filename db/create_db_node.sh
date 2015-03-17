@@ -27,14 +27,14 @@ createdb tzar -O tzar
 # password login, and connections from internet, and restart db server
 sed '/^local.*all.*all.*peer/s/peer/trust/g' -i /etc/postgresql/9.1/main/pg_hba.conf
 
-cat >> /etc/postgresql/9.1/main/pg_hba.conf << EOF_INNER
+cat >> /etc/postgresql/9.3/main/pg_hba.conf << EOF_INNER
 
 #Allow network connections from anywhere using password auth
 host    all             all             0.0.0.0/0               md5
 EOF_INNER
 
 sed '/^#listen_addresses/a\
-  listen_addresses = '"'"*"'" /etc/postgresql/9.1/main/postgresql.conf -i
+  listen_addresses = '"'"*"'" /etc/postgresql/9.3/main/postgresql.conf -i
 /etc/init.d/postgresql restart
 
 #Execute db creation script
