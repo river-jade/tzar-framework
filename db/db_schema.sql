@@ -341,7 +341,7 @@ CREATE OR REPLACE VIEW lucy_runset_view AS
   ORDER BY min(runs.run_submission_time) DESC;
 
 ALTER TABLE lucy_runset_view
-  OWNER TO postgres;
+  OWNER TO tzar;
 
 --
 -- PostgreSQL database dump complete
