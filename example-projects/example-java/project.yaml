@@ -5,7 +5,7 @@ runner_flags: --jarpath=dist/lib/ExampleJavaRunner.jar --classname=au.edu.rmit.r
 libraries:
     -  name: version-library
        repo_type: http_file
-       url: http://tzar-framework.googlecode.com/svn/trunk/java/version.properties
+       url: https://raw.githubusercontent.com/river-jade/master/java/version.properties
        download_mode: CACHE
 
 base_params:
