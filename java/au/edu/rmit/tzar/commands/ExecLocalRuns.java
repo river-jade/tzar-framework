@@ -36,9 +36,11 @@ public class ExecLocalRuns implements Command {
   private final RunnerFactory runnerFactory;
   private final File tzarOutputPath;
   private final StopRun stopRun;
+  private final boolean dryRun;
 
   public ExecLocalRuns(int numRuns, RunFactory runFactory, File tzarOutputPath, File tzarModelPath,
-      RunnerFactory runnerFactory, Optional<MapReduce> mapReduce, StopRun stopRun) throws TzarException, IOException {
+      RunnerFactory runnerFactory, Optional<MapReduce> mapReduce, StopRun stopRun, boolean dryRun)
+      throws TzarException, IOException {
     this.numRuns = numRuns;
     this.tzarOutputPath = tzarOutputPath;
     this.tzarModelPath = tzarModelPath;
@@ -46,6 +48,7 @@ public class ExecLocalRuns implements Command {
     this.runFactory = runFactory;
     this.mapReduce = mapReduce;
     this.stopRun = stopRun;
+    this.dryRun = dryRun;
   }
 
   @Override
@@ -69,7 +72,7 @@ public class ExecLocalRuns implements Command {
         break;
       }
       ExecutableRun executableRun = ExecutableRun.createExecutableRun(run, tzarOutputPath, tzarModelPath,
-          runnerFactory);
+          runnerFactory, dryRun);
       if (!executableRun.execute(stopRun)) {
         failedIds.add(run.getRunId());
       }

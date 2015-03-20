@@ -31,6 +31,7 @@ public class Constants {
   // Directory suffixes for run output directory names
   public static final String INPROGRESS_SUFFIX = ".inprogress";
   public static final String FAILED_SUFFIX = ".failed";
+  public static final String DRY_RUN_SUFFIX = ".dryrun";
 
   // we back off the polling interval exponentially up to this value
   public static final int MAX_POLL_INTERVAL_MS = 300000; // 5 minutes

@@ -74,7 +74,7 @@ class CommandFactory {
     Optional<au.edu.rmit.tzar.api.MapReduce> mapReduce = Optional.fromNullable(projectSpec.getMapReduce());
 
     return new ExecLocalRuns(CREATE_RUNS_FLAGS.getNumRuns(), runFactory, tzarOutputPath, baseModelPath,
-        new RunnerFactory(), mapReduce, new StopRun());
+        new RunnerFactory(), mapReduce, new StopRun(), CREATE_RUNS_FLAGS.isDryRun());
   }
 
   public Command newHelp() {

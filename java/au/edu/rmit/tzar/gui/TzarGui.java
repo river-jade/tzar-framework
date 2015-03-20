@@ -321,7 +321,8 @@ public class TzarGui {
         RunFactory runFactory = new RunFactory(codeSource, runsetName, "", projectSpec);
         RunnerFactory runnerFactory = new RunnerFactory();
         ExecLocalRuns execLocalRuns = new ExecLocalRuns((Integer) numRuns.getValue(), runFactory,
-            tzarOutputPath, modelPath, runnerFactory, Optional.fromNullable(projectSpec.getMapReduce()), stopRun);
+            tzarOutputPath, modelPath, runnerFactory, Optional.fromNullable(projectSpec.getMapReduce()), stopRun,
+            false /* TODO(river): make this a gui option */);
         execLocalRuns.execute();
         return null;
       }

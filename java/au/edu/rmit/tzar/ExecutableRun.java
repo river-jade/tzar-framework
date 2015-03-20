@@ -42,6 +42,11 @@ public class ExecutableRun {
   private final RunnerFactory runnerFactory;
   private final YamlParser yamlParser = new YamlParser();
 
+  public static ExecutableRun createExecutableRun(Run run, File tzarOutputPath, File tzarModelPath,
+      RunnerFactory runnerFactory) throws TzarException {
+    return createExecutableRun(run, tzarOutputPath, tzarModelPath, runnerFactory, false);
+  }
+
   /**
    * Factory method.
    *
@@ -52,7 +57,7 @@ public class ExecutableRun {
    * @return a newly created executable run
    */
   public static ExecutableRun createExecutableRun(Run run, File tzarOutputPath, File tzarModelPath,
-      RunnerFactory runnerFactory) throws TzarException {
+      RunnerFactory runnerFactory, boolean dryRun) throws TzarException {
 
     File runsetOutputPath = Utils.createRunsetOutputPath(tzarOutputPath, run.getProjectName(),
         run.getRunset());
@@ -67,7 +72,11 @@ public class ExecutableRun {
     String runDirectoryName = run.getRunDirectoryName();
     LOG.log(Level.FINER, "Creating run: {0}", run);
     File runOutputPath = new File(runsetOutputPath, runDirectoryName);
-    return new ExecutableRun(run, runOutputPath, runnerFactory, tzarModelPath);
+    if (dryRun) {
+      return new DryRun(run, runOutputPath, Constants.DRY_RUN_SUFFIX, runnerFactory, tzarModelPath);
+    } else {
+      return new ExecutableRun(run, runOutputPath, Constants.INPROGRESS_SUFFIX, runnerFactory, tzarModelPath);
+    }
   }
 
   /**
@@ -78,12 +87,13 @@ public class ExecutableRun {
    * @param runnerFactory factory to create runner instances
    * @param baseModelPath base path for the model code to be downloaded to
    */
-  private ExecutableRun(Run run, File runOutputPath, RunnerFactory runnerFactory, File baseModelPath) {
+  protected ExecutableRun(Run run, File runOutputPath, String initialSuffix, RunnerFactory runnerFactory,
+      File baseModelPath) {
     this.run = run;
     this.runnerFactory = runnerFactory;
     this.runOutputPath = runOutputPath;
     this.baseModelPath = baseModelPath;
-    this.outputPath = new File(runOutputPath + Constants.INPROGRESS_SUFFIX);
+    this.outputPath = new File(runOutputPath + initialSuffix);
   }
 
   /**
@@ -136,10 +146,25 @@ public class ExecutableRun {
         File parametersFile = new File(metadataPath, "parameters.yaml");
 
         writeLibraryMetadata(metadataPath);
+        yamlParser.parametersToYaml(parameters, parametersFile);
 
+        return runModel(stopRun, model, parameters, handler);
+      } catch (IOException e) {
+        throw new TzarException(e);
+      }
+    } catch (TzarException e) {
+      LOG.log(Level.SEVERE, "An exception occurred executing the run.", e);
+      return false;
+    }
+  }
+
+  /**
+   * This is factored out so that we can override it in DryRun.
+   */
+  protected boolean runModel(StopRun stopRun, File model, Parameters parameters,
+      FileHandler handler) throws TzarException {
     boolean success = false;
     try {
-          yamlParser.parametersToYaml(parameters, parametersFile);
       Runner runner = runnerFactory.getRunner(run.getRunnerClass());
       success = runner.runModel(model, outputPath, Integer.toString(run.getRunId()), run.getRunnerFlags(),
           parameters, RUNNER_LOGGER, stopRun);
@@ -155,13 +180,6 @@ public class ExecutableRun {
     }
 
     return success;
-      } catch (IOException e) {
-        throw new TzarException(e);
-      }
-    } catch (TzarException e) {
-      LOG.log(Level.SEVERE, "An exception occurred executing the run.", e);
-      return false;
-    }
   }
 
   private void writeLibraryMetadata(File metadataPath) throws TzarException {

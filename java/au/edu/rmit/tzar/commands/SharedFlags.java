@@ -92,6 +92,10 @@ class SharedFlags {
         Constants.PROJECT_YAML + " is assumed.")
     private String projectFileName = "";
 
+    @Parameter(names = "--dryrun", description = "Don't actually execute or schedule the runs, just display what " +
+        "would have been run / scheduled.")
+    private boolean dryRun = false;
+
     public int getNumRuns() {
       return numRuns;
     }
@@ -125,6 +129,10 @@ class SharedFlags {
 
     public String getProjectFileName() {
       return projectFileName;
+    }
+
+    public boolean isDryRun() {
+      return dryRun;
     }
   }
 
