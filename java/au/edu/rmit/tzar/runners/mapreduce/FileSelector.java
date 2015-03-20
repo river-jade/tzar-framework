@@ -16,6 +16,13 @@ public class FileSelector implements Mapper {
   private List<String> filenames = ImmutableList.of();
   private Map<String, String> flags;
 
+  public FileSelector() {
+  }
+
+  public FileSelector(List<String> filenames) {
+    this.filenames = filenames;
+  }
+
   @Override
   public Set<File> map(File runDirectory) {
     File[] matchingFiles = runDirectory.listFiles(new FilenameFilter() {

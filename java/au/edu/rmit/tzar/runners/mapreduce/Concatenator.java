@@ -15,19 +15,21 @@ import java.util.logging.Logger;
 public class Concatenator implements Reducer {
   private static final Logger LOG = Logger.getLogger(Concatenator.class.getName());
   private boolean headingRow;
+  private String outputFilename;
   private Map<String, String> flags;
 
   public Concatenator() {
   }
 
-  public Concatenator(boolean headingRow) {
+  public Concatenator(boolean headingRow, String outputFilename) {
     this.headingRow = headingRow;
+    this.outputFilename = outputFilename;
   }
 
   @Override
   public File reduce(Set<File> input, File outputPath, String filename) throws TzarException {
     try {
-      File outputFile = new File(outputPath, filename);
+      File outputFile = new File(outputPath, outputFilename);
       boolean fileExists = outputFile.exists();
 
       if (fileExists) {
@@ -58,6 +60,7 @@ public class Concatenator implements Reducer {
   public void setFlags(Map<String, String> flags) {
     this.flags = flags;
     headingRow = Boolean.parseBoolean(flags.get("heading_row"));
+    outputFilename = flags.get("output_filename");
   }
 
   @Override
