@@ -218,7 +218,7 @@ public class TzarGui {
   private void populateRunPaneWithExample(String exampleName) {
     try {
       String version = getVersion();
-      String url = String.format("https://raw.githubusercontent.com/river-jade/v%s/example-projects/example-%s",
+      String url = String.format("http://tzar-framework.googlecode.com/svn/tags/v%s/example-projects/example-%s",
           version, exampleName);
       repoType.setSelectedItem(CodeSourceImpl.RepositoryTypeImpl.SVN);
       numRuns.setValue(1);

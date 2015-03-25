@@ -19,7 +19,7 @@ chown tzar:webapps /webapps/tzar/ -R
 
 su - tzar << EOF
 # get code
-svn checkout https://raw.githubusercontent.com/river-jade/latest/django/Tzar/tzar_admin
+svn checkout https://raw.githubusercontent.com/river-jade/tzar-framework/latest/django/Tzar/tzar_admin
 virtualenv .
 source bin/activate
 # install python requirements
