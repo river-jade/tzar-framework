@@ -145,11 +145,12 @@ public class CodeSourceImpl implements CodeSource {
     GIT {
       @Override
       public CodeRepository createRepository(CloseableHttpClient httpClient, URI sourceUri, boolean downloadOnce) {
-        throw new UnsupportedOperationException("Sorry, Git repository support is not yet implemented.");
+        return new GitRepository(sourceUri);
       }
 
       @Override
       public boolean isValidRevision(String revision) {
+        // FIXME
         return true;
       }
     },
