@@ -132,9 +132,11 @@ public class ExecutableRun {
         }
 
         LOG.info(String.format("Running model: %s, run_id: %d, Project name: %s, Scenario name: %s, " +
-            "Flags: %s", model, getRunId(), run.getProjectName(), run.getScenarioName(), run.getRunnerFlags()));
+                "Flags: %s", model, getRunId(), run.getProjectName(), run.getScenarioName(), run.getRunnerFlags()));
 
-        WildcardReplacer.Context context = new WildcardReplacer.Context(getRunId(), model, loadLibraries(), outputPath,
+        // Load the libraries
+        ImmutableMap<String, File> libraries = loadLibraries();
+        WildcardReplacer.Context context = new WildcardReplacer.Context(getRunId(), model, libraries, outputPath,
             metadataPath, getRun().getRunset());
         Parameters parameters = new WildcardReplacer().replaceWildcards(run.getParameters(), context);
 
@@ -143,9 +145,10 @@ public class ExecutableRun {
         RUNNER_LOGGER.log(Level.FINE, DATE_FORMAT.format(new Date()));
         RUNNER_LOGGER.log(Level.FINE, "Executing run with revision: {0}, from project: {1}",
             new Object[]{defaultIfEmpty(codeSource.getRevision(), "none"), codeSource.getSourceUri()});
-        File parametersFile = new File(metadataPath, "parameters.yaml");
 
         writeLibraryMetadata(metadataPath);
+
+        File parametersFile = new File(metadataPath, "parameters.yaml");
         yamlParser.parametersToYaml(parameters, parametersFile);
 
         return runModel(stopRun, model, parameters, handler);
@@ -182,6 +185,11 @@ public class ExecutableRun {
     return success;
   }
 
+  /**
+   * Writes information about the libraries used in this run into the output directory.
+   * @param metadataPath file to the directory in which to write the metadata
+   * @throws TzarException
+   */
   private void writeLibraryMetadata(File metadataPath) throws TzarException {
     Map<String, ? extends CodeSource> libraries = run.getLibraries();
     File libraryMetadata = new File(metadataPath, "libraries.csv");
@@ -210,7 +218,7 @@ public class ExecutableRun {
    * @return
    * @throws TzarException
    */
-  private ImmutableMap<String, File> loadLibraries() throws TzarException {
+  protected ImmutableMap<String, File> loadLibraries() throws TzarException {
     ImmutableMap.Builder<String, File> builder = ImmutableMap.builder();
     for (Map.Entry<String, ? extends CodeSource> entry : run.getLibraries().entrySet()) {
       String libraryName = entry.getKey();

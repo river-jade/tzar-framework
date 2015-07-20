@@ -83,7 +83,9 @@ public class ExecLocalRuns implements Command {
         runFactory.getRunset());
 
     if (mapReduce.isPresent()) {
-      if (failedIds.isEmpty()) {
+      if (dryRun) {
+        LOG.info("Would have executed Map-reduce here were this not a dry run.");
+      } else if (failedIds.isEmpty()) {
         mapReduce.get().execute(runs, runsetOutputPath);
       } else {
         LOG.warning("Did not execute map-reduce as one or more of the runs failed.");

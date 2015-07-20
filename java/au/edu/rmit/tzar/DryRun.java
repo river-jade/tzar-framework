@@ -1,16 +1,16 @@
 package au.edu.rmit.tzar;
 
-import au.edu.rmit.tzar.api.Parameters;
-import au.edu.rmit.tzar.api.Run;
-import au.edu.rmit.tzar.api.StopRun;
-import au.edu.rmit.tzar.api.TzarException;
+import au.edu.rmit.tzar.api.*;
 import au.edu.rmit.tzar.runners.RunnerFactory;
+import com.google.common.collect.ImmutableMap;
 
 import java.io.File;
+import java.util.Map;
 import java.util.logging.FileHandler;
 
 /**
- * Created by michaell on 11/12/14.
+ * An ExecutableRun that doesn't download the libraries, run the mapreduce, or
+ * actually execute the model
  */
 public class DryRun extends ExecutableRun {
   /**
@@ -29,5 +29,20 @@ public class DryRun extends ExecutableRun {
   @Override
   protected boolean runModel(StopRun stopRun, File model, Parameters parameters, FileHandler handler) throws TzarException {
     return true; // dry runs always succeed.
+  }
+
+  /**
+   * Do nothing library loader.
+   * @return
+   * @throws TzarException
+   */
+  @Override
+  protected ImmutableMap<String, File> loadLibraries() throws TzarException {
+    ImmutableMap.Builder<String, File> builder = ImmutableMap.builder();
+    for (Map.Entry<String, ? extends CodeSource> entry : getRun().getLibraries().entrySet()) {
+      String libraryName = entry.getKey();
+      builder.put(libraryName, new File("/dummy/library/path/" + libraryName));
+    }
+    return builder.build();
   }
 }
