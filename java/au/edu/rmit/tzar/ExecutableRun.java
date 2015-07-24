@@ -177,7 +177,7 @@ public class ExecutableRun {
       renameOutputDir(success);
     }
     if (success) {
-      LOG.info("Run " + getRunId() + " succeeded.");
+      LOG.log(Level.INFO, "Run {0,number,#} succeeded. Final output directory: {1}", new Object[] {getRunId(), outputPath});
     } else {
       LOG.warning("Run " + getRunId() + " failed.");
     }
