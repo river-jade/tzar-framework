@@ -24,11 +24,13 @@ public class ScheduleRuns implements Command {
   private final RunDao runDao;
   private final int numRuns;
   private final RunFactory runFactory;
+  private final boolean dryRun;
 
-  public ScheduleRuns(RunDao runDao, int numRuns, RunFactory runFactory) {
+  public ScheduleRuns(RunDao runDao, int numRuns, RunFactory runFactory, boolean dryRun) {
     this.runDao = runDao;
     this.numRuns = numRuns;
     this.runFactory = runFactory;
+    this.dryRun = dryRun;
   }
 
   @Override
@@ -44,11 +46,15 @@ public class ScheduleRuns implements Command {
       }
     }
     List<Run> runs = runFactory.createRuns(numRuns);
-    runDao.insertRuns(runs);
-    for (Run run : runs) {
-      LOG.log(Level.FINE, "Scheduled run:{0} ", run);
+    if (!dryRun) {
+      runDao.insertRuns(runs);
+      for (Run run : runs) {
+        LOG.log(Level.FINE, "Scheduled run:{0} ", run);
+      }
+      LOG.log(Level.INFO, "Inserted {0} runs.", runs.size());
+    } else {
+      LOG.log(Level.INFO, "{0} runs not inserted into database as dry run was requested.", runs.size());
     }
-    LOG.log(Level.INFO, "Inserted {0} runs.", runs.size());
     return true;
   }
 }

@@ -142,7 +142,8 @@ class CommandFactory {
         CREATE_RUNS_FLAGS.getRunset(),
         SCHEDULE_RUNS_FLAGS.getClusterName(),
         projectSpec);
-    return new ScheduleRuns(daoFactory.createRunDao(), CREATE_RUNS_FLAGS.getNumRuns(), runFactory);
+    return new ScheduleRuns(daoFactory.createRunDao(), CREATE_RUNS_FLAGS.getNumRuns(), runFactory,
+            CREATE_RUNS_FLAGS.isDryRun());
   }
 
   private String getDbUrl() throws ParseException {

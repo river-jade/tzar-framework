@@ -383,7 +383,9 @@ public class TzarGui {
 
         RunFactory runFactory = new RunFactory(codeSource, scheduleRunsRunset.getText(),
             scheduleRunsClusterName.getText(), projectSpec);
-        new ScheduleRuns(daoFactory.createRunDao(), (Integer) scheduleRunsNumRuns.getValue(), runFactory).execute();
+
+        new ScheduleRuns(daoFactory.createRunDao(), (Integer) scheduleRunsNumRuns.getValue(), runFactory,
+                false /*TODO(river): Add UI element for dry run.*/).execute();
         return null;
       }
 
